@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{19F964F5-5719-4665-AD8F-0AD5AF9DD4CE}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>m</RootNamespace>
+    <AssemblyName>mHttp</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Externalconsole>true</Externalconsole>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Externalconsole>true</Externalconsole>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Net" />
+    <Reference Include="System.Data" />
+    <Reference Include="NLog">
+      <HintPath>..\packages\NLog.4.2.1\lib\net45\NLog.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="MySql.Data">
+      <HintPath>..\packages\MySql.Data.6.9.8\lib\net45\MySql.Data.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Config\ConfigManager.cs" />
+    <Compile Include="Config\ConfigMap.cs" />
+    <Compile Include="Config\EnvironmentVariableAttribute.cs" />
+    <Compile Include="Config\IConfigurable.cs" />
+    <Compile Include="Config\LoggingDefaults.cs" />
+    <Compile Include="DB\LazyPool.cs" />
+    <Compile Include="DB\MySqlPool.cs" />
+    <Compile Include="DB\MySqlPoolConfig.cs" />
+    <Compile Include="DB\PooledResource.cs" />
+    <Compile Include="Deploy\DeployConfigLabelAttribute.cs" />
+    <Compile Include="Deploy\DeploymentHelper.cs" />
+    <Compile Include="Http\ContentTypes.cs" />
+    <Compile Include="Http\EndpointBuilderExtensions.cs" />
+    <Compile Include="Http\Handlers\Handler.cs" />
+    <Compile Include="Http\Handlers\JsonHandler.cs" />
+    <Compile Include="Http\Headers.cs" />
+    <Compile Include="Http\HttpListenerBackend.cs" />
+    <Compile Include="Http\HttpRequest.cs" />
+    <Compile Include="Http\HttpResponse.cs" />
+    <Compile Include="Http\IHttpRequest.cs" />
+    <Compile Include="Http\IHttpResponse.cs" />
+    <Compile Include="Http\IMatchedRequest.cs" />
+    <Compile Include="Http\JsonRequest.cs" />
+    <Compile Include="Http\Lift.cs" />
+    <Compile Include="Http\Method.cs" />
+    <Compile Include="Http\Metrics\Endpoints\ResponseTime.cs" />
+    <Compile Include="Http\Metrics\Endpoints\StatusCodeCounter.cs" />
+    <Compile Include="Http\Metrics\ServerMetrics.cs" />
+    <Compile Include="Http\Request.cs" />
+    <Compile Include="Http\RequestException.cs" />
+    <Compile Include="Http\Router.cs" />
+    <Compile Include="Http\RouteTable.cs" />
+    <Compile Include="Http\Routing\Endpoint.cs" />
+    <Compile Include="Http\Routing\EndpointBuilder.cs" />
+    <Compile Include="Http\Routing\IEndpoint.cs" />
+    <Compile Include="Http\Routing\ITemplatePart.cs" />
+    <Compile Include="Http\Routing\RateLimitedEndpoint.cs" />
+    <Compile Include="Http\Routing\Route.cs" />
+    <Compile Include="Utils\Json.cs" />
+    <Compile Include="Utils\LeakyBucket.cs" />
+    <Compile Include="Utils\LifeCycleBase.cs" />
+    <Compile Include="Utils\Reservoir.cs" />
+    <Compile Include="Utils\Streams.cs" />
+    <Compile Include="Utils\Time.cs" />
+    <Compile Include="Utils\WaitableTimer.cs" />
+    <Compile Include="Http\Metrics\RequestLogs.cs" />
+    <Compile Include="Utils\LifeCycleToken.cs" />
+    <Compile Include="Deploy\EnvironmentVariable.cs" />
+    <Compile Include="Http\Metrics\Report.cs" />
+    <Compile Include="Utils\Compression.cs" />
+    <Compile Include="Http\TcpListenerBackend.cs" />
+    <Compile Include="Http\Backend\Tcp\ParseRequestException.cs" />
+    <Compile Include="Http\Backend\Tcp\RequestParser.cs" />
+    <Compile Include="Http\Backend\Tcp\RequestState.cs" />
+    <Compile Include="Http\Backend\Tcp\Session.cs" />
+    <Compile Include="Http\Backend\Tcp\HttpResponseWriter.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Folder Include="Config\" />
+    <Folder Include="DB\" />
+    <Folder Include="Deploy\" />
+    <Folder Include="Http\" />
+    <Folder Include="Utils\" />
+    <Folder Include="Http\Backend\" />
+    <Folder Include="Http\Backend\Tcp\" />
+  </ItemGroup>
+</Project>

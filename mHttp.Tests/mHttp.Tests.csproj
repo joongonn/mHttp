@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{85BB832B-D4C5-41FC-A8AB-24F25ED30A31}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>m</RootNamespace>
+    <AssemblyName>mHttp.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="nunit.framework">
+      <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="NLog">
+      <HintPath>..\packages\NLog.4.2.1\lib\net45\NLog.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Config\ConfigManagerTests.cs" />
+    <Compile Include="DB\LazyPoolMultiThreadTests.cs" />
+    <Compile Include="DB\LazyPoolSingleThreadTests.cs" />
+    <Compile Include="DB\MockPool.cs" />
+    <Compile Include="Http\RouterTests.cs" />
+    <Compile Include="Http\RouteTableTests.cs" />
+    <Compile Include="Http\Routing\RouteTests.cs" />
+    <Compile Include="BaseTest.cs" />
+    <Compile Include="Http\Backend\Tcp\RequestParserTests.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Folder Include="Config\" />
+    <Folder Include="DB\" />
+    <Folder Include="Http\" />
+    <Folder Include="Http\Backend\" />
+    <Folder Include="Http\Backend\Tcp\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\mHttp\mHttp.csproj">
+      <Project>{19F964F5-5719-4665-AD8F-0AD5AF9DD4CE}</Project>
+      <Name>mHttp</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>
