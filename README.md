@@ -14,7 +14,7 @@ $ xbuild /p:Configuration=Release mHttp.sln
 To produce the `mHttp.dll` artifact under the `mHttp/bin/Release` directory.
 
 ## Hello World
-We shall use the [Mono C# command-line REPL](http://www.mono-project.com/docs/tools+libraries/tools/repl/).
+This example uses the [Mono C# command-line REPL](http://www.mono-project.com/docs/tools+libraries/tools/repl/).
 
 **1.** Start a C# REPL session, referencing the `mhttp.dll` assembly (and its dependencies):
 ```shell
@@ -22,19 +22,21 @@ $ csharp -r:mHttp.dll,NLog.dll
 Mono C# Shell, type "help;" for help
 
 Enter statements below.
-csharp>
-```
-**2.** Instantiate and start the server with a single route listening on port 8080:
-```shell
 csharp> using m.Http;
-csharp> var server = new HttpListenerBackend("*", 8080);
+```
+**2.** Instantiate the *route table* with a single route:
+```shell
 csharp> var routeTable = new RouteTable(
       >   Route.Get("/").With((request) => HttpResponse.Text("Hello " + request.Headers["User-Agent"]))
       > );
+```
+**3.** Instantiate and start the server *backend* listening on port 8080:
+```shell
+csharp> var server = new HttpListenerBackend("*", 8080);
 csharp> server.Start(routeTable);
 csharp>  
 ```
-**3.** Hit the endpoint:
+**4.** Hit the endpoint:
 ```shell
 $ curl -v http://localhost:8080
 > GET / HTTP/1.1
@@ -48,3 +50,5 @@ $ curl -v http://localhost:8080
 Hello curl/7.35.0
 ```
 See the [sample project](https://github.com/joongonn/mHttp/blob/master/mHttp.Sample/Program.cs) for a more involved example.
+
+Proceed to the [wiki](https://github.com/joongonn/mHttp/wiki) to learn more.
