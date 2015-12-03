@@ -27,7 +27,7 @@ csharp> using m.Http;
 **2.** Instantiate the *route table* with a single route:
 ```shell
 csharp> var routeTable = new RouteTable(
-      >   Route.Get("/").With((request) => HttpResponse.Text("Hello " + request.Headers["User-Agent"]))
+      >   Route.Get("/").With((request) => new TextResponse("Hello " + request.Headers["User-Agent"]))
       > );
 ```
 **3.** Instantiate and start the server *backend* listening on port 8080:
