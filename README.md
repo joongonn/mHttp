@@ -24,7 +24,7 @@ Mono C# Shell, type "help;" for help
 Enter statements below.
 csharp> using m.Http;
 ```
-**2.** Instantiate the *route table* with a single route
+**2.** Instantiate the *route table* with a single route:
 ```shell
 csharp> var routeTable = new RouteTable(
       >   Route.Get("/").With((request) => HttpResponse.Text("Hello " + request.Headers["User-Agent"]))
@@ -50,3 +50,5 @@ $ curl -v http://localhost:8080
 Hello curl/7.35.0
 ```
 See the [sample project](https://github.com/joongonn/mHttp/blob/master/mHttp.Sample/Program.cs) for a more involved example.
+
+Proceed to the [wiki](https://github.com/joongonn/mHttp/wiki) to learn more.
