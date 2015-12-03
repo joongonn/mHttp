@@ -28,12 +28,12 @@ namespace m.Http
             return new Endpoint(b.Method, b.Route, Handler.FromAsyncAction(f));
         }
 
-        public static Endpoint With(this EndpointBuilder b, Func<IHttpResponse> f)
+        public static Endpoint With(this EndpointBuilder b, Func<HttpResponse> f)
         {
             return new Endpoint(b.Method, b.Route, Handler.From(f));
         }
 
-        public static Endpoint WithAsync(this EndpointBuilder b, Func<Task<IHttpResponse>> f)
+        public static Endpoint WithAsync(this EndpointBuilder b, Func<Task<HttpResponse>> f)
         {
             return new Endpoint(b.Method, b.Route, Handler.FromAsync(f));
         }
@@ -48,18 +48,18 @@ namespace m.Http
             return new Endpoint(b.Method, b.Route, Handler.FromAsyncAction(f));
         }
 
-        public static Endpoint With(this EndpointBuilder b, Func<Request, IHttpResponse> f)
+        public static Endpoint With(this EndpointBuilder b, Func<Request, HttpResponse> f)
         {
             return new Endpoint(b.Method, b.Route, Handler.From(f));
         }
 
-        public static Endpoint WithAsync(this EndpointBuilder b, Func<Request, Task<IHttpResponse>> f)
+        public static Endpoint WithAsync(this EndpointBuilder b, Func<Request, Task<HttpResponse>> f)
         {
             return new Endpoint(b.Method, b.Route, f);
         }
 
         #region Json
-        public static Endpoint WithAsync<TReq>(this EndpointBuilder b, Func<JsonRequest<TReq>, Task<IHttpResponse>> f)
+        public static Endpoint WithAsync<TReq>(this EndpointBuilder b, Func<JsonRequest<TReq>, Task<HttpResponse>> f)
         {
             return new Endpoint(b.Method, b.Route, JsonHandler<TReq>.FromAsync(f));
         }

@@ -14,6 +14,8 @@ namespace m.Http
 {
     public class Router : LifeCycleBase
     {
+        static readonly HttpResponse NotFound = new ErrorResponse(HttpStatusCode.NotFound);
+
         readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         readonly RouteTable routeTable;
@@ -69,11 +71,11 @@ namespace m.Http
             }
         }
 
-        public async Task<IHttpResponse> HandleHttpRequest(HttpRequest httpReq, DateTime requestArrivedOn)
+        public async Task<HttpResponse> HandleHttpRequest(HttpRequest httpReq, DateTime requestArrivedOn)
         {
             int endpointIndex;
             IReadOnlyDictionary<string, string> urlVariables;
-            IHttpResponse httpResp;
+            HttpResponse httpResp;
 
             //TODO: httpReq = FilterRequest(httpReq);
 
@@ -88,17 +90,17 @@ namespace m.Http
                 }
                 catch (RequestException e)
                 {
-                    httpResp = HttpResponse.Error(e.HttpStatusCode, e);
+                    httpResp = new ErrorResponse(e.HttpStatusCode, e);
                 }
                 catch (Exception e)
                 {
                     logger.Error("Error handling request:[{0}:{1}] - [{2}]: {3}", httpReq.Method, httpReq.Path, e.GetType().Name, e.Message);
-                    httpResp = HttpResponse.Error(HttpStatusCode.InternalServerError, e);
+                    httpResp = new ErrorResponse(HttpStatusCode.InternalServerError, e);
                 }
             }
             else
             {
-                httpResp = HttpResponse.NotFound;
+                httpResp = NotFound;
             }
 
             //TODO: httpResp = FilterResponse(httpReq, httpResp);

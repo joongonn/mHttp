@@ -51,7 +51,7 @@ namespace m.Sample
             }
         }
 
-        public async Task<IHttpResponse> GetAccountByIdEndpoint(Request req)
+        public async Task<HttpResponse> GetAccountByIdEndpoint(Request req)
         {
             var id = Convert.ToInt64(req.UrlVariables["id"]);
 
@@ -59,7 +59,7 @@ namespace m.Sample
             {
                 var accounts = await pooled.Resource.QueryAsync<Account>("SELECT * FROM `account` WHERE `id`=@id", new { id = id });
 
-                return HttpResponse.Json(accounts.Single());
+                return new JsonResponse(accounts.Single());
             }
         }
     }
@@ -126,7 +126,7 @@ namespace m.Sample
             // var server = new TcpListenerBackend(System.Net.IPAddress.Any, config.ListenPort);
 
             var routeTable = new RouteTable(
-                Route.Get("/").With((request) => HttpResponse.Text("Hello " + request.Headers["User-Agent"])),
+                Route.Get("/").With((request) => "Hello " + request.Headers["User-Agent"]),
                 Route.Post("/accounts").WithAsync(Lift.ToAsyncJsonHandler<Account.CreateRequest, Account>(services.CreateAccount)),
                 Route.Get("/accounts/{id}").WithAsync(services.GetAccountByIdEndpoint),
                 Route.Get("/metrics").With(server.GetMetricsReport).LimitRate(1),

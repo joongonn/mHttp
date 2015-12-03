@@ -202,7 +202,7 @@ namespace m.Http
                             bufferOffset = 0;
                             state = new RequestState();
 
-                            IHttpResponse httpResponse = await router.HandleHttpRequest(httpRequest, DateTime.UtcNow);
+                            HttpResponse httpResponse = await router.HandleHttpRequest(httpRequest, DateTime.UtcNow);
 
                             var response = new MemoryStream(1024 + httpResponse.Body.Length);
                             HttpResponseWriter.WriteResponse(httpResponse, response, httpRequest.IsKeepAlive ? keepAlives : 0, sessionReadTimeout);
@@ -239,14 +239,14 @@ namespace m.Http
             sessionTable.TryRemove(session.Id, out session);
         }
 
-        public IHttpResponse GetMetricsReport()
+        public HttpResponse GetMetricsReport()
         {
             if (!lifeCycleToken.IsStarted)
             {
                 throw new InvalidOperationException("Not started");
             }
 
-            return HttpResponse.Json(new
+            return new JsonResponse(new
             {
                 Sessions = sessionTable.Count,
                 Endpoints = router.Metrics.GetReport().Endpoints,

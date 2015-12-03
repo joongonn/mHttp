@@ -7,95 +7,67 @@ using m.Utils;
 
 namespace m.Http
 {
-    public static class HttpResponse
+    sealed class ErrorResponse : HttpResponse
     {
-        public static readonly IHttpResponse NotFound = Error(HttpStatusCode.NotFound);
-        public static readonly IHttpResponse ServiceUnavailable = Error(HttpStatusCode.ServiceUnavailable);
+        public readonly Exception Exception;
 
-        public abstract class Response : IHttpResponse
+        public ErrorResponse(HttpStatusCode statusCode) : base(statusCode, ContentTypes.Html)
         {
-            static readonly byte[] Empty = new byte[0];
-
-            public string ContentType { get; protected set; }
-            public HttpStatusCode StatusCode { get; protected set; }
-            public string StatusDescription { get; protected set; }
-            public IDictionary<string, string> Headers { get; protected set; }
-            public byte[] Body { get; protected set; }
-
-            protected Response(string contentType, HttpStatusCode statusCode) : this(contentType, statusCode, Empty) { }
-
-            protected Response(string contentType, HttpStatusCode statusCode, byte[] body) : this(contentType, statusCode, statusCode.ToString(), new Dictionary<string, string>(), body) { }
-
-            protected Response(string contentType, HttpStatusCode statusCode, string statusDescription) : this(contentType, statusCode, statusDescription, new Dictionary<string, string>(), Empty) { }
-
-            protected Response(string contentType, HttpStatusCode statusCode, string statusDescription, IDictionary<string, string> headers, byte[] body)
-            {
-                ContentType = contentType;
-                StatusCode = statusCode;
-                StatusDescription = statusDescription;
-                Headers = headers;
-                Body = body;
-            }
+            Exception = null;
         }
 
-        sealed class ErrorResponse : Response
+        public ErrorResponse(HttpStatusCode statusCode, string statusDescription) : base(statusCode, statusDescription, ContentTypes.Html)
         {
-            public readonly Exception Exception;
-
-            public ErrorResponse(HttpStatusCode statusCode) : base(ContentTypes.Html, statusCode)
-            {
-                Exception = null;
-            }
-
-            public ErrorResponse(HttpStatusCode statusCode, string statusDescription) : base(ContentTypes.Html, statusCode, statusDescription)
-            {
-                Exception = null;
-            }
-
-            public ErrorResponse(HttpStatusCode statusCode, Exception exception) : base(ContentTypes.Html, statusCode)
-            {
-                Exception = exception;
-            }
+            Exception = null;
         }
 
-        public sealed class TextResponse : Response
+        public ErrorResponse(HttpStatusCode statusCode, Exception exception) : base(statusCode, ContentTypes.Html)
         {
-            public TextResponse(string text) : base(ContentTypes.Plain, HttpStatusCode.OK, Encoding.UTF8.GetBytes(text)) { }
+            Exception = exception;
+        }
+    }
+
+    public sealed class TextResponse : HttpResponse
+    {
+        public TextResponse(string text) : base(HttpStatusCode.OK, ContentTypes.Plain, Encoding.UTF8.GetBytes(text)) { }
+    }
+
+    public sealed class JsonResponse : HttpResponse
+    {
+        public JsonResponse(string json) : base(HttpStatusCode.OK, ContentTypes.Json, Encoding.UTF8.GetBytes(json)) { }
+
+        public JsonResponse(object t) : this(t.ToJson()) { }
+    }
+
+    public abstract class HttpResponse
+    {
+        static readonly byte[] Empty = new byte[0];
+
+        public HttpStatusCode StatusCode { get; protected set; }
+        public string StatusDescription { get; protected set; }
+        public string ContentType { get; protected set; }
+        public IDictionary<string, string> Headers { get; protected set; }
+
+        public byte[] Body { get; protected set; }
+
+        protected HttpResponse(HttpStatusCode statusCode, string contentType) : this(statusCode, contentType, Empty) { }
+
+        protected HttpResponse(HttpStatusCode statusCode, string contentType, byte[] body) : this(statusCode, statusCode.ToString(), contentType, new Dictionary<string, string>(), body) { }
+
+        protected HttpResponse(HttpStatusCode statusCode, string statusDescription, string contentType) : this(statusCode, statusDescription, contentType, new Dictionary<string, string>(), Empty) { }
+
+        protected HttpResponse(HttpStatusCode statusCode, string statusDescription, string contentType, IDictionary<string, string> headers, byte[] body)
+        {
+            StatusCode = statusCode;
+            StatusDescription = statusDescription;
+            ContentType = contentType;
+            Headers = headers;
+            Body = body;
         }
 
-        public sealed class JsonResponse : Response
-        {
-            public JsonResponse(string json) : base(ContentTypes.Json, HttpStatusCode.OK, Encoding.UTF8.GetBytes(json)) { }
-
-            public JsonResponse(object t) : this(t.ToJson()) { }
-        }
-
-        public static IHttpResponse Error(HttpStatusCode statusCode)
-        {
-            return new ErrorResponse(statusCode);
-        }
-        public static IHttpResponse Error(HttpStatusCode statusCode, string statusDescription)
-        {
-            return new ErrorResponse(statusCode, statusDescription);
-        }
-        public static IHttpResponse Error(HttpStatusCode statusCode, Exception exception)
-        {
-            return new ErrorResponse(statusCode, exception);
-        }
-
-        public static IHttpResponse Text(string text)
+        public static implicit operator HttpResponse(string text)
         {
             return new TextResponse(text);
-        }
-
-        public static IHttpResponse Json(object o)
-        {
-            return new JsonResponse(o);
-        }
-
-        public static IHttpResponse GZip(IHttpResponse resp)
-        {
-            throw new NotImplementedException(); //FIXME:
         }
     }
 }

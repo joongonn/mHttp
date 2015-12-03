@@ -5,25 +5,16 @@ using System.Threading.Tasks;
 
 namespace m.Http.Handlers
 {
-    class EmptyResponse : IHttpResponse
+    class EmptyResponse : HttpResponse
     {
-        public static readonly IHttpResponse Instance = new EmptyResponse();
+        public static readonly HttpResponse Instance = new EmptyResponse();
 
-        readonly byte[] Empty = new byte[0];
-        readonly IDictionary<string, string> EmptyHeaders = new Dictionary<string, string>(0);
-
-        public string ContentType { get { return ContentTypes.Html; } }
-        public HttpStatusCode StatusCode { get { return HttpStatusCode.NoContent; } }
-        public string StatusDescription { get { return StatusCode.ToString(); } }
-        public IDictionary<string, string> Headers { get { return EmptyHeaders; } }
-        public byte[] Body { get { return Empty; } }
-
-        EmptyResponse() { }
+        EmptyResponse() : base(HttpStatusCode.NoContent, ContentTypes.Html) { }
     }
 
     public static class Handler
     {
-        public static Func<Request, Task<IHttpResponse>> FromAction(Action a)
+        public static Func<Request, Task<HttpResponse>> FromAction(Action a)
         {
             return (Request _) =>
             {
@@ -32,7 +23,7 @@ namespace m.Http.Handlers
             };
         }
 
-        public static Func<Request, Task<IHttpResponse>> FromAsyncAction(Func<Task> f)
+        public static Func<Request, Task<HttpResponse>> FromAsyncAction(Func<Task> f)
         {
             return async (Request _) =>
             {
@@ -41,7 +32,7 @@ namespace m.Http.Handlers
             };
         }
 
-        public static Func<Request, Task<IHttpResponse>> FromAction(Action<Request> a)
+        public static Func<Request, Task<HttpResponse>> FromAction(Action<Request> a)
         {
             return (Request req) =>
             {
@@ -50,7 +41,7 @@ namespace m.Http.Handlers
             };
         }
 
-        public static Func<Request, Task<IHttpResponse>> FromAsyncAction(Func<Request, Task> f)
+        public static Func<Request, Task<HttpResponse>> FromAsyncAction(Func<Request, Task> f)
         {
             return async (Request req) =>
             {
@@ -59,31 +50,30 @@ namespace m.Http.Handlers
             };
         }
 
-        public static Func<Request, Task<IHttpResponse>> From(Func<IHttpResponse> f)
+        public static Func<Request, Task<HttpResponse>> From(Func<HttpResponse> f)
         {
             return (Request _) =>
             {
-                IHttpResponse resp = f();
+                HttpResponse resp = f();
                 return Task.FromResult(resp);
             };
         }
 
-        public static Func<Request, Task<IHttpResponse>> From(Func<Request, IHttpResponse> f)
+        public static Func<Request, Task<HttpResponse>> From(Func<Request, HttpResponse> f)
         {
             return (Request req) =>
             {
-                IHttpResponse resp = f(req);
+                HttpResponse resp = f(req);
                 return Task.FromResult(resp);
             };
         }
-        public static Func<Request, Task<IHttpResponse>> FromAsync(Func<Task<IHttpResponse>> f)
+        public static Func<Request, Task<HttpResponse>> FromAsync(Func<Task<HttpResponse>> f)
         {
             return async (Request _) =>
             {
-                IHttpResponse resp = await f();
+                HttpResponse resp = await f();
                 return resp;
             };
         }
     }
 }
-

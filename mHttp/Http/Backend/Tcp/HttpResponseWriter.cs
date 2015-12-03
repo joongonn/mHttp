@@ -17,7 +17,7 @@ namespace m.Http.Backend.Tcp
         static readonly byte[] CRLF = new byte[] { 13, 10 };
         static readonly string Server = string.Format("mHttp {0}", System.Reflection.Assembly.GetExecutingAssembly().GetName().Version);
 
-        public static void WriteResponse(IHttpResponse httpResponse, Stream buffer, int keepAlives, TimeSpan keepAliveTimeout)
+        public static void WriteResponse(HttpResponse httpResponse, Stream buffer, int keepAlives, TimeSpan keepAliveTimeout)
         {
             var contentLength = (httpResponse.Body == null) ? 0 : httpResponse.Body.Length;
 

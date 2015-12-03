@@ -62,7 +62,6 @@
     <Compile Include="Http\HttpRequest.cs" />
     <Compile Include="Http\HttpResponse.cs" />
     <Compile Include="Http\IHttpRequest.cs" />
-    <Compile Include="Http\IHttpResponse.cs" />
     <Compile Include="Http\IMatchedRequest.cs" />
     <Compile Include="Http\JsonRequest.cs" />
     <Compile Include="Http\Lift.cs" />

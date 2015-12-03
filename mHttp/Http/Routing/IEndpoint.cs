@@ -9,6 +9,6 @@ namespace m.Http.Routing
         Method Method { get; }
         Route Route { get; }
 
-        Task<IHttpResponse> Handle(Request request);
+        Task<HttpResponse> Handle(Request request);
     }
 }

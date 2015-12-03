@@ -11,6 +11,8 @@ namespace m.Http
 {
     public sealed class HttpListenerBackend
     {
+        readonly HttpResponse ServiceUnavailable = new ErrorResponse(HttpStatusCode.ServiceUnavailable);
+
         readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         readonly string ListenOn;
@@ -90,7 +92,7 @@ namespace m.Http
             getContexts.Release();
 
             HttpListenerContext ctx = gottenContext.Result;
-            IHttpResponse httpResp;
+            HttpResponse httpResp;
 
             if (!lifeCycleToken.IsShutdown)
             {
@@ -102,18 +104,18 @@ namespace m.Http
                 catch (Exception e)
                 {
                     logger.Fatal("InternalServerError processing HttpListenerContext - {0}", e.ToString());
-                    httpResp = HttpResponse.Error(HttpStatusCode.InternalServerError);
+                    httpResp = new ErrorResponse(HttpStatusCode.InternalServerError);
                 }
             }
             else
             {
-                httpResp = HttpResponse.ServiceUnavailable;
+                httpResp = ServiceUnavailable;
             }
 
             WriteAndCloseResponse(httpResp, ctx.Response);
         }
 
-        static void WriteAndCloseResponse(IHttpResponse httpResp, HttpListenerResponse respCtx)
+        static void WriteAndCloseResponse(HttpResponse httpResp, HttpListenerResponse respCtx)
         {
             try
             {
@@ -146,14 +148,14 @@ namespace m.Http
             }
         }
 
-        public IHttpResponse GetMetricsReport()
+        public HttpResponse GetMetricsReport()
         {
             if (!lifeCycleToken.IsStarted)
             {
                 throw new InvalidOperationException("Not started");
             }
 
-            return HttpResponse.Json(router.Metrics.GetReport());
+            return new JsonResponse(router.Metrics.GetReport());
         }
     }
 }

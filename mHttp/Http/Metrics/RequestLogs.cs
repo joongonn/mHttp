@@ -9,11 +9,11 @@ namespace m.Http.Metrics
         public abstract class Log
         {
             public readonly IHttpRequest Request;
-            public readonly IHttpResponse Response;
+            public readonly HttpResponse Response;
             public readonly DateTime ArrivedOn;
             public readonly DateTime CompletedOn;
 
-            protected Log(IHttpRequest request, IHttpResponse response, DateTime arrivedOn, DateTime completedOn)
+            protected Log(IHttpRequest request, HttpResponse response, DateTime arrivedOn, DateTime completedOn)
             {
                 Request = request;
                 Response = response;
@@ -26,7 +26,7 @@ namespace m.Http.Metrics
         {
             public readonly int EndpointIndex;
 
-            public EndpointLog(int endpointIndex, IHttpRequest req, IHttpResponse resp, DateTime arrivedOn, DateTime completedOn) : base(req, resp, arrivedOn, completedOn)
+            public EndpointLog(int endpointIndex, IHttpRequest request, HttpResponse response, DateTime arrivedOn, DateTime completedOn) : base(request, response, arrivedOn, completedOn)
             {
                 EndpointIndex = endpointIndex;
             }
@@ -53,7 +53,7 @@ namespace m.Http.Metrics
             }
         }
 
-        public bool TryAdd(int endpointIndex, IHttpRequest request, IHttpResponse response, DateTime arrivedOn, DateTime completedOn)
+        public bool TryAdd(int endpointIndex, IHttpRequest request, HttpResponse response, DateTime arrivedOn, DateTime completedOn)
         {
             return queue.TryAdd(new EndpointLog(endpointIndex, request, response, arrivedOn, completedOn));
         }

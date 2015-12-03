@@ -8,14 +8,16 @@ namespace m.Http.Routing
 {
     public sealed class RateLimitedEndpoint : IEndpoint
     {
+        static readonly HttpResponse TooManyRequests = new ErrorResponse((HttpStatusCode)429, "Too many requests");
+        
         public Method Method { get; private set; }
         public Route Route { get; private set; }
-        readonly Func<Request, Task<IHttpResponse>> Handler;
+        readonly Func<Request, Task<HttpResponse>> Handler;
         readonly LeakyBucket rateLimitBucket;
 
         readonly string toString;
 
-        internal RateLimitedEndpoint(Method method, Route route, Func<Request, Task<IHttpResponse>> handler, int requestsPerSecond, int burstRequestsPerSecond)
+        internal RateLimitedEndpoint(Method method, Route route, Func<Request, Task<HttpResponse>> handler, int requestsPerSecond, int burstRequestsPerSecond)
         {
             Method = method;
             Route = route;
@@ -24,7 +26,7 @@ namespace m.Http.Routing
             toString = string.Format("{0}({1}:{2})", GetType().Name, Method, Route.PathTemplate);
         }
 
-        public Task<IHttpResponse> Handle(Request request)
+        public Task<HttpResponse> Handle(Request request)
         {
             if (rateLimitBucket.Fill(1))
             {
@@ -32,8 +34,7 @@ namespace m.Http.Routing
             }
             else
             {
-                IHttpResponse errorResponse = HttpResponse.Error((HttpStatusCode)429, "Too many requests");
-                return Task.FromResult(errorResponse);
+                return Task.FromResult(TooManyRequests);
             }
         }
 
