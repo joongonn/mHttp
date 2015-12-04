@@ -126,7 +126,7 @@ namespace m.Sample
             // var server = new TcpListenerBackend(System.Net.IPAddress.Any, config.ListenPort);
 
             var routeTable = new RouteTable(
-                Route.Get("/").With((request) => "Hello " + request.Headers["User-Agent"]),
+                Route.Get("/").With((request) => new TextResponse("Hello " + request.Headers["User-Agent"])),
                 Route.Post("/accounts").WithAsync(Lift.ToAsyncJsonHandler<Account.CreateRequest, Account>(services.CreateAccount)),
                 Route.Get("/accounts/{id}").WithAsync(services.GetAccountByIdEndpoint),
                 Route.Get("/metrics").With(server.GetMetricsReport).LimitRate(1),

@@ -75,7 +75,6 @@
     <Compile Include="Http\RouteTable.cs" />
     <Compile Include="Http\Routing\Endpoint.cs" />
     <Compile Include="Http\Routing\EndpointBuilder.cs" />
-    <Compile Include="Http\Routing\IEndpoint.cs" />
     <Compile Include="Http\Routing\ITemplatePart.cs" />
     <Compile Include="Http\Routing\RateLimitedEndpoint.cs" />
     <Compile Include="Http\Routing\Route.cs" />

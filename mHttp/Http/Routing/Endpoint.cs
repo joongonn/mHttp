@@ -3,31 +3,19 @@ using System.Threading.Tasks;
 
 namespace m.Http.Routing
 {
-    public sealed class Endpoint : IEndpoint
+    public class Endpoint
     {
-        public Method Method { get; private set; }
-        public Route Route { get; private set; }
-        internal readonly Func<Request, Task<HttpResponse>> Handler;
+        public Method Method { get; protected set; }
+        public Route Route { get; protected set; }
+        public Func<Request, Task<HttpResponse>> Handler { get; protected set; }
 
-        readonly string toString;
+        protected Endpoint() { }
 
         public Endpoint(Method method, Route route, Func<Request, Task<HttpResponse>> handler)
         {
             Method = method;
             Route = route;
             Handler = handler;
-
-            toString = string.Format("{0}({1}:{2})", GetType().Name, Method, Route.PathTemplate);
-        }
-
-        public Task<HttpResponse> Handle(Request request)
-        {
-            return Handler(request);
-        }
-
-        public override string ToString()
-        {
-            return toString;
         }
     }
 }

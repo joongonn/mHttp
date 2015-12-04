@@ -16,11 +16,11 @@ namespace m.Http
         {
             Action noOp = () => {};
 
-            IEndpoint ep1 = Route.Get("/").WithAction(noOp);
-            IEndpoint ep2 = Route.Get("/accounts/{id}/data").WithAction(noOp);
-            IEndpoint ep3 = Route.Get("/files/*").WithAction(noOp);
-            IEndpoint ep4 = Route.Get("/accounts/{id}").WithAction(noOp);
-            IEndpoint ep5 = Route.Post("/accounts/").WithAction(noOp);
+            Endpoint ep1 = Route.Get("/").WithAction(noOp);
+            Endpoint ep2 = Route.Get("/accounts/{id}/data").WithAction(noOp);
+            Endpoint ep3 = Route.Get("/files/*").WithAction(noOp);
+            Endpoint ep4 = Route.Get("/accounts/{id}").WithAction(noOp);
+            Endpoint ep5 = Route.Post("/accounts/").WithAction(noOp);
 
             var routeTable = new RouteTable(ep1, ep2, ep3, ep4, ep5);
 

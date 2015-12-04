@@ -30,21 +30,21 @@ namespace m.Http
         }
     }
 
-    public sealed class RouteTable : IEnumerable<IEndpoint>
+    public sealed class RouteTable : IEnumerable<Endpoint>
     {
         sealed class IndexedEndpoint
         {
             public readonly int Index;
-            public readonly IEndpoint Endpoint;
+            public readonly Endpoint Endpoint;
 
-            public IndexedEndpoint(int index, IEndpoint endpoint)
+            public IndexedEndpoint(int index, Endpoint endpoint)
             {
                 Index = index;
                 Endpoint = endpoint;
             }
         }
 
-        readonly IEndpoint[] allEndpoints;
+        readonly Endpoint[] allEndpoints;
 
         readonly IndexedEndpoint[] getEndpoints;
         readonly IndexedEndpoint[] postEndpoints;
@@ -52,11 +52,11 @@ namespace m.Http
         readonly IndexedEndpoint[] deleteEndpoints;
 
         public int Length { get { return allEndpoints.Length; } }
-        public IEndpoint this[int EndpointIndex] { get { return allEndpoints[EndpointIndex]; } }
+        public Endpoint this[int EndpointIndex] { get { return allEndpoints[EndpointIndex]; } }
 
-        public RouteTable(params IEndpoint[] endpoints)
+        public RouteTable(params Endpoint[] endpoints)
         {
-            allEndpoints = new IEndpoint[endpoints.Length];
+            allEndpoints = new Endpoint[endpoints.Length];
             Array.Copy(endpoints, allEndpoints, endpoints.Length);
 
             var indexedEndpoints = allEndpoints.Select((endpoint, index) => new IndexedEndpoint(index, endpoint)).ToArray();
@@ -67,9 +67,9 @@ namespace m.Http
             deleteEndpoints = indexedEndpoints.Where(e => e.Endpoint.Method == Method.DELETE).ToArray();
         }
 
-        public IEnumerator<IEndpoint> GetEnumerator()
+        public IEnumerator<Endpoint> GetEnumerator()
         {
-            return ((IEnumerable<IEndpoint>)allEndpoints).GetEnumerator();
+            return ((IEnumerable<Endpoint>)allEndpoints).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

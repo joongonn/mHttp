@@ -246,9 +246,8 @@ namespace m.Http
                 throw new InvalidOperationException("Not started");
             }
 
-            return new JsonResponse(new
-            {
-                Sessions = sessionTable.Count,
+            return new JsonResponse(new {
+                ConnectedSessions = sessionTable.Count,
                 Endpoints = router.Metrics.GetReport().Endpoints,
             });
         }

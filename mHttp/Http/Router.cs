@@ -83,10 +83,10 @@ namespace m.Http
                                                              httpReq.Url,
                                                              out urlVariables)) >= 0)
             {
-                IEndpoint endpoint = routeTable[endpointIndex];
+                Endpoint endpoint = routeTable[endpointIndex];
                 try
                 {
-                    httpResp = await endpoint.Handle(new Request(httpReq, urlVariables));
+                    httpResp = await endpoint.Handler(new Request(httpReq, urlVariables));
                 }
                 catch (RequestException e)
                 {
