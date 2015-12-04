@@ -7,29 +7,6 @@ using m.Http.Routing;
 
 namespace m.Http
 {
-    public static class Route
-    {
-        public static EndpointBuilder Get(string route)
-        {
-            return new EndpointBuilder(Method.GET, new Routing.Route(route));
-        }
-
-        public static EndpointBuilder Post(string route)
-        {
-            return new EndpointBuilder(Method.POST, new Routing.Route(route));
-        }
-
-        public static EndpointBuilder Put(string route)
-        {
-            return new EndpointBuilder(Method.PUT, new Routing.Route(route));
-        }
-
-        public static EndpointBuilder Delete(string route)
-        {
-            return new EndpointBuilder(Method.DELETE, new Routing.Route(route));
-        }
-    }
-
     public sealed class RouteTable : IEnumerable<Endpoint>
     {
         sealed class IndexedEndpoint

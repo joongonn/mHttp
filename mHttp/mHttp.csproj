@@ -54,7 +54,6 @@
     <Compile Include="Deploy\DeployConfigLabelAttribute.cs" />
     <Compile Include="Deploy\DeploymentHelper.cs" />
     <Compile Include="Http\ContentTypes.cs" />
-    <Compile Include="Http\EndpointBuilderExtensions.cs" />
     <Compile Include="Http\Handlers\Handler.cs" />
     <Compile Include="Http\Handlers\JsonHandler.cs" />
     <Compile Include="Http\Headers.cs" />
@@ -96,6 +95,7 @@
     <Compile Include="Http\Backend\Tcp\RequestState.cs" />
     <Compile Include="Http\Backend\Tcp\Session.cs" />
     <Compile Include="Http\Backend\Tcp\HttpResponseWriter.cs" />
+    <Compile Include="Http\Route.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

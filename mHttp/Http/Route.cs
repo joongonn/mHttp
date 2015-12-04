@@ -6,8 +6,28 @@ using m.Http.Routing;
 
 namespace m.Http
 {
-    public static class EndpointBuilderExtensions
+    public static class Route
     {
+        public static EndpointBuilder Get(string route)
+        {
+            return new EndpointBuilder(Method.GET, new Routing.Route(route));
+        }
+
+        public static EndpointBuilder Post(string route)
+        {
+            return new EndpointBuilder(Method.POST, new Routing.Route(route));
+        }
+
+        public static EndpointBuilder Put(string route)
+        {
+            return new EndpointBuilder(Method.PUT, new Routing.Route(route));
+        }
+
+        public static EndpointBuilder Delete(string route)
+        {
+            return new EndpointBuilder(Method.DELETE, new Routing.Route(route));
+        }
+
         public static RateLimitedEndpoint LimitRate(this Endpoint ep, int requestsPerSecond, int burstRequestsPerSecond=0)
         {
             if (burstRequestsPerSecond == 0)
