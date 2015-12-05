@@ -2,12 +2,27 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
 
 using m.Http.Routing;
 
 namespace m.Http
 {
-    public sealed class RouteTable : IEnumerable<Endpoint>
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple=false)]
+    public sealed class EndpointAttribute : Attribute
+    {
+        public readonly Method Method;
+        public readonly string PathTemplate;
+
+        public EndpointAttribute(Method method, string pathTemplate)
+        {
+            Method = method;
+            PathTemplate = pathTemplate;
+        }
+    }
+
+    public sealed partial class RouteTable : IEnumerable<Endpoint>
     {
         sealed class IndexedEndpoint
         {
@@ -81,6 +96,105 @@ namespace m.Http
 
             urlVariables = null;
             return -1;
+        }
+
+        public static List<Endpoint> GenerateEndpoints(Type classType)
+        {
+            var staticEndpointMethods = GetEndpointMethods(classType, true);
+
+            return GenerateEndpoints(staticEndpointMethods, null);
+        }
+
+        public static List<Endpoint> GenerateEndpoints(object classInstance)
+        {
+            var endpointMethods = GetEndpointMethods(classInstance.GetType(), false);
+
+            return GenerateEndpoints(endpointMethods, classInstance);
+        }
+
+        static List<Endpoint> GenerateEndpoints(IEnumerable<Tuple<MethodInfo, EndpointAttribute>> endpointMethods, object targetClassInstance)
+        {
+            var endpoints = new List<Endpoint>();
+
+            foreach (var pair in endpointMethods)
+            {
+                var method = pair.Item1;
+                var endpoint = pair.Item2;
+
+                Func<Request, Task<HttpResponse>> handler;
+                if (IsValidEndpointHandler(method, targetClassInstance, out handler))
+                {
+                    endpoints.Add(new Endpoint(endpoint.Method, new Routing.Route(endpoint.PathTemplate), handler));
+                }
+                else
+                {
+                    throw new Exception(string.Format("[{0}.{1}] does not have a valid endpoint method signature", method.DeclaringType.Name, method.Name));
+                }
+            }
+
+            return endpoints;
+        }
+
+        static bool IsValidEndpointHandler(MethodInfo method, object targetClassInstance, out Func<Request, Task<HttpResponse>> asHandler)
+        {
+            try // `Func<Request, Task<HttpResponse>>` ?
+            {
+                if (method.IsStatic)
+                {
+                    asHandler = (Func<Request, Task<HttpResponse>>)Delegate.CreateDelegate(typeof(Func<Request, Task<HttpResponse>>), method);
+                }
+                else
+                {
+                    asHandler = (Func<Request, Task<HttpResponse>>)Delegate.CreateDelegate(typeof(Func<Request, Task<HttpResponse>>), targetClassInstance, method);
+                }
+                    
+                return true;
+            }
+            catch
+            {
+                asHandler = null;
+            }
+
+            try // `Func<Request, HttpResponse>` ?
+            {
+                if (method.IsStatic)
+                {
+                    var syncHandler = (Func<Request, HttpResponse>)Delegate.CreateDelegate(typeof(Func<Request, HttpResponse>), method);
+                    asHandler = Handlers.Handler.From(syncHandler);
+                }
+                else
+                {
+                    var syncHandler = (Func<Request, HttpResponse>)Delegate.CreateDelegate(typeof(Func<Request, HttpResponse>), targetClassInstance, method);
+                    asHandler = Handlers.Handler.From(syncHandler);
+                }
+                return true;
+            }
+            catch
+            {
+                asHandler = null;
+            }
+
+            return false;
+        }
+
+        static IEnumerable<Tuple<MethodInfo, EndpointAttribute>> GetEndpointMethods(Type classType, bool staticOnly)
+        {
+            var methods = classType.GetMethods();
+
+            var endpointMethods = methods.Select(m => new {
+                                              Method = m,
+                                              EndpointAttribute = m.GetCustomAttributes(typeof(EndpointAttribute), false)
+                                                                   .SingleOrDefault() as EndpointAttribute
+                                          })
+                                         .Where(m => m.EndpointAttribute != null)
+                                         .Select(m => Tuple.Create(m.Method, m.EndpointAttribute));
+
+            if (staticOnly)
+            {
+                endpointMethods = endpointMethods.Where(m => m.Item1.IsStatic);
+            }
+
+            return endpointMethods;
         }
     }
 }
