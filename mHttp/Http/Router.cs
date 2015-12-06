@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -12,36 +13,50 @@ using m.Utils;
 
 namespace m.Http
 {
-    public class Router : LifeCycleBase
+    public class Router : LifeCycleBase, IEnumerable<RouteTable>
     {
         static readonly HttpResponse NotFound = new ErrorResponse(HttpStatusCode.NotFound);
+        static readonly HttpResponse BadRequest = new ErrorResponse(HttpStatusCode.BadRequest);
 
         readonly Logger logger = LogManager.GetCurrentClassLogger();
 
-        readonly RouteTable routeTable;
+        readonly RouteTable[] routeTables;
         readonly RequestLogs requestLogs;
         readonly WaitableTimer timer;
 
-        public ServerMetrics Metrics { get; private set; }
-
         readonly RateLimitedEndpoint[] rateLimitedEndpoints;
 
-        public Router(RouteTable routeTable, int requestLogsSize=8192, int timerPeriodMs=100)
+        public RouterMetrics Metrics { get; private set; }
+        public RouteTable this[int RouteTableIndex] { get { return routeTables[RouteTableIndex]; } }
+        public int Length { get { return routeTables.Length; } }
+
+        public Router(RouteTable routeTable, int requestLogsSize=8192, int timerPeriodMs=100) : this(new [] { routeTable }, requestLogsSize, timerPeriodMs) { }
+
+        public Router(RouteTable[] routeTables, int requestLogsSize=8192, int timerPeriodMs=100)
         {
-            this.routeTable = routeTable;
+            this.routeTables = routeTables;
 
-            rateLimitedEndpoints = routeTable.Where(ep => ep is RateLimitedEndpoint)
-                                             .Cast<RateLimitedEndpoint>()
-                                             .ToArray();
+            rateLimitedEndpoints = routeTables.SelectMany(table => table.Where(ep => ep is RateLimitedEndpoint).Cast<RateLimitedEndpoint>())
+                                              .ToArray();
 
-            requestLogs = new RequestLogs(routeTable.Length, requestLogsSize);
-            Metrics = new ServerMetrics(routeTable);
+            requestLogs = new RequestLogs(this, requestLogsSize);
+            Metrics = new RouterMetrics(this);
             timer = new WaitableTimer("RouterTimer",
                                       TimeSpan.FromMilliseconds(timerPeriodMs),
                                       new [] {
                                           new WaitableTimer.Job("UpdateRateLimitBuckets", UpdateRateLimitBuckets),
                                           new WaitableTimer.Job("ProcessRequestLogs", ProcessRequestLogs)
                                       });
+        }
+
+        public IEnumerator<RouteTable> GetEnumerator()
+        {
+            return ((IEnumerable<RouteTable>)routeTables).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
 
         protected override void OnStart()
@@ -64,52 +79,79 @@ namespace m.Http
 
         void ProcessRequestLogs()
         {
-            IEnumerable<RequestLogs.Log>[] logsByEndpointIndex;
-            if (requestLogs.Drain(out logsByEndpointIndex) > 0)
+            IEnumerable<RequestLogs.Log>[][] logs;
+            if (requestLogs.Drain(out logs) > 0)
             {
-                Metrics.Update(logsByEndpointIndex);
+                Metrics.Update(logs);
             }
+        }
+
+        int MatchRouteTable(string host)
+        {
+            for (int i=0; i<routeTables.Length; i++)
+            {
+                if (routeTables[i].MatchRequestedHost(host))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
         }
 
         public async Task<HttpResponse> HandleHttpRequest(HttpRequest httpReq, DateTime requestArrivedOn)
         {
-            int endpointIndex;
-            IReadOnlyDictionary<string, string> urlVariables;
+            var requestedHost = httpReq.Host;
+            if (string.IsNullOrEmpty(requestedHost))
+            {
+                return BadRequest;
+            }
+
             HttpResponse httpResp;
 
-            //TODO: httpReq = FilterRequest(httpReq);
-
-            if ((endpointIndex = routeTable.TryMatchEndpoint(httpReq.Method,
-                                                             httpReq.Url,
-                                                             out urlVariables)) >= 0)
+            int routeTableIndex;
+            if ((routeTableIndex = MatchRouteTable(requestedHost)) < 0)
             {
-                Endpoint endpoint = routeTable[endpointIndex];
-                try
-                {
-                    httpResp = await endpoint.Handler(new Request(httpReq, urlVariables));
-                }
-                catch (RequestException e)
-                {
-                    httpResp = new ErrorResponse(e.HttpStatusCode, e);
-                }
-                catch (Exception e)
-                {
-                    logger.Error("Error handling request:[{0}:{1}] - [{2}]: {3}", httpReq.Method, httpReq.Path, e.GetType().Name, e.Message);
-                    httpResp = new ErrorResponse(HttpStatusCode.InternalServerError, e);
-                }
+                httpResp = NotFound; // no matching host
             }
             else
             {
-                httpResp = NotFound;
-            }
+                RouteTable routeTable = routeTables[routeTableIndex];
 
-            //TODO: httpResp = FilterResponse(httpReq, httpResp);
+                //TODO: httpReq = routeTable.FilterRequest(httpReq);
 
-            if (endpointIndex >= 0)
-            {
-                while (!requestLogs.TryAdd(endpointIndex, httpReq, httpResp, requestArrivedOn, DateTime.UtcNow))
+                int endpointIndex;
+                IReadOnlyDictionary<string, string> urlVariables;
+                if ((endpointIndex = routeTable.TryMatchEndpoint(httpReq.Method, httpReq.Url, out urlVariables)) < 0)
                 {
-                    timer.Signal();
+                    httpResp = NotFound; // no matching route
+                }
+                else
+                {
+                    try
+                    {
+                        httpResp = await routeTable[endpointIndex].Handler(new Request(httpReq, urlVariables));
+                    }
+                    catch (RequestException e)
+                    {
+                        httpResp = new ErrorResponse(e.HttpStatusCode, e);
+                    }
+                    catch (Exception e)
+                    {
+                        logger.Error("Error handling request:[{0}:{1}] - [{2}]: {3}", httpReq.Method, httpReq.Path, e.GetType().Name, e.Message);
+                        httpResp = new ErrorResponse(HttpStatusCode.InternalServerError, e);
+                    }
+                }
+
+                //TODO: httpResp = routeTable.FilterResponse(httpReq, httpResp);
+
+                if (endpointIndex >= 0)
+                {
+                    while (!requestLogs.TryAdd(routeTableIndex, endpointIndex, httpReq, httpResp, requestArrivedOn, DateTime.UtcNow))
+                    {
+                        timer.Signal();
+                        // await Task.Yield();
+                    }
                 }
             }
 

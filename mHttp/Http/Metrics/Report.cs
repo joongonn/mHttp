@@ -24,6 +24,7 @@ namespace m.Http.Metrics
             public ResponseTime[] ResponseTimes { get; set; }
         }
 
+        public string Host { get; set; }
         public Endpoint[] Endpoints { get; set; }
     }
 }

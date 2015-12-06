@@ -22,7 +22,7 @@ namespace m.Http
         }
     }
 
-    public sealed partial class RouteTable : IEnumerable<Endpoint>
+    public sealed class RouteTable : IEnumerable<Endpoint>
     {
         sealed class IndexedEndpoint
         {
@@ -36,6 +36,9 @@ namespace m.Http
             }
         }
 
+        public readonly string HostPattern;
+        readonly string[] hostPatternParts;
+
         readonly Endpoint[] allEndpoints;
 
         readonly IndexedEndpoint[] getEndpoints;
@@ -46,8 +49,13 @@ namespace m.Http
         public int Length { get { return allEndpoints.Length; } }
         public Endpoint this[int EndpointIndex] { get { return allEndpoints[EndpointIndex]; } }
 
-        public RouteTable(params Endpoint[] endpoints)
+        public RouteTable(params Endpoint[] endpoints) : this("*", endpoints) { }
+
+        public RouteTable(string hostPattern, params Endpoint[] endpoints)
         {
+            HostPattern = hostPattern; //TODO: validate
+            hostPatternParts = HostPattern.Split('.');
+
             allEndpoints = new Endpoint[endpoints.Length];
             Array.Copy(endpoints, allEndpoints, endpoints.Length);
 
@@ -69,9 +77,38 @@ namespace m.Http
             return GetEnumerator();
         }
 
-        public int TryMatchEndpoint(Method method,
-                                    Uri url,
-                                    out IReadOnlyDictionary<string, string> urlVariables)
+        public bool MatchRequestedHost(string requestedHost)
+        {
+            if (hostPatternParts.Length == 1 && hostPatternParts[0][0] == '*')
+            {
+                return true;
+            }
+
+            requestedHost = requestedHost.Split(':')[0]; // drop the port
+            var requestedHostParts = requestedHost.Split('.');
+
+            if (hostPatternParts.Length != requestedHostParts.Length)
+            {
+                return false;
+            }
+
+            for (int i=hostPatternParts.Length-1; i>=0; i--)
+            {
+                if (hostPatternParts[i][0] == '*')
+                {
+                    return true;
+                }
+
+                if (!string.Equals(hostPatternParts[i], requestedHostParts[i], StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public int TryMatchEndpoint(Method method, Uri url, out IReadOnlyDictionary<string, string> urlVariables)
         {
             IndexedEndpoint[] eps;
             switch (method)

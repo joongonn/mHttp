@@ -20,7 +20,7 @@ namespace m.Http
 
         public Stream InputStream { get { return httpReq.InputStream; } }
 
-        internal Request(HttpRequest httpReq, IReadOnlyDictionary<string, string> urlVariables)
+        public Request(HttpRequest httpReq, IReadOnlyDictionary<string, string> urlVariables)
         {
             this.httpReq = httpReq;
             UrlVariables = urlVariables;

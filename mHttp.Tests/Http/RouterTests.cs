@@ -10,7 +10,10 @@ namespace m.Http
     [TestFixture]
     public class RouterTests : BaseTest
     {
-        static readonly IReadOnlyDictionary<string, string> EmptyHeaders = new Dictionary<string, string>();
+        static readonly IReadOnlyDictionary<string, string> EmptyHeaders = new Dictionary<string, string>()
+        {
+            { "Host", "localhost" }
+        };
 
         [Test]
         public async void TestRouter()

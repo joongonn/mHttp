@@ -38,6 +38,11 @@ namespace m.Http.Backend.Tcp
             string value;
             if (Headers.TryGetValue(nameIgnoreCase, out value))
             {
+                if (value == string.Empty)
+                {
+                    throw new RequestException(string.Format("'{0}' header cannot be empty", nameIgnoreCase), HttpStatusCode.BadRequest);
+                }
+
                 return value;
             }
             else
@@ -58,7 +63,6 @@ namespace m.Http.Backend.Tcp
                 return defaultValue;
             }
         }
-
 
         public T GetHeader<T>(string name)
         {

@@ -96,7 +96,7 @@ namespace m.Http
 
             if (!lifeCycleToken.IsShutdown)
             {
-                try 
+                try
                 {
                     HttpRequest httpReq = ctx.Request;
                     httpResp = await router.HandleHttpRequest(httpReq, requestArrivedOn);
@@ -155,7 +155,7 @@ namespace m.Http
                 throw new InvalidOperationException("Not started");
             }
 
-            return new JsonResponse(router.Metrics.GetReport());
+            return new JsonResponse(router.Metrics.GetReports());
         }
     }
 }

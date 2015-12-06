@@ -8,6 +8,7 @@ namespace m.Http
 {
     public sealed class HttpRequest : IHttpRequest
     {
+        public string Host { get; private set; }
         public Method Method { get; private set; }
         public string ContentType { get; private set; }
         public IReadOnlyDictionary<string, string> Headers  { get; private set; }
@@ -33,13 +34,16 @@ namespace m.Http
             IsKeepAlive = isKeepAlive;
             Headers = headers;
             InputStream = inputStream;
+
+            string host;
+            if (headers.TryGetValue("Host", out host)) { Host = host; }
         }
 
         public static implicit operator HttpRequest(HttpListenerRequest req)
         {
             return new HttpRequest(req.GetMethod(),
                                    req.ContentType,
-                                   req.Headers.AllKeys.ToDictionary(k => k, k => req.Headers[k]),
+                                   req.Headers.AllKeys.ToDictionary(k => k, k => req.Headers[k], StringComparer.OrdinalIgnoreCase),
                                    req.Url,
                                    req.KeepAlive,
                                    req.InputStream);

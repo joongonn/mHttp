@@ -67,7 +67,6 @@
     <Compile Include="Http\Method.cs" />
     <Compile Include="Http\Metrics\Endpoints\ResponseTime.cs" />
     <Compile Include="Http\Metrics\Endpoints\StatusCodeCounter.cs" />
-    <Compile Include="Http\Metrics\ServerMetrics.cs" />
     <Compile Include="Http\Request.cs" />
     <Compile Include="Http\RequestException.cs" />
     <Compile Include="Http\Router.cs" />
@@ -96,6 +95,7 @@
     <Compile Include="Http\Backend\Tcp\Session.cs" />
     <Compile Include="Http\Backend\Tcp\HttpResponseWriter.cs" />
     <Compile Include="Http\Route.cs" />
+    <Compile Include="Http\Metrics\RouterMetrics.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

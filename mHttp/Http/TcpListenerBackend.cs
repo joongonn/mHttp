@@ -248,7 +248,7 @@ namespace m.Http
 
             return new JsonResponse(new {
                 ConnectedSessions = sessionTable.Count,
-                Endpoints = router.Metrics.GetReport().Endpoints,
+                Reports = router.Metrics.GetReports(),
             });
         }
     }
