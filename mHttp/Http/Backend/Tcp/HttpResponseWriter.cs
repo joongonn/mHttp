@@ -38,7 +38,7 @@ namespace m.Http.Backend.Tcp
 
             if (httpResponse.Headers != null && httpResponse.Headers.Count > 0)
             {
-                foreach (var kvp in httpResponse.Headers)
+                foreach (var kvp in httpResponse.Headers) //TODO: duplicate handling with above
                 {
                     buffer.WriteAscii(string.Format("{0}: {1}\r\n", kvp.Key, kvp.Value));
                 }

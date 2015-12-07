@@ -18,7 +18,7 @@ namespace m.Http.Routing
             PathTemplate = pathTemplate;
         }
 
-        static ITemplatePart[] BuildTemplate(string pathTemplate)
+        internal static ITemplatePart[] BuildTemplate(string pathTemplate)
         {
             if (String.IsNullOrEmpty(pathTemplate))
             {   
@@ -33,27 +33,39 @@ namespace m.Http.Routing
             var match = TemplateRegex.Match(pathTemplate);
             if (match.Success)
             {
-                var parts = new List<ITemplatePart>();
+                var templateParts = new List<ITemplatePart>();
+                templateParts.Add(new Literal("/"));
 
-                foreach (Capture capture in match.Groups[1].Captures)
+                var stringParts = pathTemplate.Split('/');
+
+                for (int i=1; i<stringParts.Length; i++)
                 {
-                    var value = capture.Value;
-                    if (capture.Value[1] == '{')
+                    if (stringParts[i] == "*")
                     {
-                        parts.Add(new Variable(value.Substring(2, value.Length - 3)));
+                        templateParts.Add(Wildcard.Instance);
                     }
-                    else
+                    else if (stringParts[i].StartsWith("{"))
                     {
-                        parts.Add(new Literal(value.Substring(1)));
+                        templateParts.Add(new Variable(stringParts[i].Substring(1, stringParts[i].Length - 2)));
+                    }
+                    else if (stringParts[i] == string.Empty) // due to trailing slash
+                    {
+                        continue;
+                    }
+                    else // literal
+                    {
+                        if (i == stringParts.Length - 1)
+                        {
+                            templateParts.Add(new Literal(stringParts[i]));
+                        }
+                        else
+                        {
+                            templateParts.Add(new Literal(stringParts[i] + "/"));
+                        }
                     }
                 }
 
-                if (match.Groups[2].Captures.Count > 0 && match.Groups[2].Captures[0].Value == "/*")
-                {
-                    parts.Add(Wildcard.Instance);
-                }
-
-                return parts.ToArray();
+                return templateParts.ToArray();
             }
             else
             {
@@ -61,86 +73,53 @@ namespace m.Http.Routing
             }
         }
 
-        public bool TryMatch(Uri url, out IReadOnlyDictionary<string, string> urlVariables)
+        public bool TryMatch(Uri url, out IReadOnlyDictionary<string, string> pathVariables)
         {
-            var urlSegments = url.Segments;
+            var segments = url.Segments;
+            var variablesToCapture = 0;
+            var isMatched = true;
+            var i = 0;
 
-            if (urlSegments.Length == 1) // request for root "/"
+            while (true)
             {
-                if (templateParts.Length == 0)
-                {
-                    urlVariables = Empty;
-                    return true;
-                }
-                else
-                {
-                    urlVariables = null;
-                    return false;
-                }
-            }
-            else
-            {
-                if (templateParts.Length == 0)
-                {
-                    urlVariables = null;
-                    return false;
-                }
-            }
-
-            int i = 0; // templateParts
-            int j = 1; // System.Uri.Segments (always starts with "/")
-            int variablesToCapture = 0;
-
-            bool isMatched = true;
-            while (i < templateParts.Length && j < urlSegments.Length)
-            {
+                var currentSegment = segments[i];
                 var currentTemplatePart = templateParts[i];
-                var currentUrlSegment = urlSegments[j];
 
-                if (currentTemplatePart == Wildcard.Instance) // "/*"
+                if (currentTemplatePart == Wildcard.Instance)
                 {
                     break;
                 }
-
-                var literal = currentTemplatePart as Literal;
-                if (literal != null)
+                else if (currentTemplatePart is Variable)
                 {
-                    var urlSegmentLength = currentUrlSegment.Length;
-                    if (currentUrlSegment[urlSegmentLength - 1] == '/') { urlSegmentLength--; }
-
-                    if (urlSegmentLength != literal.Value.Length)
+                    variablesToCapture++;
+                    i++;
+                }
+                else
+                {
+                    var literalPart = currentTemplatePart as Literal;
+                    if (string.Equals(literalPart.Value, currentSegment))
+                    {
+                        i++;
+                    }
+                    else
                     {
                         isMatched = false;
                         break;
                     }
+                }
 
-                    for (int k = 0; k < urlSegmentLength; k++)
+                if (i == segments.Length || i == templateParts.Length)
+                {
+                    if (segments.Length < templateParts.Length)
                     {
-                        if (currentUrlSegment[k] != literal.Value[k])
-                        {
-                            isMatched = false;
-                            break;
-                        }
+                        isMatched = templateParts[i] is Wildcard;
+                        break;
                     }
-                }
-                else // MUST be true (currentTemplatePart is Variable)
-                {
-                    variablesToCapture++;
-                }
-
-                i++;
-                j++;
-
-                if (i < templateParts.Length && j == urlSegments.Length) // out of "segments" to match
-                {
-                    isMatched = false;
-                    break;
-                }
-
-                if (i == templateParts.Length && j < urlSegments.Length) // out of "templateParts" to match
-                {
-                    isMatched = false;
-                    break;
+                    else
+                    {
+                        isMatched = segments.Length == templateParts.Length;
+                        break;
+                    }
                 }
             }
 
@@ -148,39 +127,33 @@ namespace m.Http.Routing
             {
                 if (variablesToCapture > 0)
                 {
-                    i = 0;
-                    j = 1;
-
                     var variables = new Dictionary<string, string>(variablesToCapture);
 
-                    while (i < templateParts.Length && j < urlSegments.Length)
+                    var j = 1;
+                    while (j < segments.Length && j < templateParts.Length)
                     {
-                        var currentTemplatePart = templateParts[i];
-                        var currentSegment = urlSegments[j];
-
-                        var variable = currentTemplatePart as Variable;
-                        if (variable != null)
+                        var variablePart = templateParts[j] as Variable;
+                        if (variablePart != null)
                         {
-                            var segmentLength = currentSegment.Length;
-                            var captureSegment = (currentSegment[segmentLength - 1] == '/') ? currentSegment.Substring(0, segmentLength - 1) : currentSegment;
+                            var segment = segments[j];
+                            var segmentLength = segment.Length;
 
-                            variables.Add(variable.Name, captureSegment);
+                            variables[variablePart.Name] = (segment[segmentLength - 1] == '/') ? segment.Substring(0, segmentLength - 1) : segment;
                         }
 
-                        i++;
                         j++;
                     }
 
-                    urlVariables = variables;
+                    pathVariables = variables;
                 }
                 else
                 {
-                    urlVariables = Empty;
+                    pathVariables = Empty;
                 }
             }
             else
             {
-                urlVariables = null;
+                pathVariables = null;
             }
 
             return isMatched;

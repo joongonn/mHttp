@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using NUnit.Framework;
 
@@ -13,40 +14,49 @@ namespace m.Http.Routing
         {
             IReadOnlyDictionary<string, string> urlVariables;
 
-            var r1 = new Route("/");
+            var r0 = new Route("/");
+            Assert.True(r0.TryMatch(new Uri("http://localhost/"), out urlVariables));
+            Assert.True(r0.TryMatch(new Uri("http://localhost"), out urlVariables));
+            Assert.True(r0.TryMatch(new Uri("http://localhost?k=v"), out urlVariables));
+
+            var r1 = new Route("/*");
             Assert.True(r1.TryMatch(new Uri("http://localhost/"), out urlVariables));
-            Assert.True(r1.TryMatch(new Uri("http://localhost"), out urlVariables));
+            Assert.True(r1.TryMatch(new Uri("http://localhost/whatever"), out urlVariables));
             Assert.True(r1.TryMatch(new Uri("http://localhost?k=v"), out urlVariables));
 
-            var r2 = new Route("/accounts");
-            Assert.True(r2.TryMatch(new Uri("http://localhost/accounts"), out urlVariables));
+            var r2 = new Route("/files/*");
+            Assert.False(r2.TryMatch(new Uri("http://localhost/files"), out urlVariables));
+            Assert.True(r2.TryMatch(new Uri("http://localhost/files/"), out urlVariables));
+            //Assert.True(r1.TryMatch(new Uri("http://localhost/"), out urlVariables));
+
+            var r3 = new Route("/accounts");
+            Assert.True(r3.TryMatch(new Uri("http://localhost/accounts"), out urlVariables));
             Assert.AreEqual(0, urlVariables.Count);
-            Assert.True(r2.TryMatch(new Uri("http://localhost/accounts/"), out urlVariables));
-            Assert.False(r2.TryMatch(new Uri("http://localhost/account"), out urlVariables));
+            Assert.False(r3.TryMatch(new Uri("http://localhost/accounts/"), out urlVariables));
             Assert.IsNull(urlVariables);
 
-            var r3 = new Route("/accounts/{id}");
-            Assert.True(r3.TryMatch(new Uri("http://localhost/accounts/1234"), out urlVariables));
-            Assert.False(r3.TryMatch(new Uri("http://localhost/accounts/1234/data"), out urlVariables));
+            var r4 = new Route("/accounts/{id}");
+            Assert.True(r4.TryMatch(new Uri("http://localhost/accounts/1234"), out urlVariables));
+            Assert.False(r4.TryMatch(new Uri("http://localhost/accounts/1234/data"), out urlVariables));
 
-            var r4 = new Route("/accounts/{id}/data");
-            Assert.True(r4.TryMatch(new Uri("http://localhost/accounts/1234/data"), out urlVariables));
-            Assert.True(r4.TryMatch(new Uri("http://localhost/accounts/1234/data/"), out urlVariables));
-            Assert.True(r4.TryMatch(new Uri("http://localhost/accounts/1234/data?keys=name"), out urlVariables));
+            var r5 = new Route("/accounts/{id}/data");
+            Assert.True(r5.TryMatch(new Uri("http://localhost/accounts/1234/data"), out urlVariables));
+            Assert.False(r5.TryMatch(new Uri("http://localhost/accounts/1234/data/"), out urlVariables));
+            Assert.True(r5.TryMatch(new Uri("http://localhost/accounts/1234/data?keys=name"), out urlVariables));
             Assert.AreEqual("1234", urlVariables["id"]);
-            Assert.False(r4.TryMatch(new Uri("http://localhost/accounts/1234"), out urlVariables));
+            Assert.False(r5.TryMatch(new Uri("http://localhost/accounts/1234"), out urlVariables));
 
-            var r5 = new Route("/images/{category}/c/{name}");
-            Assert.True(r5.TryMatch(new Uri("http://localhost/images/animals/c/cat.png"), out urlVariables));
+            var r6 = new Route("/images/{category}/c/{name}");
+            Assert.True(r6.TryMatch(new Uri("http://localhost/images/animals/c/cat.png"), out urlVariables));
             Assert.AreEqual(2, urlVariables.Count);
             Assert.AreEqual("animals", urlVariables["category"]);
             Assert.AreEqual("cat.png", urlVariables["name"]);
-            Assert.False(r5.TryMatch(new Uri("http://localhost/images/animals/c"), out urlVariables));
+            Assert.False(r6.TryMatch(new Uri("http://localhost/images/animals/c"), out urlVariables));
 
-            var r6 = new Route("/files/*");
-            Assert.True(r6.TryMatch(new Uri("http://localhost/files/test/test.png"), out urlVariables));
-            Assert.True(r6.TryMatch(new Uri("http://localhost/files/test.png"), out urlVariables));
-            Assert.False(r6.TryMatch(new Uri("http://localhost/files"), out urlVariables));
+            var r7 = new Route("/files/*");
+            Assert.True(r7.TryMatch(new Uri("http://localhost/files/test/test.png"), out urlVariables));
+            Assert.True(r7.TryMatch(new Uri("http://localhost/files/test.png"), out urlVariables));
+            Assert.False(r7.TryMatch(new Uri("http://localhost/files"), out urlVariables));
         }
     }
 }

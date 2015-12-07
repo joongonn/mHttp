@@ -95,9 +95,6 @@ namespace m.Http.Backend.Tcp
 
             var headers = new Dictionary<string, string>();
             Assert.IsTrue(RequestParser.TryParseHeaders(buffer, ref start, (int)request.Length, headers.Add));
-            foreach (var kvp in headers) {
-                Console.WriteLine("{0}={1}", kvp.Key, kvp.Value);
-            }
         }
 
         [Test]

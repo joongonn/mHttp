@@ -39,7 +39,7 @@ namespace m.Http
         public JsonResponse(object t) : this(t.ToJson()) { }
     }
 
-    public abstract class HttpResponse
+    public class HttpResponse
     {
         static readonly byte[] Empty = new byte[0];
 
@@ -50,13 +50,13 @@ namespace m.Http
 
         public byte[] Body { get; protected set; }
 
-        protected HttpResponse(HttpStatusCode statusCode, string contentType) : this(statusCode, contentType, Empty) { }
+        public HttpResponse(HttpStatusCode statusCode, string contentType) : this(statusCode, contentType, Empty) { }
 
-        protected HttpResponse(HttpStatusCode statusCode, string contentType, byte[] body) : this(statusCode, statusCode.ToString(), contentType, new Dictionary<string, string>(), body) { }
+        public HttpResponse(HttpStatusCode statusCode, string contentType, byte[] body) : this(statusCode, statusCode.ToString(), contentType, new Dictionary<string, string>(), body) { }
 
-        protected HttpResponse(HttpStatusCode statusCode, string statusDescription, string contentType) : this(statusCode, statusDescription, contentType, new Dictionary<string, string>(), Empty) { }
+        public HttpResponse(HttpStatusCode statusCode, string statusDescription, string contentType) : this(statusCode, statusDescription, contentType, new Dictionary<string, string>(), Empty) { }
 
-        protected HttpResponse(HttpStatusCode statusCode, string statusDescription, string contentType, IDictionary<string, string> headers, byte[] body)
+        public HttpResponse(HttpStatusCode statusCode, string statusDescription, string contentType, IDictionary<string, string> headers, byte[] body)
         {
             StatusCode = statusCode;
             StatusDescription = statusDescription;
