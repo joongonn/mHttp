@@ -20,13 +20,13 @@ namespace m.Http
         public string Path { get { return Url.AbsolutePath; } }
         public string Query { get { return Url.Query; } }
 
-        public IReadOnlyDictionary<string, string> UrlVariables { get; private set; }
+        public IReadOnlyDictionary<string, string> PathVariables { get; private set; }
 
-        internal JsonRequest(IMatchedRequest req, TReq tReq, IReadOnlyDictionary<string, string> urlVariables)
+        internal JsonRequest(IMatchedRequest req, TReq tReq, IReadOnlyDictionary<string, string> pathVariables)
         {
             this.req = req;
             Req = tReq;
-            UrlVariables = urlVariables;
+            PathVariables = pathVariables;
         }
 
         internal static JsonRequest<TReq> From(Request req)
@@ -41,7 +41,7 @@ namespace m.Http
                 throw new RequestException(string.Format("Error deserializing inputstream to <{0}> - {1}", typeof(TReq).Name, e.Message), e, HttpStatusCode.BadRequest);
             }
 
-            return new JsonRequest<TReq>(req, reqObj, req.UrlVariables);
+            return new JsonRequest<TReq>(req, reqObj, req.PathVariables);
         }
     }
 }

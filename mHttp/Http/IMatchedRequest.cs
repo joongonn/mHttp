@@ -4,6 +4,6 @@ namespace m.Http
 {
     public interface IMatchedRequest : IHttpRequest
     {
-        IReadOnlyDictionary<string, string> UrlVariables { get; }
+        IReadOnlyDictionary<string, string> PathVariables { get; }
     }
 }

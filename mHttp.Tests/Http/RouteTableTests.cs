@@ -24,25 +24,25 @@ namespace m.Http
 
             var routeTable = new RouteTable(ep1, ep2, ep3, ep4, ep5);
 
-            IReadOnlyDictionary<string, string> urlVariables;
+            IReadOnlyDictionary<string, string> pathVariables;
 
-            Assert.AreEqual(0, routeTable.TryMatchEndpoint(Method.GET, new Uri("http://localhost/"), out urlVariables));
+            Assert.AreEqual(0, routeTable.TryMatchEndpoint(Method.GET, new Uri("http://localhost/"), out pathVariables));
             Assert.AreSame(routeTable[0], ep1);
 
-            Assert.AreEqual(1, routeTable.TryMatchEndpoint(Method.GET, new Uri("http://localhost/accounts/111/data?keys=name"), out urlVariables));
+            Assert.AreEqual(1, routeTable.TryMatchEndpoint(Method.GET, new Uri("http://localhost/accounts/111/data?keys=name"), out pathVariables));
             Assert.AreSame(routeTable[1], ep2);
-            Assert.AreEqual("111", urlVariables["id"]);
-            Assert.AreEqual(-1, routeTable.TryMatchEndpoint(Method.POST, new Uri("http://localhost/accounts/111/data"), out urlVariables));
-            Assert.IsNull(urlVariables);
+            Assert.AreEqual("111", pathVariables["id"]);
+            Assert.AreEqual(-1, routeTable.TryMatchEndpoint(Method.POST, new Uri("http://localhost/accounts/111/data"), out pathVariables));
+            Assert.IsNull(pathVariables);
 
-            Assert.AreEqual(2, routeTable.TryMatchEndpoint(Method.GET, new Uri("http://localhost/files/images/test.png"), out urlVariables));
+            Assert.AreEqual(2, routeTable.TryMatchEndpoint(Method.GET, new Uri("http://localhost/files/images/test.png"), out pathVariables));
             Assert.AreSame(routeTable[2], ep3);
 
-            Assert.AreEqual(3, routeTable.TryMatchEndpoint(Method.GET, new Uri("http://localhost/accounts/222"), out urlVariables));
+            Assert.AreEqual(3, routeTable.TryMatchEndpoint(Method.GET, new Uri("http://localhost/accounts/222"), out pathVariables));
             Assert.AreSame(routeTable[3], ep4);
-            Assert.AreEqual("222", urlVariables["id"]);
+            Assert.AreEqual("222", pathVariables["id"]);
 
-            Assert.AreEqual(-1, routeTable.TryMatchEndpoint(Method.POST, new Uri("http://localhost/"), out urlVariables));
+            Assert.AreEqual(-1, routeTable.TryMatchEndpoint(Method.POST, new Uri("http://localhost/"), out pathVariables));
         }
     }
 }

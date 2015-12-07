@@ -121,8 +121,8 @@ namespace m.Http
                 //TODO: httpReq = routeTable.FilterRequest(httpReq);
 
                 int endpointIndex;
-                IReadOnlyDictionary<string, string> urlVariables;
-                if ((endpointIndex = routeTable.TryMatchEndpoint(httpReq.Method, httpReq.Url, out urlVariables)) < 0)
+                IReadOnlyDictionary<string, string> pathVariables;
+                if ((endpointIndex = routeTable.TryMatchEndpoint(httpReq.Method, httpReq.Url, out pathVariables)) < 0)
                 {
                     httpResp = NotFound; // no matching route
                 }
@@ -130,7 +130,7 @@ namespace m.Http
                 {
                     try
                     {
-                        httpResp = await routeTable[endpointIndex].Handler(new Request(httpReq, urlVariables));
+                        httpResp = await routeTable[endpointIndex].Handler(new Request(httpReq, pathVariables));
                     }
                     catch (RequestException e)
                     {

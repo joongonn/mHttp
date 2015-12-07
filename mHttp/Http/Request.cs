@@ -16,14 +16,14 @@ namespace m.Http
         public string Path { get { return Url.AbsolutePath; } }
         public string Query { get { return Url.Query; } }
 
-        public IReadOnlyDictionary<string, string> UrlVariables { get; private set; }
+        public IReadOnlyDictionary<string, string> PathVariables { get; private set; }
 
         public Stream InputStream { get { return httpReq.InputStream; } }
 
-        public Request(HttpRequest httpReq, IReadOnlyDictionary<string, string> urlVariables)
+        public Request(HttpRequest httpReq, IReadOnlyDictionary<string, string> pathVariables)
         {
             this.httpReq = httpReq;
-            UrlVariables = urlVariables;
+            PathVariables = pathVariables;
         }
     }
 }

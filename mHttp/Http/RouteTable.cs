@@ -108,7 +108,7 @@ namespace m.Http
             return true;
         }
 
-        public int TryMatchEndpoint(Method method, Uri url, out IReadOnlyDictionary<string, string> urlVariables)
+        public int TryMatchEndpoint(Method method, Uri url, out IReadOnlyDictionary<string, string> pathVariables)
         {
             IndexedEndpoint[] eps;
             switch (method)
@@ -125,13 +125,13 @@ namespace m.Http
             for (var i=0; i<eps.Length; i++)
             {
                 var e = eps[i];
-                if (e.Endpoint.Route.TryMatch(url, out urlVariables))
+                if (e.Endpoint.Route.TryMatch(url, out pathVariables))
                 {
                     return e.Index;
                 }
             }
 
-            urlVariables = null;
+            pathVariables = null;
             return -1;
         }
 
