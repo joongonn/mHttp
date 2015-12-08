@@ -34,7 +34,7 @@ namespace m.Http
             TReq reqObj;
             try
             {
-                reqObj = req.InputStream.FromJson<TReq>();
+                reqObj = req.Body.FromJson<TReq>();
             }
             catch (Exception e)
             {

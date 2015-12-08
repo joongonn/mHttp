@@ -18,7 +18,7 @@ namespace m.Http
 
         public IReadOnlyDictionary<string, string> PathVariables { get; private set; }
 
-        public Stream InputStream { get { return httpReq.InputStream; } }
+        public Stream Body { get { return httpReq.Body; } }
 
         public Request(HttpRequest httpReq, IReadOnlyDictionary<string, string> pathVariables)
         {

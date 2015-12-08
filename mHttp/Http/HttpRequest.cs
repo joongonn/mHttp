@@ -19,21 +19,21 @@ namespace m.Http
 
         public bool IsKeepAlive { get; private set; }
 
-        public Stream InputStream { get; private set; }
+        public Stream Body { get; private set; }
 
         public HttpRequest(Method method,
                            string contentType,
                            IReadOnlyDictionary<string, string> headers,
                            Uri url,
                            bool isKeepAlive,
-                           Stream inputStream)
+                           Stream body)
         {
             Method = method;
             ContentType = contentType;
             Url = url;
             IsKeepAlive = isKeepAlive;
             Headers = headers;
-            InputStream = inputStream;
+            Body = body;
 
             string host;
             if (headers.TryGetValue("Host", out host)) { Host = host; }

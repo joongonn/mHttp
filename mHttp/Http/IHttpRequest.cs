@@ -9,7 +9,7 @@ namespace m.Http
 
         string ContentType { get; }
 
-        IReadOnlyDictionary<string, string> Headers { get; }
+        IReadOnlyDictionary<string, string> Headers { get; } //TODO: IDictionary<string, IEnumerable<string>> ?
 
         Uri Url { get; }
         string Path { get; }
