@@ -11,27 +11,33 @@ namespace m.Http.Routing
         static readonly HttpResponse TooManyRequests = new ErrorResponse((HttpStatusCode)429, "Too many requests");
         
         readonly LeakyBucket rateLimitBucket;
-        readonly Func<Request, Task<HttpResponse>> originalHandler;
 
-        internal RateLimitedEndpoint(Method method, Route route, Func<Request, Task<HttpResponse>> handler, int requestsPerSecond, int burstRequestsPerSecond)
+        public RateLimitedEndpoint(Method method,
+                                   Route route,
+                                   Func<Request, Task<HttpResponse>> handler,
+                                   int requestsPerSecond,
+                                   int burstRequestsPerSecond) : this(method, route, handler, new LeakyBucket(burstRequestsPerSecond, requestsPerSecond))
         {
-            Method = method;
-            Route = route;
-            originalHandler = handler;
-            rateLimitBucket = new LeakyBucket(burstRequestsPerSecond, requestsPerSecond);
-            Handler = Handle;
         }
 
-        Task<HttpResponse> Handle(Request request)
+        RateLimitedEndpoint(Method method, Route route, Func<Request, Task<HttpResponse>> handler, LeakyBucket rateLimitBucket) : base(method, route, Wrap(handler, rateLimitBucket))
         {
-            if (rateLimitBucket.Fill(1))
+            this.rateLimitBucket = rateLimitBucket;
+        }
+
+        static Func<Request, Task<HttpResponse>> Wrap(Func<Request, Task<HttpResponse>> handler, LeakyBucket rateLimitBucket)
+        {
+            return (Request request) =>
             {
-                return originalHandler(request);
-            }
-            else
-            {
-                return Task.FromResult(TooManyRequests);
-            }
+                if (rateLimitBucket.Fill(1))
+                {
+                    return handler(request);
+                }
+                else
+                {
+                    return Task.FromResult(TooManyRequests);
+                }
+            };
         }
 
         public void UpdateRateLimitBucket()
