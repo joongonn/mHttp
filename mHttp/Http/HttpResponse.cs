@@ -39,7 +39,7 @@ namespace m.Http
         public JsonResponse(object t) : this(t.ToJson()) { }
     }
 
-    public class HttpResponse
+    public class HttpResponse // Completely stateless for caching
     {
         static readonly byte[] Empty = new byte[0];
 

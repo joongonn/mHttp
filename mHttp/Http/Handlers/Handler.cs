@@ -1,34 +1,29 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 
 namespace m.Http.Handlers
 {
-    class EmptyResponse : HttpResponse
-    {
-        public static readonly HttpResponse Instance = new EmptyResponse();
-
-        EmptyResponse() : base(HttpStatusCode.NoContent, ContentTypes.Html) { }
-    }
-
     public static class Handler
     {
+        static readonly HttpResponse EmptyResponse = new HttpResponse(HttpStatusCode.NoContent, ContentTypes.Html);
+        static readonly Task<HttpResponse> EmptyResponseTask = Task.FromResult(EmptyResponse);
+
         public static Func<Request, Task<HttpResponse>> FromAction(Action a)
         {
             return (Request _) =>
             {
                 a();
-                return Task.FromResult(EmptyResponse.Instance);
+                return EmptyResponseTask;
             };
         }
 
         public static Func<Request, Task<HttpResponse>> FromAsyncAction(Func<Task> f)
         {
-            return async (Request _) =>
+            return (Request _) =>
             {
-                await f();
-                return EmptyResponse.Instance;
+                f();
+                return EmptyResponseTask;
             };
         }
 
@@ -37,16 +32,16 @@ namespace m.Http.Handlers
             return (Request req) =>
             {
                 a(req);
-                return Task.FromResult(EmptyResponse.Instance);
+                return EmptyResponseTask;
             };
         }
 
-        public static Func<Request, Task<HttpResponse>> FromAsyncAction(Func<Request, Task> f)
+        public static Func<Request, Task<HttpResponse>> FromAsyncAction(Func<Request, Task> a)
         {
-            return async (Request req) =>
+            return (Request req) =>
             {
-                await f(req);
-                return EmptyResponse.Instance;
+                a(req);
+                return EmptyResponseTask;
             };
         }
 
@@ -67,13 +62,10 @@ namespace m.Http.Handlers
                 return Task.FromResult(resp);
             };
         }
+
         public static Func<Request, Task<HttpResponse>> FromAsync(Func<Task<HttpResponse>> f)
         {
-            return async (Request _) =>
-            {
-                HttpResponse resp = await f();
-                return resp;
-            };
+            return (Request _) => f();
         }
     }
 }
