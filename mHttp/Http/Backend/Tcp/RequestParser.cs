@@ -324,15 +324,36 @@ namespace m.Http.Backend.Tcp
             return false;
         }
 
-        public static HttpRequest ParseHttpRequest(RequestState state)
+        static IHttpRequest ParseHttpRequest(RequestState state)
         {
             var host = state.GetHeader("Host");
-            var connection = state.GetHeaderWithDefault("Connection", null);
-            var contentType = state.GetHeaderWithDefault("Content-Type", null);
+            var contentType = state.GetHeaderWithDefault(Headers.ContentType, null);
+            var connection = state.GetHeaderWithDefault(Headers.Connection, null);
+            var upgrade = state.GetHeaderWithDefault(Headers.Upgrade, null);
+            var isKeepAlive = false;
+
+            var url = new Uri(string.Format("{0}://{1}{2}", "http", host, state.Path)); //TODO: https
+
+            if (connection != null)
+            {
+                isKeepAlive = connection.IndexOf("keep-alive", StringComparison.OrdinalIgnoreCase) >= 0;
+
+                if (connection.IndexOf("upgrade", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                    string.Equals(upgrade, "websocket", StringComparison.OrdinalIgnoreCase))
+                {
+                    var webSocketVersion = state.GetHeader(Headers.WebSocketVersion);
+                    var webSocketKey = state.GetHeader(Headers.WebSocketKey);
+                    var webSocketExtensions = state.GetHeader(Headers.WebSocketExtensions);
+
+                    return new HttpWebSocketRequest(state.Headers,
+                                                    webSocketVersion,
+                                                    webSocketKey,
+                                                    webSocketExtensions,
+                                                    url);
+                }
+            }
 
             state.Body.Position = 0;
-            var url = new Uri(string.Format("{0}://{1}{2}", "http", host, state.Path));
-            var isKeepAlive = string.Equals("Keep-Alive", connection, StringComparison.OrdinalIgnoreCase);
 
             return new HttpRequest(state.Method,
                                    contentType,
@@ -346,7 +367,7 @@ namespace m.Http.Backend.Tcp
                                                ref int start,
                                                int end,
                                                RequestState state,
-                                               out HttpRequest httpRequest)
+                                               out IHttpRequest httpRequest)
         {
             while (true)
             {
@@ -398,7 +419,7 @@ namespace m.Http.Backend.Tcp
                             return false;
                         }
 
-                case RequestState.State.ReadBody:
+                    case RequestState.State.ReadBody:
                         int bytesAvailable = end - start;
                         int bytesOutstanding = state.ContentLength - (int)state.Body.Length;
                         int bytesToWrite = Math.Min(bytesAvailable, bytesOutstanding);

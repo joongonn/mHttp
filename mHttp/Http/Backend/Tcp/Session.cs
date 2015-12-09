@@ -1,32 +1,73 @@
 ﻿using System;
+using System.IO;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
 namespace m.Http.Backend.Tcp
 {
-    class Session
+    class Session : SessionBase
     {
         public readonly long Id;
         readonly TcpClient tcpClient;
-        public readonly NetworkStream stream;
+        readonly int maxKeepAlives;
+        readonly TimeSpan readTimeout;
 
-        public Session(long id, TcpClient tcpClient, TimeSpan writeTimeout)
+        int start = 0;
+        RequestState requestState;
+        int requests = 0;
+
+        public int KeepAlivesRemaining { get { return maxKeepAlives - requests; } }
+
+        public Session(long id,
+                       TcpClient tcpClient,
+                       int maxKeepAlives,
+                       int initialReadBufferSize,
+                       TimeSpan readTimeout,
+                       TimeSpan writeTimeout) : base(tcpClient.GetStream(), initialReadBufferSize)
         {
             Id = id;
             this.tcpClient = tcpClient;
+            this.maxKeepAlives = maxKeepAlives;
+            this.readTimeout = readTimeout;
+
             this.tcpClient.NoDelay = true;
-            stream = this.tcpClient.GetStream();
-            stream.WriteTimeout = (int)writeTimeout.TotalMilliseconds;
+            this.tcpClient.GetStream().WriteTimeout = (int)writeTimeout.TotalMilliseconds;
+
+            requestState = new RequestState();
         }
 
-        public Task<int> ReadAsync(byte[] buffer, int offset, int count)
+        public bool TryParseRequestFromBuffer(out IHttpRequest request)
         {
-            return stream.ReadAsync(buffer, offset, count);
+            if (RequestParser.TryParseHttpRequest(buffer, ref start, bufferOffset, requestState, out request))
+            {
+                start = 0;
+                bufferOffset = 0;
+                requestState = new RequestState();
+
+                requests++;
+                return true;
+            }
+            else
+            {
+                request = null;
+                return false;
+            }
         }
 
-        public void Write(byte[] buffer, int offset, int size)
+        public void WriteResponse(HttpResponse response, bool keepAlive)
         {
-            stream.Write(buffer, offset, size);
+            var outputStream = new MemoryStream(1024 + response.Body.Length);
+
+            HttpResponseWriter.WriteResponse(response, outputStream, keepAlive ? KeepAlivesRemaining : 0, readTimeout);
+
+            try
+            {
+                tcpClient.GetStream().Write(outputStream.GetBuffer(), 0, (int)outputStream.Length);
+            }
+            catch (Exception e)
+            {
+                throw new SessionStreamException("Exception while writing to stream", e);
+            }
         }
 
         public bool IsDisconnected()
@@ -38,7 +79,7 @@ namespace m.Http.Backend.Tcp
         {
             try
             {
-                stream.Close();
+                tcpClient.GetStream().Close();
                 tcpClient.Close();
             }
             catch

@@ -110,12 +110,12 @@ namespace m.Http.Backend.Tcp
             WriteAscii(request, "Accept: */*\r\n");
 
             var state = new RequestState();
-            HttpRequest httpRequest;
+            IHttpRequest httpRequest;
             Assert.IsFalse(RequestParser.TryParseHttpRequest(buffer, ref start, (int)request.Length, state, out httpRequest));
 
             WriteAscii(request, "\r\n");
             Assert.IsTrue(RequestParser.TryParseHttpRequest(buffer, ref start, (int)request.Length, state, out httpRequest));
-            Assert.AreEqual(Method.GET, httpRequest.Method);
+            Assert.AreEqual(Method.GET, ((HttpRequest)httpRequest).Method);
             Assert.AreEqual("http://localhost:8080/index.jsp", httpRequest.Url.AbsoluteUri);
             Assert.AreEqual("curl/7.35.0", httpRequest.Headers["User-Agent"]);
         }

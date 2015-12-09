@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -108,7 +107,7 @@ namespace m.Http
                     var client = listener.AcceptTcpClient();
                     var clientId = ++accepted;
 
-                    Task.Run(() => HandleSession(new Session(clientId, client, sessionWriteTimeout)));
+                    Task.Run(() => HandleSession(new Session(clientId, client, maxKeepAlives, sessionReadBufferSize, sessionReadTimeout, sessionWriteTimeout)));
                 }
                 catch (SocketException e)
                 {
@@ -132,6 +131,7 @@ namespace m.Http
         void CheckSessionReadTimeouts()
         {
             var now = Time.CurrentTimeMillis;
+
             foreach (var kvp in sessionReads)
             {
                 if (now - kvp.Value > sessionReadTimeout.TotalMilliseconds)
@@ -145,98 +145,70 @@ namespace m.Http
         {
             sessionTable[session.Id] = session;
 
-            var buffer = new byte[sessionReadBufferSize];
-            int start = 0, bufferOffset = 0, requests = 0;
-            var state = new RequestState();
-            var keepAlives = maxKeepAlives;
-
             try
             {
                 while (!session.IsDisconnected())
                 {
-                    int bufferRemaining = buffer.Length - bufferOffset;
-                    if (bufferRemaining == 0)
-                    {
-                        var newBuffer = new byte[buffer.Length * 2];
-                        Array.Copy(buffer, newBuffer, buffer.Length);
-                        buffer = newBuffer;
-                        continue;
-                    }
-
-                    int bytesRead;
                     try
                     {
                         sessionReads[session.Id] = Time.CurrentTimeMillis;
-                        bytesRead = await session.ReadAsync(buffer, bufferOffset, bufferRemaining); // returns 0 on clean disconnect
-                    }
-                    catch // socket closed
-                    {
-                        break;
+
+                        if (await session.ReadToBufferAsync() == 0) 
+                        {
+                            break; // client clean disconnect
+                        }
                     }
                     finally
                     {
-                        long timeStartedIgnore;
-                        sessionReads.TryRemove(session.Id, out timeStartedIgnore);
+                        long _;
+                        sessionReads.TryRemove(session.Id, out _);
                     }
 
-                    if (bytesRead > 0) // else client disconnected
+                    IHttpRequest parsedRequest;
+                    if (session.TryParseRequestFromBuffer(out parsedRequest))
                     {
-                        bufferOffset += bytesRead;
+                        var request = parsedRequest as HttpRequest;
+                        if (request != null)
+                        {
+                            HttpResponse response = await router.HandleHttpRequest(request, DateTime.UtcNow).ConfigureAwait(false);
 
-                        bool isParsed;
-                        HttpRequest httpRequest;
-                        try
-                        {
-                            isParsed = RequestParser.TryParseHttpRequest(buffer, ref start, bufferOffset, state, out httpRequest);
-                            requests++;
+                            session.WriteResponse(response, request.IsKeepAlive);
+
+                            if (!request.IsKeepAlive || session.KeepAlivesRemaining == 0)
+                            {
+                                break;
+                            }
                         }
-                        catch (RequestException e)
+                        else
                         {
-                            logger.Warn("Error parsing (bad) http request - {0}", e.Message);
+                            //TODO: websocket
+                            // var webSocketRequest = parsedRequest as HttpWebSocketRequest;
+
+                            // Task.Run(() => HandleWebSocketSession(session, webSocketRequest));
+
                             break;
-                        }
-
-                        if (isParsed)
-                        {
-                            start = 0;
-                            bufferOffset = 0;
-                            state = new RequestState();
-
-                            HttpResponse httpResponse = await router.HandleHttpRequest(httpRequest, DateTime.UtcNow);
-
-                            var response = new MemoryStream(1024 + httpResponse.Body.Length);
-                            HttpResponseWriter.WriteResponse(httpResponse, response, httpRequest.IsKeepAlive ? keepAlives : 0, sessionReadTimeout);
-
-                            try
-                            {
-                                session.Write(response.GetBuffer(), 0, (int)response.Length);
-                            }
-                            catch
-                            {
-                                break;
-                            }
-
-                            keepAlives--;
-                            if (httpRequest.IsKeepAlive && keepAlives >= 0)
-                            {
-                                continue;
-                            }
-                            else
-                            {
-                                break;
-                            }
                         }
                     }
                 }
+            }
+            catch (ParseRequestException e)
+            {
+                logger.Warn("Error parsing (bad) http request - {0}", e.Message);
+            }
+            catch (SessionStreamException)
+            {
+                // forced disconnect, socket errors
             }
             catch (Exception e)
             {
                 logger.Fatal("Internal server error handling session - {0}", e.ToString());
             }
+            finally
+            {
+                sessionTable.TryRemove(session.Id, out session);
+            }
 
             session.Close();
-
-            sessionTable.TryRemove(session.Id, out session);
         }
 
         public HttpResponse GetMetricsReport()

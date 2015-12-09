@@ -4,7 +4,7 @@ using System.IO;
 
 namespace m.Http
 {
-    public class Request : IMatchedRequest
+    public class Request
     {
         readonly HttpRequest httpReq;
 

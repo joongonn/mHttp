@@ -7,16 +7,16 @@ namespace m.Http.Backend.Tcp
 {
     static class HttpResponseWriter
     {
+        static readonly byte[] CRLF = new byte[] { 13, 10 };
+        static readonly string Server = string.Format("mHttp {0}", System.Reflection.Assembly.GetExecutingAssembly().GetName().Version);
+
         const string ResponsePrefixTemplate = "HTTP/1.1 {0} {1}\r\n" +
                                               "Content-Type: {2}\r\n" +
                                               "Server: {3}\r\n" +
                                               "Date: {4}\r\n" +
                                               "Content-Length: {5}\r\n" +
                                               "Connection: {6}\r\n";
-
-        static readonly byte[] CRLF = new byte[] { 13, 10 };
-        static readonly string Server = string.Format("mHttp {0}", System.Reflection.Assembly.GetExecutingAssembly().GetName().Version);
-
+        
         public static void WriteResponse(HttpResponse httpResponse, Stream buffer, int keepAlives, TimeSpan keepAliveTimeout)
         {
             var contentLength = (httpResponse.Body == null) ? 0 : httpResponse.Body.Length;

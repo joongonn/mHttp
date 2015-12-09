@@ -6,9 +6,9 @@ using m.Utils;
 
 namespace m.Http
 {
-    public sealed class JsonRequest<TReq> : IMatchedRequest
+    public sealed class JsonRequest<TReq>
     {
-        readonly IMatchedRequest req;
+        readonly Request req;
 
         public TReq Req { get; private set; }
 
@@ -22,7 +22,7 @@ namespace m.Http
 
         public IReadOnlyDictionary<string, string> PathVariables { get; private set; }
 
-        internal JsonRequest(IMatchedRequest req, TReq tReq, IReadOnlyDictionary<string, string> pathVariables)
+        internal JsonRequest(Request req, TReq tReq, IReadOnlyDictionary<string, string> pathVariables)
         {
             this.req = req;
             Req = tReq;
