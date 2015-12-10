@@ -58,6 +58,7 @@ namespace m.Http
 
             allEndpoints = new Endpoint[endpoints.Length];
             Array.Copy(endpoints, allEndpoints, endpoints.Length);
+            Array.Sort(allEndpoints);
 
             var indexedEndpoints = allEndpoints.Select((endpoint, index) => new IndexedEndpoint(index, endpoint)).ToArray();
 

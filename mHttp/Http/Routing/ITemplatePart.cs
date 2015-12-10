@@ -1,12 +1,17 @@
 ﻿namespace m.Http.Routing
 {
-    interface ITemplatePart { }
+    interface ITemplatePart
+    {
+        int CompareWeight { get; }
+    }
 
     class Literal : ITemplatePart
     {
         public readonly string Value;
 
         public Literal(string value) { Value = value; }
+
+        public int CompareWeight { get { return 1; } }
 
         public override string ToString() { return string.Format("Literal({0})", Value); }
     }
@@ -17,6 +22,8 @@
 
         public Variable(string name) { Name = name; }
 
+        public int CompareWeight { get { return 2; } }
+
         public override string ToString() { return string.Format("Variable({0})", Name); }
     }
 
@@ -25,6 +32,8 @@
         public static readonly Wildcard Instance = new Wildcard();
 
         Wildcard() { }
+
+        public int CompareWeight { get { return 3; } }
 
         public override string ToString() { return string.Format("Wildcard"); }
     }

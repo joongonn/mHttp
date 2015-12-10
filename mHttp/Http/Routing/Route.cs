@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace m.Http.Routing
 {
-    public sealed class Route
+    public sealed class Route : IComparable<Route>
     {
         static readonly IReadOnlyDictionary<string, string> Empty = new Dictionary<string, string>();
         static readonly Regex TemplateRegex = new Regex(@"^(/\{[a-zA-Z_]+\}|/[a-zA-Z0-9]+)*(/\*|/)?$");
@@ -12,10 +12,14 @@ namespace m.Http.Routing
         public readonly string PathTemplate;
         readonly ITemplatePart[] templateParts;
 
+        readonly string toString;
+
         public Route(string pathTemplate)
         {
             templateParts = BuildTemplate(pathTemplate);
             PathTemplate = pathTemplate;
+
+            toString = string.Format("Route({0})", PathTemplate);
         }
 
         internal static ITemplatePart[] BuildTemplate(string pathTemplate)
@@ -157,6 +161,39 @@ namespace m.Http.Routing
             }
 
             return isMatched;
+        }
+
+        public int CompareTo(Route that)
+        {
+            if (templateParts.Length > that.templateParts.Length)
+            {
+                return -1;
+            }
+            else if (templateParts.Length < that.templateParts.Length)
+            {
+                return 1;
+            }
+            else
+            {
+                for (int i=0; i<templateParts.Length; i++)
+                {
+                    var thisPart = templateParts[i];
+                    var thatPart = that.templateParts[i];
+
+                    var v = thisPart.CompareWeight.CompareTo(thatPart.CompareWeight);
+                    if (v != 0)
+                    {
+                        return v;
+                    }
+                }
+            }
+
+            return 0;
+        }
+
+        public override string ToString()
+        {
+            return toString;
         }
     }
 }

@@ -9,7 +9,44 @@ namespace m.Http.Routing
     public class RouteTests : BaseTest
     {
         [Test]
-        public void TestRoute()
+        public void TestRouteOrder()
+        {
+            var routes = new []
+            {
+                new Route("/"),
+                new Route("/1"),
+                new Route("/1/2/{a}"),
+                new Route("/1/{a}"),
+                new Route("/1/*"),
+                new Route("/1/2/3"),
+                new Route("/1/{a}/{b}"),
+                new Route("/{a}/*"),
+                new Route("/*"),
+                new Route("/{a}"),
+                new Route("/1/2/*"),
+                new Route("/1/{a}/3"),
+                new Route("/{a}/{b}/{c}")
+            };
+
+            Array.Sort(routes);
+
+            Assert.AreEqual("/1/2/3", routes[0].PathTemplate);
+            Assert.AreEqual("/1/2/{a}", routes[1].PathTemplate);
+            Assert.AreEqual("/1/2/*", routes[2].PathTemplate);
+            Assert.AreEqual("/1/{a}/3", routes[3].PathTemplate);
+            Assert.AreEqual("/1/{a}/{b}", routes[4].PathTemplate);
+            Assert.AreEqual("/{a}/{b}/{c}", routes[5].PathTemplate);
+            Assert.AreEqual("/1/{a}", routes[6].PathTemplate);
+            Assert.AreEqual("/1/*", routes[7].PathTemplate);
+            Assert.AreEqual("/{a}/*", routes[8].PathTemplate);
+            Assert.AreEqual("/1", routes[9].PathTemplate);
+            Assert.AreEqual("/{a}", routes[10].PathTemplate);
+            Assert.AreEqual("/*", routes[11].PathTemplate);
+            Assert.AreEqual("/", routes[12].PathTemplate);
+        }
+
+        [Test]
+        public void TestRouteMatching()
         {
             IReadOnlyDictionary<string, string> pathVariables;
 

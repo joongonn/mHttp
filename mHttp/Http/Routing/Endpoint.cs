@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace m.Http.Routing
 {
-    public class Endpoint
+    public class Endpoint : IComparable<Endpoint>
     {
         public readonly Method Method;
         public readonly Route Route;
@@ -14,6 +14,11 @@ namespace m.Http.Routing
             Method = method;
             Route = route;
             Handler = handler;
+        }
+
+        public int CompareTo(Endpoint other)
+        {
+            return Route.CompareTo(other.Route);
         }
     }
 }
