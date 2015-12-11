@@ -43,7 +43,7 @@ namespace m.Http.Backend.Tcp
         }
 
         [Test]
-        public void TestParseRequestLine()
+        public void TestParseRequestLine1()
         {
             var request = new MemoryStream(8192);
             var buffer = request.GetBuffer();
@@ -51,15 +51,38 @@ namespace m.Http.Backend.Tcp
 
             int lineStart, lineEnd;
 
-            WriteAscii(request, "POST /accounts HTTP/1.1\r\n");
+            WriteAscii(request, "POST /accounts?flag=x HTTP/1.1\r\n");
             Assert.IsTrue(RequestParser.TryReadLine(buffer, ref start, (int)request.Length, out lineStart, out lineEnd));
 
             Method method;
-            string path, version;
+            string path, query, version;
 
-            RequestParser.ParseRequestLine(buffer, lineStart, lineEnd, out method, out path, out version);
+            RequestParser.ParseRequestLine(buffer, lineStart, lineEnd, out method, out path, out query, out version);
             Assert.AreEqual(Method.POST, method);
             Assert.AreEqual("/accounts", path);
+            Assert.AreEqual("?flag=x", query);
+            Assert.AreEqual("HTTP/1.1", version);
+        }
+
+        [Test]
+        public void TestParseRequestLine2()
+        {
+            var request = new MemoryStream(8192);
+            var buffer = request.GetBuffer();
+            var start = 0;
+
+            int lineStart, lineEnd;
+
+            WriteAscii(request, "POST /accounts? HTTP/1.1\r\n");
+            Assert.IsTrue(RequestParser.TryReadLine(buffer, ref start, (int)request.Length, out lineStart, out lineEnd));
+
+            Method method;
+            string path, query, version;
+
+            RequestParser.ParseRequestLine(buffer, lineStart, lineEnd, out method, out path, out query, out version);
+            Assert.AreEqual(Method.POST, method);
+            Assert.AreEqual("/accounts", path);
+            Assert.AreEqual("?", query);
             Assert.AreEqual("HTTP/1.1", version);
         }
 
@@ -109,8 +132,8 @@ namespace m.Http.Backend.Tcp
             WriteAscii(request, "Host: localhost:8080\r\n");
             WriteAscii(request, "Accept: */*\r\n");
 
-            var state = new RequestState();
-            IHttpRequest httpRequest;
+            var state = new HttpRequest();
+            IRequest httpRequest;
             Assert.IsFalse(RequestParser.TryParseHttpRequest(buffer, ref start, (int)request.Length, state, out httpRequest));
 
             WriteAscii(request, "\r\n");

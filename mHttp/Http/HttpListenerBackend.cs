@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using NLog;
 
+using m.Http.Backend;
 using m.Utils;
 
 namespace m.Http
@@ -99,7 +100,7 @@ namespace m.Http
                 try
                 {
                     HttpRequest httpReq = ctx.Request;
-                    httpResp = await router.HandleHttpRequest(httpReq, requestArrivedOn);
+                    httpResp = await router.HandleRequest(httpReq, requestArrivedOn);
                 }
                 catch (Exception e)
                 {

@@ -11,6 +11,8 @@ using m.Http.Routing;
 using m.Http.Metrics;
 using m.Utils;
 
+using m.Http.Backend;
+
 namespace m.Http
 {
     public class Router : LifeCycleBase, IEnumerable<RouteTable>
@@ -30,9 +32,9 @@ namespace m.Http
         public RouteTable this[int RouteTableIndex] { get { return routeTables[RouteTableIndex]; } }
         public int Length { get { return routeTables.Length; } }
 
-        public Router(RouteTable routeTable, int requestLogsSize=8192, int timerPeriodMs=100) : this(new [] { routeTable }, requestLogsSize, timerPeriodMs) { }
+        public Router(RouteTable routeTable, int requestLogsSize=4096, int timerPeriodMs=100) : this(new [] { routeTable }, requestLogsSize, timerPeriodMs) { }
 
-        public Router(RouteTable[] routeTables, int requestLogsSize=8192, int timerPeriodMs=100)
+        public Router(RouteTable[] routeTables, int requestLogsSize=4096, int timerPeriodMs=100)
         {
             this.routeTables = routeTables;
 
@@ -99,7 +101,7 @@ namespace m.Http
             return -1;
         }
 
-        public async Task<HttpResponse> HandleHttpRequest(HttpRequest httpReq, DateTime requestArrivedOn)
+        public async Task<HttpResponse> HandleRequest(HttpRequest httpReq, DateTime requestArrivedOn)
         {
             var requestedHost = httpReq.Host;
             if (string.IsNullOrEmpty(requestedHost))
@@ -128,9 +130,11 @@ namespace m.Http
                 }
                 else
                 {
+                    httpReq.PathVariables = pathVariables;
+
                     try
                     {
-                        httpResp = await routeTable[endpointIndex].Handler(new Request(httpReq, pathVariables));
+                        httpResp = await routeTable[endpointIndex].Handler(httpReq).ConfigureAwait(false);
                     }
                     catch (RequestException e)
                     {
@@ -147,10 +151,17 @@ namespace m.Http
 
                 if (endpointIndex >= 0)
                 {
+                    int spins = 0;
                     while (!requestLogs.TryAdd(routeTableIndex, endpointIndex, httpReq, httpResp, requestArrivedOn, DateTime.UtcNow))
                     {
+                        spins++;
                         timer.Signal();
                         // await Task.Yield();
+                    }
+
+                    if (spins > 0)
+                    {
+                        logger.Warn("Incurred {0} spins to add request log", spins);
                     }
                 }
             }

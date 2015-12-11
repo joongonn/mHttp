@@ -41,20 +41,19 @@ namespace m.Http
 
     public class HttpResponse // Completely stateless for caching
     {
-        static readonly byte[] Empty = new byte[0];
+        static readonly byte[] EmptyBody = new byte[0];
 
         public HttpStatusCode StatusCode { get; protected set; }
         public string StatusDescription { get; protected set; }
         public string ContentType { get; protected set; }
         public IDictionary<string, string> Headers { get; protected set; }
-
         public byte[] Body { get; protected set; }
 
-        public HttpResponse(HttpStatusCode statusCode, string contentType) : this(statusCode, contentType, Empty) { }
+        public HttpResponse(HttpStatusCode statusCode, string contentType) : this(statusCode, contentType, EmptyBody) { }
 
         public HttpResponse(HttpStatusCode statusCode, string contentType, byte[] body) : this(statusCode, statusCode.ToString(), contentType, new Dictionary<string, string>(), body) { }
 
-        public HttpResponse(HttpStatusCode statusCode, string statusDescription, string contentType) : this(statusCode, statusDescription, contentType, new Dictionary<string, string>(), Empty) { }
+        public HttpResponse(HttpStatusCode statusCode, string statusDescription, string contentType) : this(statusCode, statusDescription, contentType, new Dictionary<string, string>(), EmptyBody) { }
 
         public HttpResponse(HttpStatusCode statusCode, string statusDescription, string contentType, IDictionary<string, string> headers, byte[] body)
         {

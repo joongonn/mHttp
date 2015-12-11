@@ -58,22 +58,22 @@ namespace m.Http
             return new Endpoint(b.Method, b.Route, Handler.FromAsync(f));
         }
 
-        public static Endpoint WithAction(this EndpointBuilder b, Action<Request> a)
+        public static Endpoint WithAction(this EndpointBuilder b, Action<IHttpRequest> a)
         {
             return new Endpoint(b.Method, b.Route, Handler.FromAction(a));
         }
 
-        public static Endpoint WithAsyncAction(this EndpointBuilder b, Func<Request, Task> a)
+        public static Endpoint WithAsyncAction(this EndpointBuilder b, Func<IHttpRequest, Task> a)
         {
             return new Endpoint(b.Method, b.Route, Handler.FromAsyncAction(a));
         }
 
-        public static Endpoint With(this EndpointBuilder b, Func<Request, HttpResponse> f)
+        public static Endpoint With(this EndpointBuilder b, Func<IHttpRequest, HttpResponse> f)
         {
             return new Endpoint(b.Method, b.Route, Handler.From(f));
         }
 
-        public static Endpoint WithAsync(this EndpointBuilder b, Func<Request, Task<HttpResponse>> f)
+        public static Endpoint WithAsync(this EndpointBuilder b, Func<IHttpRequest, Task<HttpResponse>> f)
         {
             return new Endpoint(b.Method, b.Route, f);
         }

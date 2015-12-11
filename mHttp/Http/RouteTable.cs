@@ -159,7 +159,7 @@ namespace m.Http
                 var method = pair.Item1;
                 var endpoint = pair.Item2;
 
-                Func<Request, Task<HttpResponse>> handler;
+                Func<IHttpRequest, Task<HttpResponse>> handler;
                 if (IsValidEndpointHandler(method, targetClassInstance, out handler))
                 {
                     endpoints.Add(new Endpoint(endpoint.Method, new Routing.Route(endpoint.PathTemplate), handler));
@@ -173,17 +173,17 @@ namespace m.Http
             return endpoints;
         }
 
-        static bool IsValidEndpointHandler(MethodInfo method, object targetClassInstance, out Func<Request, Task<HttpResponse>> asHandler)
+        static bool IsValidEndpointHandler(MethodInfo method, object targetClassInstance, out Func<IHttpRequest, Task<HttpResponse>> asHandler)
         {
             try // `Func<Request, Task<HttpResponse>>` ?
             {
                 if (method.IsStatic)
                 {
-                    asHandler = (Func<Request, Task<HttpResponse>>)Delegate.CreateDelegate(typeof(Func<Request, Task<HttpResponse>>), method);
+                    asHandler = (Func<IHttpRequest, Task<HttpResponse>>)Delegate.CreateDelegate(typeof(Func<IHttpRequest, Task<HttpResponse>>), method);
                 }
                 else
                 {
-                    asHandler = (Func<Request, Task<HttpResponse>>)Delegate.CreateDelegate(typeof(Func<Request, Task<HttpResponse>>), targetClassInstance, method);
+                    asHandler = (Func<IHttpRequest, Task<HttpResponse>>)Delegate.CreateDelegate(typeof(Func<IHttpRequest, Task<HttpResponse>>), targetClassInstance, method);
                 }
                     
                 return true;
@@ -197,12 +197,12 @@ namespace m.Http
             {
                 if (method.IsStatic)
                 {
-                    var syncHandler = (Func<Request, HttpResponse>)Delegate.CreateDelegate(typeof(Func<Request, HttpResponse>), method);
+                    var syncHandler = (Func<IHttpRequest, HttpResponse>)Delegate.CreateDelegate(typeof(Func<IHttpRequest, HttpResponse>), method);
                     asHandler = Handlers.Handler.From(syncHandler);
                 }
                 else
                 {
-                    var syncHandler = (Func<Request, HttpResponse>)Delegate.CreateDelegate(typeof(Func<Request, HttpResponse>), targetClassInstance, method);
+                    var syncHandler = (Func<IHttpRequest, HttpResponse>)Delegate.CreateDelegate(typeof(Func<IHttpRequest, HttpResponse>), targetClassInstance, method);
                     asHandler = Handlers.Handler.From(syncHandler);
                 }
                 return true;

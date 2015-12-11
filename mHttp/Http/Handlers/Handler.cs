@@ -9,63 +9,63 @@ namespace m.Http.Handlers
         static readonly HttpResponse EmptyResponse = new HttpResponse(HttpStatusCode.NoContent, ContentTypes.Html);
         static readonly Task<HttpResponse> EmptyResponseTask = Task.FromResult(EmptyResponse);
 
-        public static Func<Request, Task<HttpResponse>> FromAction(Action a)
+        public static Func<IHttpRequest, Task<HttpResponse>> FromAction(Action a)
         {
-            return (Request _) =>
+            return (IHttpRequest _) =>
             {
                 a();
                 return EmptyResponseTask;
             };
         }
 
-        public static Func<Request, Task<HttpResponse>> FromAsyncAction(Func<Task> f)
+        public static Func<IHttpRequest, Task<HttpResponse>> FromAsyncAction(Func<Task> f)
         {
-            return (Request _) =>
+            return (IHttpRequest _) =>
             {
                 f();
                 return EmptyResponseTask;
             };
         }
 
-        public static Func<Request, Task<HttpResponse>> FromAction(Action<Request> a)
+        public static Func<IHttpRequest, Task<HttpResponse>> FromAction(Action<IHttpRequest> a)
         {
-            return (Request req) =>
+            return (IHttpRequest req) =>
             {
                 a(req);
                 return EmptyResponseTask;
             };
         }
 
-        public static Func<Request, Task<HttpResponse>> FromAsyncAction(Func<Request, Task> a)
+        public static Func<IHttpRequest, Task<HttpResponse>> FromAsyncAction(Func<IHttpRequest, Task> a)
         {
-            return (Request req) =>
+            return (IHttpRequest req) =>
             {
                 a(req);
                 return EmptyResponseTask;
             };
         }
 
-        public static Func<Request, Task<HttpResponse>> From(Func<HttpResponse> f)
+        public static Func<IHttpRequest, Task<HttpResponse>> From(Func<HttpResponse> f)
         {
-            return (Request _) =>
+            return (IHttpRequest _) =>
             {
                 HttpResponse resp = f();
                 return Task.FromResult(resp);
             };
         }
 
-        public static Func<Request, Task<HttpResponse>> From(Func<Request, HttpResponse> f)
+        public static Func<IHttpRequest, Task<HttpResponse>> From(Func<IHttpRequest, HttpResponse> f)
         {
-            return (Request req) =>
+            return (IHttpRequest req) =>
             {
                 HttpResponse resp = f(req);
                 return Task.FromResult(resp);
             };
         }
 
-        public static Func<Request, Task<HttpResponse>> FromAsync(Func<Task<HttpResponse>> f)
+        public static Func<IHttpRequest, Task<HttpResponse>> FromAsync(Func<Task<HttpResponse>> f)
         {
-            return (Request _) => f();
+            return (IHttpRequest _) => f();
         }
     }
 }

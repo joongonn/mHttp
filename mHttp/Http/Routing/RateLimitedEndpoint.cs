@@ -14,20 +14,20 @@ namespace m.Http.Routing
 
         public RateLimitedEndpoint(Method method,
                                    Route route,
-                                   Func<Request, Task<HttpResponse>> handler,
+                                   Func<IHttpRequest, Task<HttpResponse>> handler,
                                    int requestsPerSecond,
                                    int burstRequestsPerSecond) : this(method, route, handler, new LeakyBucket(burstRequestsPerSecond, requestsPerSecond))
         {
         }
 
-        RateLimitedEndpoint(Method method, Route route, Func<Request, Task<HttpResponse>> handler, LeakyBucket rateLimitBucket) : base(method, route, Wrap(handler, rateLimitBucket))
+        RateLimitedEndpoint(Method method, Route route, Func<IHttpRequest, Task<HttpResponse>> handler, LeakyBucket rateLimitBucket) : base(method, route, Wrap(handler, rateLimitBucket))
         {
             this.rateLimitBucket = rateLimitBucket;
         }
 
-        static Func<Request, Task<HttpResponse>> Wrap(Func<Request, Task<HttpResponse>> handler, LeakyBucket rateLimitBucket)
+        static Func<IHttpRequest, Task<HttpResponse>> Wrap(Func<IHttpRequest, Task<HttpResponse>> handler, LeakyBucket rateLimitBucket)
         {
-            return (Request request) =>
+            return (IHttpRequest request) =>
             {
                 if (rateLimitBucket.Fill(1))
                 {

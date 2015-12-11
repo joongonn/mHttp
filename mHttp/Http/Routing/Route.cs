@@ -6,7 +6,7 @@ namespace m.Http.Routing
 {
     public sealed class Route : IComparable<Route>
     {
-        static readonly IReadOnlyDictionary<string, string> Empty = new Dictionary<string, string>();
+        static readonly IReadOnlyDictionary<string, string> EmptyPathVariables = new Dictionary<string, string>();
         static readonly Regex TemplateRegex = new Regex(@"^(/\{[a-zA-Z_]+\}|/[a-zA-Z0-9]+)*(/\*|/)?$");
 
         public readonly string PathTemplate;
@@ -152,7 +152,7 @@ namespace m.Http.Routing
                 }
                 else
                 {
-                    pathVariables = Empty;
+                    pathVariables = EmptyPathVariables;
                 }
             }
             else

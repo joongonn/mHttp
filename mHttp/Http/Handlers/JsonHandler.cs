@@ -5,9 +5,9 @@ namespace m.Http.Handlers
 {
     public static class JsonHandler<TReq>
     {
-        public static Func<Request, Task<HttpResponse>> FromAsync(Func<JsonRequest<TReq>, Task<HttpResponse>> f)
+        public static Func<IHttpRequest, Task<HttpResponse>> FromAsync(Func<JsonRequest<TReq>, Task<HttpResponse>> f)
         {
-            return async (Request req) =>
+            return async (IHttpRequest req) =>
             {
                 JsonRequest<TReq> jsonReq = JsonRequest<TReq>.From(req);
                 HttpResponse resp = await f(jsonReq);

@@ -2,18 +2,20 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
+using m.Http.Backend;
+
 namespace m.Http.Metrics
 {
     sealed class RequestLogs
     {
         public abstract class Log
         {
-            public readonly IHttpRequest Request;
+            public readonly IRequest Request;
             public readonly HttpResponse Response;
             public readonly DateTime ArrivedOn;
             public readonly DateTime CompletedOn;
 
-            protected Log(IHttpRequest request, HttpResponse response, DateTime arrivedOn, DateTime completedOn)
+            protected Log(IRequest request, HttpResponse response, DateTime arrivedOn, DateTime completedOn)
             {
                 Request = request;
                 Response = response;
@@ -27,7 +29,7 @@ namespace m.Http.Metrics
             public readonly int RouteTableIndex;
             public readonly int EndpointIndex;
 
-            public IndexedLog(int routeTableIndex, int endpointIndex, IHttpRequest request, HttpResponse response, DateTime arrivedOn, DateTime completedOn) : base(request, response, arrivedOn, completedOn)
+            public IndexedLog(int routeTableIndex, int endpointIndex, IRequest request, HttpResponse response, DateTime arrivedOn, DateTime completedOn) : base(request, response, arrivedOn, completedOn)
             {
                 RouteTableIndex = routeTableIndex;
                 EndpointIndex = endpointIndex;
@@ -58,7 +60,7 @@ namespace m.Http.Metrics
             }
         }
 
-        public bool TryAdd(int routeTableIndex, int endpointIndex, IHttpRequest request, HttpResponse response, DateTime arrivedOn, DateTime completedOn)
+        public bool TryAdd(int routeTableIndex, int endpointIndex, IRequest request, HttpResponse response, DateTime arrivedOn, DateTime completedOn)
         {
             return queue.TryAdd(new IndexedLog(routeTableIndex, endpointIndex, request, response, arrivedOn, completedOn));
         }

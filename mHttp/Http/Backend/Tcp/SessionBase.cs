@@ -36,7 +36,7 @@ namespace m.Http.Backend.Tcp
 
             try
             {
-                var bytesRead = await inputStream.ReadAsync(buffer, bufferOffset, bufferRemaining);
+                var bytesRead = await inputStream.ReadAsync(buffer, bufferOffset, bufferRemaining).ConfigureAwait(false);
 
                 bufferOffset += bytesRead;
                 return bytesRead;

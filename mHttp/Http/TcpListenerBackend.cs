@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using NLog;
 
+using m.Http.Backend;
 using m.Http.Backend.Tcp;
 using m.Utils;
 
@@ -153,7 +154,7 @@ namespace m.Http
                     {
                         sessionReads[session.Id] = Time.CurrentTimeMillis;
 
-                        if (await session.ReadToBufferAsync() == 0) 
+                        if (await session.ReadToBufferAsync().ConfigureAwait(false) == 0) 
                         {
                             break; // client clean disconnect
                         }
@@ -164,13 +165,13 @@ namespace m.Http
                         sessionReads.TryRemove(session.Id, out _);
                     }
 
-                    IHttpRequest parsedRequest;
+                    IRequest parsedRequest;
                     if (session.TryParseRequestFromBuffer(out parsedRequest))
                     {
                         var request = parsedRequest as HttpRequest;
                         if (request != null)
                         {
-                            HttpResponse response = await router.HandleHttpRequest(request, DateTime.UtcNow).ConfigureAwait(false);
+                            HttpResponse response = await router.HandleRequest(request, DateTime.UtcNow).ConfigureAwait(false);
 
                             session.WriteResponse(response, request.IsKeepAlive);
 
@@ -182,7 +183,7 @@ namespace m.Http
                         else
                         {
                             //TODO: websocket
-                            // var webSocketRequest = parsedRequest as HttpWebSocketRequest;
+                            var webSocketRequest = (HttpWebSocketRequest)parsedRequest;
 
                             // Task.Run(() => HandleWebSocketSession(session, webSocketRequest));
 

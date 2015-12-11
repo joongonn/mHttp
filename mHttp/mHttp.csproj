@@ -58,15 +58,12 @@
     <Compile Include="Http\Handlers\JsonHandler.cs" />
     <Compile Include="Http\Headers.cs" />
     <Compile Include="Http\HttpListenerBackend.cs" />
-    <Compile Include="Http\HttpRequest.cs" />
     <Compile Include="Http\HttpResponse.cs" />
-    <Compile Include="Http\IHttpRequest.cs" />
     <Compile Include="Http\JsonRequest.cs" />
     <Compile Include="Http\Lift.cs" />
     <Compile Include="Http\Method.cs" />
     <Compile Include="Http\Metrics\Endpoints\ResponseTime.cs" />
     <Compile Include="Http\Metrics\Endpoints\StatusCodeCounter.cs" />
-    <Compile Include="Http\Request.cs" />
     <Compile Include="Http\RequestException.cs" />
     <Compile Include="Http\Router.cs" />
     <Compile Include="Http\RouteTable.cs" />
@@ -97,6 +94,10 @@
     <Compile Include="Http\Metrics\RouterMetrics.cs" />
     <Compile Include="Http\Backend\Tcp\SessionStreamException.cs" />
     <Compile Include="Http\Backend\Tcp\SessionBase.cs" />
+    <Compile Include="Http\Backend\HttpRequest.cs" />
+    <Compile Include="Http\Backend\HttpWebSocketRequest.cs" />
+    <Compile Include="Http\Backend\IRequest.cs" />
+    <Compile Include="Http\IHttpRequest.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

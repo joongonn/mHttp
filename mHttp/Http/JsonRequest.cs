@@ -8,7 +8,7 @@ namespace m.Http
 {
     public sealed class JsonRequest<TReq>
     {
-        readonly Request req;
+        readonly IHttpRequest req;
 
         public TReq Req { get; private set; }
 
@@ -22,14 +22,14 @@ namespace m.Http
 
         public IReadOnlyDictionary<string, string> PathVariables { get; private set; }
 
-        internal JsonRequest(Request req, TReq tReq, IReadOnlyDictionary<string, string> pathVariables)
+        internal JsonRequest(IHttpRequest req, TReq tReq, IReadOnlyDictionary<string, string> pathVariables)
         {
             this.req = req;
             Req = tReq;
             PathVariables = pathVariables;
         }
 
-        internal static JsonRequest<TReq> From(Request req)
+        internal static JsonRequest<TReq> From(IHttpRequest req)
         {
             TReq reqObj;
             try

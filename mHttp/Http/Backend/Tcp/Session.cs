@@ -13,7 +13,7 @@ namespace m.Http.Backend.Tcp
         readonly TimeSpan readTimeout;
 
         int start = 0;
-        RequestState requestState;
+        HttpRequest requestState;
         int requests = 0;
 
         public int KeepAlivesRemaining { get { return maxKeepAlives - requests; } }
@@ -33,16 +33,16 @@ namespace m.Http.Backend.Tcp
             this.tcpClient.NoDelay = true;
             this.tcpClient.GetStream().WriteTimeout = (int)writeTimeout.TotalMilliseconds;
 
-            requestState = new RequestState();
+            requestState = new HttpRequest();
         }
 
-        public bool TryParseRequestFromBuffer(out IHttpRequest request)
+        public bool TryParseRequestFromBuffer(out IRequest request)
         {
             if (RequestParser.TryParseHttpRequest(buffer, ref start, bufferOffset, requestState, out request))
             {
                 start = 0;
                 bufferOffset = 0;
-                requestState = new RequestState();
+                requestState = new HttpRequest();
 
                 requests++;
                 return true;

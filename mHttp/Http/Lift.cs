@@ -6,9 +6,9 @@ namespace m.Http
     public static class Lift
     {
         #region Json
-        public static Func<Request, HttpResponse> ToJsonHandler(Func<object> f)
+        public static Func<IHttpRequest, HttpResponse> ToJsonHandler(Func<object> f)
         {
-            return (Request req) =>
+            return (IHttpRequest req) =>
             {
                 object resp = f();
                 HttpResponse httpResp = new JsonResponse(resp);
@@ -16,9 +16,9 @@ namespace m.Http
             };
         }
 
-        public static Func<Request, HttpResponse> ToJsonHandler<TReq, TResp>(Func<TReq, TResp> f)
+        public static Func<IHttpRequest, HttpResponse> ToJsonHandler<TReq, TResp>(Func<TReq, TResp> f)
         {
-            return (Request req) =>
+            return (IHttpRequest req) =>
             {
                 JsonRequest<TReq> jsonReq = JsonRequest<TReq>.From(req);
                 TResp resp = f(jsonReq.Req);
@@ -27,9 +27,9 @@ namespace m.Http
             };
         }
 
-        public static Func<Request, Task<HttpResponse>> ToAsyncJsonHandler<TReq, TResp>(Func<TReq, Task<TResp>> f)
+        public static Func<IHttpRequest, Task<HttpResponse>> ToAsyncJsonHandler<TReq, TResp>(Func<TReq, Task<TResp>> f)
         {
-            return async (Request req) =>
+            return async (IHttpRequest req) =>
             {
                 JsonRequest<TReq> jsonReq = JsonRequest<TReq>.From(req);
                 TResp resp = await f(jsonReq.Req);

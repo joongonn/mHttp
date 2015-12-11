@@ -1,7 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.IO;
 
 namespace m.Http.Backend.Tcp
 {
@@ -14,6 +14,7 @@ namespace m.Http.Backend.Tcp
 
         static readonly Method[] Methods = (Method[])Enum.GetValues(typeof(Method));
         static readonly byte[][] MethodsBytes = Enum.GetNames(typeof(Method)).Select(m => Encoding.ASCII.GetBytes(m)).ToArray();
+        static readonly byte[] EndOfPath = new byte[] { (byte)'?', SP };
         static readonly string[] Versions = new string[] { "HTTP/1.1", "HTTP/1.0" };
         static readonly byte[][] VersionsBytes = Versions.Select(v => Encoding.ASCII.GetBytes(v)).ToArray();
 
@@ -134,6 +135,29 @@ namespace m.Http.Backend.Tcp
             return false;
         }
 
+        static bool TryMatchUntilAnyOf(byte[] buffer,
+                                       ref int start,
+                                       int end,
+                                       byte[] values,
+                                       out string matched)
+        {
+            int i = start;
+
+            while (i < end)
+            {
+                if (values.Contains(buffer[i]))
+                {
+                    matched = Encoding.ASCII.GetString(buffer, start, i - start);
+                    start = i;
+                    return true;
+                }
+                i++;
+            }
+
+            matched = null;
+            return false;
+        }
+
         static bool TryMatch(byte[] buffer,
                              ref int start,
                              int end,
@@ -230,6 +254,7 @@ namespace m.Http.Backend.Tcp
                                             int lineEnd,
                                             out Method method,
                                             out string path,
+                                            out string query,
                                             out string version)
         {
             int matchedIndex;
@@ -244,10 +269,22 @@ namespace m.Http.Backend.Tcp
                 throw new ParseRequestException("Invalid request line (after method)");
             }
 
-            if (!TryMatchUntil(buffer, ref lineStart, lineEnd, SP, out path))
+            if (!TryMatchUntilAnyOf(buffer, ref lineStart, lineEnd, EndOfPath, out path))
             {
                 throw new ParseRequestException("Invalid request line (path)");
             }
+
+            if (buffer[lineStart] == (byte)'?')
+            {
+                if (!TryMatchUntil(buffer, ref lineStart, lineEnd, SP, out query))
+                {
+                    query = string.Empty;
+                }
+            }
+            else
+            {
+                query = string.Empty;
+            };
 
             lineStart++;
 
@@ -263,18 +300,20 @@ namespace m.Http.Backend.Tcp
                                                int end,
                                                out Method method,
                                                out string path,
+                                               out string query,
                                                out string version)
         {
             int lineStart, lineEnd;
             if (TryReadLine(buffer, ref start, end, out lineStart, out lineEnd))
             {
-                ParseRequestLine(buffer, lineStart, lineEnd, out method, out path, out version);
+                ParseRequestLine(buffer, lineStart, lineEnd, out method, out path, out query, out version);
                 return true;
             }
             else
             {
                 method = Method.GET;
                 path = null;
+                query = null;
                 version = null;
                 return false;
             }
@@ -324,7 +363,7 @@ namespace m.Http.Backend.Tcp
             return false;
         }
 
-        static IHttpRequest ParseHttpRequest(RequestState state)
+        static IRequest ParseHttpRequest(HttpRequest state)
         {
             var host = state.GetHeader("Host");
             var contentType = state.GetHeaderWithDefault(Headers.ContentType, null);
@@ -355,41 +394,42 @@ namespace m.Http.Backend.Tcp
 
             state.Body.Position = 0;
 
-            return new HttpRequest(state.Method,
-                                   contentType,
-                                   state.Headers,
-                                   url,
-                                   isKeepAlive,
-                                   state.Body);
+            state.Host = host;
+            state.Url = url;
+            state.ContentType = contentType;
+            state.IsKeepAlive = isKeepAlive;
+
+            return state;
         }
 
         public static bool TryParseHttpRequest(byte[] buffer,
                                                ref int start,
                                                int end,
-                                               RequestState state,
-                                               out IHttpRequest httpRequest)
+                                               HttpRequest state,
+                                               out IRequest parsedRequest)
         {
             while (true)
             {
-                switch (state.CurrentState)
+                switch (state.State)
                 {
-                    case RequestState.State.ReadRequestLine:
+                    case RequestState.ReadRequestLine:
                         Method method;
-                        string path, version;
-                        if (TryParseRequestLine(buffer, ref start, end, out method, out path, out version))
+                        string path, query, version;
+                        if (TryParseRequestLine(buffer, ref start, end, out method, out path, out query, out version))
                         {
                             state.Method = method;
                             state.Path = path;
-                            state.CurrentState = RequestState.State.ReadHeaders;
+                            state.Query = query;
+                            state.State = RequestState.ReadHeaders;
                             continue;
                         }
                         else
                         {
-                            httpRequest = null;
+                            parsedRequest = null;
                             return false;
                         }
 
-                    case RequestState.State.ReadHeaders:
+                    case RequestState.ReadHeaders:
                         if (TryParseHeaders(buffer, ref start, end, state.SetHeader))
                         {
                             switch (state.Method)
@@ -398,15 +438,16 @@ namespace m.Http.Backend.Tcp
                                 case Method.DELETE:
                                     state.ContentLength = 0;
                                     state.Body = new MemoryStream(0);
-                                    httpRequest = ParseHttpRequest(state);
+                                    parsedRequest = ParseHttpRequest(state);
                                     return true;
 
                                 case Method.POST:
                                 case Method.PUT:
                                     //TODO:Transfer-Encoding: chunked
-                                    state.ContentLength = state.GetHeader<int>(Headers.ContentLength);
-                                    state.Body = new MemoryStream(state.ContentLength);
-                                    state.CurrentState = RequestState.State.ReadBody;
+                                    var contentLength = state.GetHeader<int>(Headers.ContentLength);
+                                    state.ContentLength = contentLength;
+                                    state.Body = new MemoryStream(contentLength);
+                                    state.State = RequestState.ReadBody;
                                     continue;
 
                                 default:
@@ -415,11 +456,11 @@ namespace m.Http.Backend.Tcp
                         }
                         else
                         {
-                            httpRequest = null;
+                            parsedRequest = null;
                             return false;
                         }
 
-                    case RequestState.State.ReadBody:
+                    case RequestState.ReadBody:
                         int bytesAvailable = end - start;
                         int bytesOutstanding = state.ContentLength - (int)state.Body.Length;
                         int bytesToWrite = Math.Min(bytesAvailable, bytesOutstanding);
@@ -427,12 +468,13 @@ namespace m.Http.Backend.Tcp
                         start += bytesToWrite;
                         if (state.Body.Length == state.ContentLength)
                         {
-                            httpRequest = ParseHttpRequest(state);
+                            parsedRequest = ParseHttpRequest(state);
+                            state.State = RequestState.Completed;
                             return true;
                         }
                         else
                         {
-                            httpRequest = null;
+                            parsedRequest = null;
                             return false;
                         }
                         

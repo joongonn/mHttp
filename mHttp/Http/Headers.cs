@@ -2,6 +2,7 @@
 {
     public static class Headers
     {
+        public const string Host = "Host";
         public const string Connection = "Connection";
         public const string ContentType = "Content-Type";
         public const string ContentEncoding = "Content-Encoding";
