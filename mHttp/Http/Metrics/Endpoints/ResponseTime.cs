@@ -27,4 +27,3 @@ namespace m.Http.Metrics.Endpoints
         }
     }
 }
-

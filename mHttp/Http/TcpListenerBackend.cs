@@ -29,7 +29,12 @@ namespace m.Http
         readonly ConcurrentDictionary<long, Session> sessionTable;
         readonly ConcurrentDictionary<long, long> sessionReads;
 
+        readonly ConcurrentDictionary<long, WebSocketSession> webSocketSessionTable; //TODO: track dead reads ?
+
         readonly WaitableTimer timer;
+
+        long acceptedSessions = 0;
+        long acceptedWebSocketSessions = 0;
 
         Router router;
 
@@ -50,6 +55,7 @@ namespace m.Http
             lifeCycleToken = new LifeCycleToken();
             sessionTable = new ConcurrentDictionary<long, Session>();
             sessionReads = new ConcurrentDictionary<long, long>();
+            webSocketSessionTable = new ConcurrentDictionary<long, WebSocketSession>();
 
             name = string.Format("TcpListenerBackend({0}:{1})", address, port);
 
@@ -99,16 +105,14 @@ namespace m.Http
             listener.Start(backlog);
             logger.Info("Listening on {0}", listener.LocalEndpoint);
 
-            long accepted = 0;
-
             while (true)
             {
                 try
                 {
                     var client = listener.AcceptTcpClient();
-                    var clientId = ++accepted;
+                    var sessionId = ++acceptedSessions;
 
-                    Task.Run(() => HandleSession(new Session(clientId, client, maxKeepAlives, sessionReadBufferSize, sessionReadTimeout, sessionWriteTimeout)));
+                    Task.Run(() => HandleSession(new Session(sessionId, client, maxKeepAlives, sessionReadBufferSize, sessionReadTimeout, sessionWriteTimeout)));
                 }
                 catch (SocketException e)
                 {
@@ -124,77 +128,60 @@ namespace m.Http
                 }
             }
 
-            logger.Info("Listener closed (accepted: {0})", accepted);
+            logger.Info("Listener closed (accepted: {0})", acceptedSessions);
 
             router.Shutdown();
         }
 
-        void CheckSessionReadTimeouts()
-        {
-            var now = Time.CurrentTimeMillis;
-
-            foreach (var kvp in sessionReads)
-            {
-                if (now - kvp.Value > sessionReadTimeout.TotalMilliseconds)
-                {
-                    sessionTable[kvp.Key].Close();
-                }
-            }
-        }
-
         async Task HandleSession(Session session)
         {
-            sessionTable[session.Id] = session;
-
+            TrackSession(session);
             try
             {
-                while (!session.IsDisconnected())
+                var continueSession = true;
+                while (continueSession && !session.IsDisconnected())
                 {
                     try
                     {
-                        sessionReads[session.Id] = Time.CurrentTimeMillis;
-
-                        if (await session.ReadToBufferAsync().ConfigureAwait(false) == 0) 
+                        TrackSessionRead(session.Id);
+                        if (await session.ReadToBufferAsync().ConfigureAwait(false) == 0) // 0 => client clean disconnect
                         {
-                            break; // client clean disconnect
+                            break;
                         }
                     }
                     finally
                     {
-                        long _;
-                        sessionReads.TryRemove(session.Id, out _);
+                        UntrackSessionRead(session.Id);
                     }
 
-                    IRequest parsedRequest;
-                    if (session.TryParseRequestFromBuffer(out parsedRequest))
+                    HttpRequest request;
+                    while (continueSession && session.TryParseNextRequestFromBuffer(out request))
                     {
-                        var request = parsedRequest as HttpRequest;
-                        if (request != null)
+                        HttpResponse response = await router.HandleRequest(request, DateTime.UtcNow).ConfigureAwait(false);
+
+                        var webSocketUpgradeResponse = response as WebSocketUpgradeResponse;
+                        if (webSocketUpgradeResponse == null)
                         {
-                            HttpResponse response = await router.HandleRequest(request, DateTime.UtcNow).ConfigureAwait(false);
-
                             session.WriteResponse(response, request.IsKeepAlive);
-
-                            if (!request.IsKeepAlive || session.KeepAlivesRemaining == 0)
-                            {
-                                break;
-                            }
+                            continueSession = request.IsKeepAlive && session.KeepAlivesRemaining > 0;
                         }
                         else
                         {
-                            //TODO: websocket
-                            var webSocketRequest = (HttpWebSocketRequest)parsedRequest;
-
-                            // Task.Run(() => HandleWebSocketSession(session, webSocketRequest));
-
-                            break;
+                            if (HandleWebsocketUpgrade(session, webSocketUpgradeResponse))
+                            {
+                                return;
+                            }
+                            else
+                            {
+                                continueSession = false;
+                            }
                         }
                     }
                 }
             }
-            catch (ParseRequestException e)
+            catch (RequestException e)
             {
-                logger.Warn("Error parsing (bad) http request - {0}", e.Message);
+                logger.Warn("Error parsing or bad request - {0}", e.Message);
             }
             catch (SessionStreamException)
             {
@@ -206,10 +193,85 @@ namespace m.Http
             }
             finally
             {
-                sessionTable.TryRemove(session.Id, out session);
+                UntrackSession(session.Id);
             }
 
-            session.Close();
+            session.Dispose();
+        }
+
+        bool HandleWebsocketUpgrade(Session session, WebSocketUpgradeResponse response)
+        {
+            session.WriteWebSocketUpgradeResponse(response);
+
+            var acceptUpgradeResponse = response as WebSocketUpgradeResponse.AcceptUpgradeResponse;
+            if (acceptUpgradeResponse == null)
+            {
+                return false;
+            }
+            else
+            {
+                long id = Interlocked.Increment(ref acceptedWebSocketSessions);
+                var webSocketSession = new WebSocketSession(id, session.TcpClient, () => UntrackWebSocketSession(id));
+                TrackWebSocketSession(webSocketSession);
+
+                try
+                {
+                    acceptUpgradeResponse.OnAccepted(webSocketSession); //TODO: Task.Run this?
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    UntrackWebSocketSession(id);
+                    logger.Error("Error calling WebSocketUpgradeResponse.OnAccepted callback - {0}", e.ToString());
+                    return false;
+                }
+            }
+        }
+
+        void TrackSession(Session session)
+        {
+            sessionTable[session.Id] = session;
+        }
+
+        void UntrackSession(long id)
+        {
+            Session _;
+            sessionTable.TryRemove(id, out _);
+        }
+
+        void TrackSessionRead(long id)
+        {
+            sessionReads[id] = Time.CurrentTimeMillis;
+        }
+
+        void UntrackSessionRead(long id)
+        {
+            long _;
+            sessionReads.TryRemove(id, out _);
+        }
+
+        void TrackWebSocketSession(WebSocketSession session)
+        {
+            webSocketSessionTable[session.Id] = session;
+        }
+
+        void UntrackWebSocketSession(long id)
+        {
+            WebSocketSession _;
+            webSocketSessionTable.TryRemove(id, out _);
+        }
+
+        void CheckSessionReadTimeouts()
+        {
+            var now = Time.CurrentTimeMillis;
+
+            foreach (var kvp in sessionReads)
+            {
+                if (now - kvp.Value > sessionReadTimeout.TotalMilliseconds)
+                {
+                    sessionTable[kvp.Key].Dispose();
+                }
+            }
         }
 
         public HttpResponse GetMetricsReport()
@@ -220,7 +282,8 @@ namespace m.Http
             }
 
             return new JsonResponse(new {
-                ConnectedSessions = sessionTable.Count,
+                Sessions = sessionTable.Count,
+                WebSocketSessions = webSocketSessionTable.Count,
                 Reports = router.Metrics.GetReports(),
             });
         }

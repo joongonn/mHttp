@@ -2,19 +2,20 @@
 using System.Net;
 using System.Threading.Tasks;
 
+using m.Http.Backend;
+
 namespace m.Http.Handlers
 {
     public static class Handler
     {
-        static readonly HttpResponse EmptyResponse = new HttpResponse(HttpStatusCode.NoContent, ContentTypes.Html);
-        static readonly Task<HttpResponse> EmptyResponseTask = Task.FromResult(EmptyResponse);
+        static readonly Task<HttpResponse> EmptyResponse = Task.FromResult(new HttpResponse(HttpStatusCode.NoContent));
 
         public static Func<IHttpRequest, Task<HttpResponse>> FromAction(Action a)
         {
             return (IHttpRequest _) =>
             {
                 a();
-                return EmptyResponseTask;
+                return EmptyResponse;
             };
         }
 
@@ -23,7 +24,7 @@ namespace m.Http.Handlers
             return (IHttpRequest _) =>
             {
                 f();
-                return EmptyResponseTask;
+                return EmptyResponse;
             };
         }
 
@@ -32,7 +33,7 @@ namespace m.Http.Handlers
             return (IHttpRequest req) =>
             {
                 a(req);
-                return EmptyResponseTask;
+                return EmptyResponse;
             };
         }
 
@@ -41,7 +42,7 @@ namespace m.Http.Handlers
             return (IHttpRequest req) =>
             {
                 a(req);
-                return EmptyResponseTask;
+                return EmptyResponse;
             };
         }
 
@@ -67,5 +68,18 @@ namespace m.Http.Handlers
         {
             return (IHttpRequest _) => f();
         }
+
+        #region Websocket
+        public static Func<IHttpRequest, Task<HttpResponse>> From(Func<IWebSocketUpgradeRequest, WebSocketUpgradeResponse> f)
+        {
+            return (IHttpRequest req) =>
+            {
+                var httpRequest = (HttpRequest)req;
+
+                HttpResponse resp = f((IWebSocketUpgradeRequest)httpRequest);
+                return Task.FromResult(resp);
+            };
+        }
+        #endregion
     }
 }

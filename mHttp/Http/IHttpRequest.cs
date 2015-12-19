@@ -14,6 +14,6 @@ namespace m.Http
         IReadOnlyDictionary<string, string> Headers { get; }
         string ContentType { get; }
 
-        Stream Body { get; }
+        Stream Body { get; } //TODO: just byte[] it
     }
 }

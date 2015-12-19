@@ -1,18 +1,17 @@
 ﻿using System;
 using System.IO;
 using System.Net.Sockets;
-using System.Threading.Tasks;
+
+using m.Http;
 
 namespace m.Http.Backend.Tcp
 {
-    class Session : SessionBase
+    class Session : TcpSessionBase
     {
-        public readonly long Id;
-        readonly TcpClient tcpClient;
         readonly int maxKeepAlives;
         readonly TimeSpan readTimeout;
 
-        int start = 0;
+        int dataStart = 0;
         HttpRequest requestState;
         int requests = 0;
 
@@ -23,27 +22,31 @@ namespace m.Http.Backend.Tcp
                        int maxKeepAlives,
                        int initialReadBufferSize,
                        TimeSpan readTimeout,
-                       TimeSpan writeTimeout) : base(tcpClient.GetStream(), initialReadBufferSize)
+                       TimeSpan writeTimeout) : base(id, tcpClient, initialReadBufferSize, (int)writeTimeout.TotalMilliseconds)
         {
-            Id = id;
-            this.tcpClient = tcpClient;
             this.maxKeepAlives = maxKeepAlives;
             this.readTimeout = readTimeout;
 
-            this.tcpClient.NoDelay = true;
-            this.tcpClient.GetStream().WriteTimeout = (int)writeTimeout.TotalMilliseconds;
-
-            requestState = new HttpRequest();
+            requestState = null;
         }
 
-        public bool TryParseRequestFromBuffer(out IRequest request)
+        public bool TryParseNextRequestFromBuffer(out HttpRequest request)
         {
-            if (RequestParser.TryParseHttpRequest(buffer, ref start, bufferOffset, requestState, out request))
+            if (dataStart == readBufferOffset)
             {
-                start = 0;
-                bufferOffset = 0;
-                requestState = new HttpRequest();
+                request = null;
+                return false;
+            }
 
+            if (requestState == null)
+            {
+                requestState = new HttpRequest();
+            }
+            
+            if (RequestParser.TryParseHttpRequest(readBuffer, ref dataStart, readBufferOffset, requestState, out request))
+            {
+                CompactReadBuffer(ref dataStart);
+                requestState = null;
                 requests++;
                 return true;
             }
@@ -56,36 +59,27 @@ namespace m.Http.Backend.Tcp
 
         public void WriteResponse(HttpResponse response, bool keepAlive)
         {
-            var outputStream = new MemoryStream(1024 + response.Body.Length);
-
-            HttpResponseWriter.WriteResponse(response, outputStream, keepAlive ? KeepAlivesRemaining : 0, readTimeout);
-
-            try
+            using (var outputBuffer = new MemoryStream(512 + response.Body.Length))
             {
-                tcpClient.GetStream().Write(outputStream.GetBuffer(), 0, (int)outputStream.Length);
-            }
-            catch (Exception e)
-            {
-                throw new SessionStreamException("Exception while writing to stream", e);
+                HttpResponseWriter.Write(response, outputBuffer, keepAlive ? KeepAlivesRemaining : 0, readTimeout);
+
+                Write(outputBuffer.GetBuffer(), 0, (int)outputBuffer.Length);
             }
         }
 
-        public bool IsDisconnected()
+        public void WriteWebSocketUpgradeResponse(WebSocketUpgradeResponse response)
         {
-            return (!tcpClient.Connected) || (tcpClient.Client.Poll(0, SelectMode.SelectRead) && tcpClient.Available == 0);
+            using (var outputBuffer = new MemoryStream(512))
+            {
+                HttpResponseWriter.WriteWebSocketUpgradeResponse(response, outputBuffer);
+
+                Write(outputBuffer.GetBuffer(), 0, (int)outputBuffer.Length);
+            }
         }
 
-        public void Close()
+        public override void Dispose()
         {
-            try
-            {
-                tcpClient.GetStream().Close();
-                tcpClient.Close();
-            }
-            catch
-            {
-                return;
-            }
+            CloseQuiety();
         }
     }
 }

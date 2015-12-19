@@ -161,7 +161,7 @@ namespace m.Http
 
                     if (spins > 0)
                     {
-                        logger.Warn("Incurred {0} spins to add request log", spins);
+                        // logger.Warn("Incurred {0} spins to add request log", spins);
                     }
                 }
             }

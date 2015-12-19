@@ -39,23 +39,26 @@ namespace m.Http
         public JsonResponse(object t) : this(t.ToJson()) { }
     }
 
-    public class HttpResponse // Completely stateless for caching
+    public class HttpResponse
     {
-        static readonly byte[] EmptyBody = new byte[0];
+        protected static readonly Dictionary<string, string> EmptyHeaders = new Dictionary<string, string>(0);
+        protected static readonly byte[] EmptyBody = new byte[0];
 
-        public HttpStatusCode StatusCode { get; protected set; }
-        public string StatusDescription { get; protected set; }
-        public string ContentType { get; protected set; }
-        public IDictionary<string, string> Headers { get; protected set; }
-        public byte[] Body { get; protected set; }
+        public HttpStatusCode StatusCode { get; private set; }
+        public string StatusDescription { get; private set; }
+        public string ContentType { get; private set; }
+        public IDictionary<string, string> Headers { get; private set; }
+        public byte[] Body { get; private set; }
+
+        public HttpResponse(HttpStatusCode statusCode) : this(statusCode, ContentTypes.Html) { }
 
         public HttpResponse(HttpStatusCode statusCode, string contentType) : this(statusCode, contentType, EmptyBody) { }
 
-        public HttpResponse(HttpStatusCode statusCode, string contentType, byte[] body) : this(statusCode, statusCode.ToString(), contentType, new Dictionary<string, string>(), body) { }
+        public HttpResponse(HttpStatusCode statusCode, string contentType, byte[] body) : this(statusCode, statusCode.ToString(), contentType, EmptyHeaders, body) { }
 
-        public HttpResponse(HttpStatusCode statusCode, string statusDescription, string contentType) : this(statusCode, statusDescription, contentType, new Dictionary<string, string>(), EmptyBody) { }
+        protected HttpResponse(HttpStatusCode statusCode, string statusDescription, string contentType) : this(statusCode, statusDescription, contentType, EmptyHeaders, EmptyBody) { }
 
-        public HttpResponse(HttpStatusCode statusCode, string statusDescription, string contentType, IDictionary<string, string> headers, byte[] body)
+        HttpResponse(HttpStatusCode statusCode, string statusDescription, string contentType, IDictionary<string, string> headers, byte[] body)
         {
             StatusCode = statusCode;
             StatusDescription = statusDescription;

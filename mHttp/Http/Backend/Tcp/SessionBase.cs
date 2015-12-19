@@ -1,44 +1,65 @@
 ﻿using System;
 using System.IO;
-using System.Net.Sockets;
 using System.Threading.Tasks;
 
 namespace m.Http.Backend.Tcp
 {
-    abstract class SessionBase
+    abstract class SessionBase : IDisposable
     {
-        readonly Stream inputStream;
+        public long Id { get; private set; }
+        protected Stream inputStream;
 
-        protected byte[] buffer;
-        protected int bufferOffset = 0;
+        protected byte[] readBuffer;
+        protected int readBufferOffset = 0;
 
-        protected SessionBase(Stream inputStream, int initialReadBufferSize)
+        protected SessionBase(long id, Stream inputStream, int initialReadBufferSize)
         {
+            Id = id;
             this.inputStream = inputStream;
-            buffer = new byte[initialReadBufferSize];
+            readBuffer = new byte[initialReadBufferSize];
         }
 
-        void ResizeBuffer()
+        void ResizeReadBuffer()
         {
-            var newBuffer = new byte[buffer.Length * 2];
-            Array.Copy(buffer, newBuffer, buffer.Length);
-            buffer = newBuffer;
+            var newReadBuffer = new byte[readBuffer.Length * 2]; //TODO: boundary
+            Array.Copy(readBuffer, newReadBuffer, readBuffer.Length);
+            readBuffer = newReadBuffer;
         }
 
-        public async Task<int> ReadToBufferAsync()
+        protected void CompactReadBuffer(ref int dataStart)
         {
-            var bufferRemaining = buffer.Length - bufferOffset;
+            if (dataStart == readBufferOffset)
+            {
+                dataStart = 0;
+                readBufferOffset = 0;
+            }
+            else
+            {
+                int available = readBufferOffset - dataStart;
+                for (int i=0; i<available; i++)
+                {
+                    readBuffer[i] = readBuffer[dataStart + i];
+                }
+
+                dataStart = 0;
+                readBufferOffset = available;
+            }
+        }
+
+        internal async Task<int> ReadToBufferAsync()
+        {
+            var bufferRemaining = readBuffer.Length - readBufferOffset;
             if (bufferRemaining == 0)
             {
-                ResizeBuffer();
-                bufferRemaining = buffer.Length - bufferOffset;
+                ResizeReadBuffer();
+                bufferRemaining = readBuffer.Length - readBufferOffset;
             }
 
             try
             {
-                var bytesRead = await inputStream.ReadAsync(buffer, bufferOffset, bufferRemaining).ConfigureAwait(false);
+                var bytesRead = await inputStream.ReadAsync(readBuffer, readBufferOffset, bufferRemaining).ConfigureAwait(false);
 
-                bufferOffset += bytesRead;
+                readBufferOffset += bytesRead;
                 return bytesRead;
             }
             catch (Exception e)
@@ -46,6 +67,7 @@ namespace m.Http.Backend.Tcp
                 throw new SessionStreamException("Exception while reading from stream", e);
             }
         }
+
+        public abstract void Dispose();
     }
 }
-

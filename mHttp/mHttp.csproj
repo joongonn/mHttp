@@ -87,7 +87,6 @@
     <Compile Include="Http\TcpListenerBackend.cs" />
     <Compile Include="Http\Backend\Tcp\ParseRequestException.cs" />
     <Compile Include="Http\Backend\Tcp\RequestParser.cs" />
-    <Compile Include="Http\Backend\Tcp\RequestState.cs" />
     <Compile Include="Http\Backend\Tcp\Session.cs" />
     <Compile Include="Http\Backend\Tcp\HttpResponseWriter.cs" />
     <Compile Include="Http\Route.cs" />
@@ -95,9 +94,19 @@
     <Compile Include="Http\Backend\Tcp\SessionStreamException.cs" />
     <Compile Include="Http\Backend\Tcp\SessionBase.cs" />
     <Compile Include="Http\Backend\HttpRequest.cs" />
-    <Compile Include="Http\Backend\HttpWebSocketRequest.cs" />
-    <Compile Include="Http\Backend\IRequest.cs" />
     <Compile Include="Http\IHttpRequest.cs" />
+    <Compile Include="Http\Backend\Tcp\WebSocketSession.cs" />
+    <Compile Include="Http\Backend\Tcp\TcpSessionBase.cs" />
+    <Compile Include="Http\Backend\WebSockets\FrameDecoder.cs" />
+    <Compile Include="Http\Backend\WebSockets\FrameEncoder.cs" />
+    <Compile Include="Http\Backend\WebSockets\Extensions.cs" />
+    <Compile Include="Http\Backend\WebSockets\OpCode.cs" />
+    <Compile Include="Http\IWebSocketSession.cs" />
+    <Compile Include="Http\IWebSocketUpgradeRequest.cs" />
+    <Compile Include="Utils\BufferUtils.cs" />
+    <Compile Include="Http\WebSocketException.cs" />
+    <Compile Include="Http\WebSocketMessage.cs" />
+    <Compile Include="Http\WebSocketUpgradeResponse.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -108,5 +117,6 @@
     <Folder Include="Utils\" />
     <Folder Include="Http\Backend\" />
     <Folder Include="Http\Backend\Tcp\" />
+    <Folder Include="Http\Backend\WebSockets\" />
   </ItemGroup>
 </Project>

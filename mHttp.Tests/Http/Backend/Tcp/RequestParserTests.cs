@@ -133,7 +133,7 @@ namespace m.Http.Backend.Tcp
             WriteAscii(request, "Accept: */*\r\n");
 
             var state = new HttpRequest();
-            IRequest httpRequest;
+            HttpRequest httpRequest;
             Assert.IsFalse(RequestParser.TryParseHttpRequest(buffer, ref start, (int)request.Length, state, out httpRequest));
 
             WriteAscii(request, "\r\n");

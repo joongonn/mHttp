@@ -70,7 +70,8 @@ namespace m.Http.Metrics
                                 {
                                     StatusCode = entry.Code,
                                     Count = entry.Count
-                                }).ToArray(),
+                                }
+                            ).ToArray(),
 
                             ResponseTimes = responseTimes[i][j].GetTimes(0.5f, 0.9f, 0.999f)
                                                                .Zip(new [] { 50.0f, 90.0f, 99.9f }, (value, percentile) =>
@@ -78,8 +79,10 @@ namespace m.Http.Metrics
                                 {
                                     Percentile = percentile,
                                     Value = value
-                                }).ToArray()
-                        }).ToArray()
+                                }
+                            ).ToArray()
+                        }
+                    ).ToArray()
                 }
             ).ToArray();
         }

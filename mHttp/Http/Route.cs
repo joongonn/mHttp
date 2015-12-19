@@ -78,6 +78,13 @@ namespace m.Http
             return new Endpoint(b.Method, b.Route, f);
         }
 
+        #region Websocket
+        public static Endpoint With(this EndpointBuilder b, Func<IWebSocketUpgradeRequest, WebSocketUpgradeResponse> f)
+        {
+            return new Endpoint(b.Method, b.Route, Handler.From(f));
+        }
+        #endregion
+
         #region Json
         public static Endpoint WithAsync<TReq>(this EndpointBuilder b, Func<JsonRequest<TReq>, Task<HttpResponse>> f)
         {

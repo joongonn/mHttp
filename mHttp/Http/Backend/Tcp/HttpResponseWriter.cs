@@ -1,5 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 
 using m.Utils;
 
@@ -8,50 +11,78 @@ namespace m.Http.Backend.Tcp
     static class HttpResponseWriter
     {
         static readonly byte[] CRLF = new byte[] { 13, 10 };
-        static readonly string Server = string.Format("mHttp {0}", System.Reflection.Assembly.GetExecutingAssembly().GetName().Version);
+        static readonly string Server = string.Format("mHttp {0}", Assembly.GetExecutingAssembly().GetName().Version);
 
-        const string ResponsePrefixTemplate = "HTTP/1.1 {0} {1}\r\n" +
-                                              "Content-Type: {2}\r\n" +
-                                              "Server: {3}\r\n" +
-                                              "Date: {4}\r\n" +
-                                              "Content-Length: {5}\r\n" +
-                                              "Connection: {6}\r\n";
-        
-        public static void WriteResponse(HttpResponse httpResponse, Stream buffer, int keepAlives, TimeSpan keepAliveTimeout)
+        public static int Write(HttpResponse response, MemoryStream ms, int keepAlives, TimeSpan keepAliveTimeout)
         {
-            var contentLength = (httpResponse.Body == null) ? 0 : httpResponse.Body.Length;
+            var bytesWritten = 0;
 
-            var responsePrefix = string.Format(ResponsePrefixTemplate,
-                                               (int)httpResponse.StatusCode, httpResponse.StatusCode,
-                                               httpResponse.ContentType,
-                                               Server,
-                                               DateTime.UtcNow.ToString("r"),
-                                               contentLength,
-                                               keepAlives > 0 ? "keep-alive" : "close");
+            bytesWritten += ms.WriteAsciiFormat("HTTP/1.1 {0} {1}\r\n", (int)response.StatusCode, response.StatusDescription);
+            bytesWritten += ms.WriteAsciiFormat("Server: {0}\r\n", Server);
+            bytesWritten += ms.WriteAsciiFormat("Date: {0}\r\n", DateTime.UtcNow.ToString("r"));
 
-            buffer.WriteAscii(responsePrefix);
-
-            if (keepAlives > 0)
+            if (!string.IsNullOrEmpty(response.ContentType))
             {
-                buffer.WriteAscii(string.Format("Keep-Alive: timeout={0},max={1}\r\n", (int)keepAliveTimeout.TotalSeconds, keepAlives));
+                bytesWritten += ms.WriteAsciiFormat("Content-Type: {0}\r\n", response.ContentType);
             }
+            var contentLength = response.Body == null ? 0 : response.Body.Length;
+            bytesWritten += ms.WriteAsciiFormat("Content-Length: {0}\r\n", contentLength);
 
-            if (httpResponse.Headers != null && httpResponse.Headers.Count > 0)
+            var headers = response.Headers;
+            if (headers != null && headers.Count > 0)
             {
-                foreach (var kvp in httpResponse.Headers) //TODO: duplicate handling with above
+                foreach (var kvp in headers) //TODO: duplicate handling with fixed headers
                 {
-                    buffer.WriteAscii(string.Format("{0}: {1}\r\n", kvp.Key, kvp.Value));
+                    bytesWritten += ms.WriteAsciiFormat("{0}: {1}\r\n", kvp.Key, kvp.Value);
                 }
             }
 
-            buffer.Write(CRLF, 0, CRLF.Length);
+            if (keepAlives > 0)
+            {
+                bytesWritten += ms.WriteAsciiFormat("Connection: keep-alive\r\n", keepAlives);
+                bytesWritten += ms.WriteAsciiFormat("Keep-Alive: timeout={0},max={1}\r\n", (int)keepAliveTimeout.TotalSeconds, keepAlives);
+            }
+            else
+            {
+                bytesWritten += ms.WriteAsciiFormat("Connection: close\r\n", keepAlives);
+            }
 
-            // Body
+            bytesWritten += ms.Write(CRLF);
+
             if (contentLength > 0)
             {
-                buffer.Write(httpResponse.Body, 0, contentLength);
+                bytesWritten += ms.Write(response.Body);
             }
+
+            return bytesWritten;
+        }
+
+        public static int WriteWebSocketUpgradeResponse(WebSocketUpgradeResponse response, MemoryStream ms)
+        {
+            var bytesWritten = 0;
+
+            bytesWritten += ms.WriteAsciiFormat("HTTP/1.1 {0} {1}\r\n", (int)response.StatusCode, response.StatusDescription);
+            bytesWritten += ms.WriteAsciiFormat("Server: {0}\r\n", Server);
+            bytesWritten += ms.WriteAsciiFormat("Date: {0}\r\n", DateTime.UtcNow.ToString("r"));
+
+            var acceptResponse = response as WebSocketUpgradeResponse.AcceptUpgradeResponse;
+            if (acceptResponse != null)
+            {
+                var acceptKey = Encoding.UTF8.GetBytes(acceptResponse.RequestKey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
+                var acceptKeyHash = Convert.ToBase64String(SHA1.Create().ComputeHash(acceptKey));
+
+                bytesWritten += ms.WriteAscii("Connection: upgrade\r\n");
+                bytesWritten += ms.WriteAscii("Upgrade: websocket\r\n");
+                bytesWritten += ms.WriteAsciiFormat("Sec-WebSocket-Accept: {0}\r\n", acceptKeyHash);
+            }
+            else // Reject
+            {
+                bytesWritten += ms.WriteAscii("Connection: close\r\n");
+            }
+
+            bytesWritten += ms.Write(CRLF);
+
+            return bytesWritten;
         }
     }
 }
-

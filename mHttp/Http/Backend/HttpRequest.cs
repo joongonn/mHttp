@@ -5,13 +5,15 @@ using System.IO;
 using System.Net;
 using System.Linq;
 
+using m.Http;
+using m.Http.Backend.WebSockets;
 using m.Http.Backend.Tcp;
 
 namespace m.Http.Backend
 {
-    public sealed class HttpRequest : IRequest, IHttpRequest
+    public sealed class HttpRequest : IHttpRequest, IWebSocketUpgradeRequest
     {
-        internal RequestState State { get; set; }
+        internal RequestParser.State State { get; set; }
 
         public string Host { get; internal set; }
         public Method Method { get; internal set; }
@@ -31,7 +33,7 @@ namespace m.Http.Backend
 
         internal HttpRequest()
         {
-            State = RequestState.ReadRequestLine;
+            State = RequestParser.State.ReadRequestLine;
 
             headers = new Dictionary<string, string>(8, StringComparer.OrdinalIgnoreCase);
         }
@@ -47,7 +49,7 @@ namespace m.Http.Backend
                            bool isKeepAlive,
                            Stream body)
         {
-            State = RequestState.Completed;
+            State = RequestParser.State.Completed;
 
             Host = host;
             Method = method;
@@ -104,6 +106,25 @@ namespace m.Http.Backend
             var converter = TypeDescriptor.GetConverter(typeof(T));
 
             return (T)converter.ConvertFromString(value);
+        }
+
+        WebSocketUpgradeResponse.AcceptUpgradeResponse IWebSocketUpgradeRequest.Accept(Action<IWebSocketSession> onAccepted)
+        {
+            string version, key, extensions;
+
+            if (this.IsWebSocketUpgradeRequest(out version, out key, out extensions))
+            {
+                return new WebSocketUpgradeResponse.AcceptUpgradeResponse(version, key, extensions, onAccepted);
+            }
+            else
+            {
+                throw new RequestException("Not a websocket upgrade request", HttpStatusCode.BadRequest);
+            }
+        }
+
+        WebSocketUpgradeResponse.RejectUpgradeResponse IWebSocketUpgradeRequest.Reject(HttpStatusCode reason)
+        {
+            return new WebSocketUpgradeResponse.RejectUpgradeResponse(reason);
         }
 
         public static implicit operator HttpRequest(HttpListenerRequest req)
