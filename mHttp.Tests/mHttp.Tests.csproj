@@ -63,5 +63,9 @@
       <Project>{19F964F5-5719-4665-AD8F-0AD5AF9DD4CE}</Project>
       <Name>mHttp</Name>
     </ProjectReference>
+    <ProjectReference Include="..\mHttp.Contrib\mHttp.Contrib.csproj">
+      <Project>{3384F1D9-12AE-4CEF-BCFC-D384253FEDFD}</Project>
+      <Name>mHttp.Contrib</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>
