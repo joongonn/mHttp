@@ -35,6 +35,9 @@
     <Reference Include="MySql.Data">
       <HintPath>..\packages\MySql.Data.6.9.8\lib\net45\MySql.Data.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -50,11 +53,24 @@
     <Compile Include="Config\EnvironmentVariableAttribute.cs" />
     <Compile Include="Config\IConfigurable.cs" />
     <Compile Include="Config\LoggingDefaults.cs" />
+    <Compile Include="Http\Lift.cs" />
+    <Compile Include="Http\JsonRequest.cs" />
+    <Compile Include="Http\JsonHandler.cs" />
+    <Compile Include="Http\JsonEndpointBuilder.cs" />
+    <Compile Include="Http\Json.cs" />
+    <Compile Include="Http\JsonResponse.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <Folder Include="DB\" />
     <Folder Include="Deploy\" />
     <Folder Include="Config\" />
+    <Folder Include="Http\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\mHttp\mHttp.csproj">
+      <Project>{19F964F5-5719-4665-AD8F-0AD5AF9DD4CE}</Project>
+      <Name>mHttp</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>

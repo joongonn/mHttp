@@ -149,14 +149,14 @@ namespace m.Http
             }
         }
 
-        public HttpResponse GetMetricsReport()
+        public object GetMetricsReport() //TODO: typed report
         {
             if (!lifeCycleToken.IsStarted)
             {
                 throw new InvalidOperationException("Not started");
             }
 
-            return new JsonResponse(router.Metrics.GetReports());
+            return router.Metrics.GetReports();
         }
     }
 }

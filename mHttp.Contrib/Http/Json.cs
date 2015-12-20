@@ -3,7 +3,7 @@ using System.IO;
 
 using Newtonsoft.Json;
 
-namespace m.Utils
+namespace m.Http
 {
     public static class Json
     {
@@ -30,6 +30,14 @@ namespace m.Utils
         public static T FromJson<T>(this Stream inputstream)
         {
             return FromJson<T>(inputstream.ReadToEnd());
+        }
+
+        static string ReadToEnd(this Stream stream)
+        {
+            using (var reader = new StreamReader(stream))
+            {
+                return reader.ReadToEnd();
+            }
         }
     }
 }

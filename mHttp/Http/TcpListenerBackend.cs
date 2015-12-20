@@ -274,18 +274,19 @@ namespace m.Http
             }
         }
 
-        public HttpResponse GetMetricsReport()
+        public object GetMetricsReport() //TODO: typed report
         {
             if (!lifeCycleToken.IsStarted)
             {
                 throw new InvalidOperationException("Not started");
             }
 
-            return new JsonResponse(new {
+            return new
+            {
                 Sessions = sessionTable.Count,
                 WebSocketSessions = webSocketSessionTable.Count,
-                Reports = router.Metrics.GetReports(),
-            });
+                Router = router.Metrics.GetReports(),
+            };
         }
     }
 }

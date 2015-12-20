@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace m.Http.Handlers
+namespace m.Http
 {
     public static class JsonHandler<TReq>
     {

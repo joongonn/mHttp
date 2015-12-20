@@ -32,20 +32,14 @@
     <Reference Include="NLog">
       <HintPath>..\packages\NLog.4.2.1\lib\net45\NLog.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Http\ContentTypes.cs" />
     <Compile Include="Http\Handlers\Handler.cs" />
-    <Compile Include="Http\Handlers\JsonHandler.cs" />
     <Compile Include="Http\Headers.cs" />
     <Compile Include="Http\HttpListenerBackend.cs" />
     <Compile Include="Http\HttpResponse.cs" />
-    <Compile Include="Http\JsonRequest.cs" />
-    <Compile Include="Http\Lift.cs" />
     <Compile Include="Http\Method.cs" />
     <Compile Include="Http\Metrics\Endpoints\ResponseTime.cs" />
     <Compile Include="Http\Metrics\Endpoints\StatusCodeCounter.cs" />
@@ -53,11 +47,9 @@
     <Compile Include="Http\Router.cs" />
     <Compile Include="Http\RouteTable.cs" />
     <Compile Include="Http\Routing\Endpoint.cs" />
-    <Compile Include="Http\Routing\EndpointBuilder.cs" />
     <Compile Include="Http\Routing\ITemplatePart.cs" />
     <Compile Include="Http\Routing\RateLimitedEndpoint.cs" />
     <Compile Include="Http\Routing\Route.cs" />
-    <Compile Include="Utils\Json.cs" />
     <Compile Include="Utils\LeakyBucket.cs" />
     <Compile Include="Utils\LifeCycleBase.cs" />
     <Compile Include="Utils\Reservoir.cs" />
@@ -91,6 +83,7 @@
     <Compile Include="Http\WebSocketException.cs" />
     <Compile Include="Http\WebSocketMessage.cs" />
     <Compile Include="Http\WebSocketUpgradeResponse.cs" />
+    <Compile Include="Http\EndpointBuilder.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

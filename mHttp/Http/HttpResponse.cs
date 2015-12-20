@@ -32,13 +32,6 @@ namespace m.Http
         public TextResponse(string text) : base(HttpStatusCode.OK, ContentTypes.Plain, Encoding.UTF8.GetBytes(text)) { }
     }
 
-    public sealed class JsonResponse : HttpResponse
-    {
-        public JsonResponse(string json) : base(HttpStatusCode.OK, ContentTypes.Json, Encoding.UTF8.GetBytes(json)) { }
-
-        public JsonResponse(object t) : this(t.ToJson()) { }
-    }
-
     public class HttpResponse
     {
         protected static readonly Dictionary<string, string> EmptyHeaders = new Dictionary<string, string>(0);
