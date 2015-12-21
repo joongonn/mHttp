@@ -36,7 +36,6 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Http\ContentTypes.cs" />
-    <Compile Include="Http\Handlers\Handler.cs" />
     <Compile Include="Http\Headers.cs" />
     <Compile Include="Http\HttpListenerBackend.cs" />
     <Compile Include="Http\HttpResponse.cs" />
@@ -84,6 +83,9 @@
     <Compile Include="Http\WebSocketMessage.cs" />
     <Compile Include="Http\WebSocketUpgradeResponse.cs" />
     <Compile Include="Http\EndpointBuilder.cs" />
+    <Compile Include="Http\EndpointAttribute.cs" />
+    <Compile Include="Http\Endpoints.cs" />
+    <Compile Include="Http\Handlers.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

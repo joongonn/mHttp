@@ -4,13 +4,15 @@ using System.Threading.Tasks;
 
 using m.Http.Backend;
 
-namespace m.Http.Handlers
+namespace m.Http
 {
-    public static class Handler
+    using Handler = Func<IHttpRequest, Task<HttpResponse>>;
+
+    public static class Handlers
     {
         static readonly Task<HttpResponse> EmptyResponse = Task.FromResult(new HttpResponse(HttpStatusCode.NoContent));
 
-        public static Func<IHttpRequest, Task<HttpResponse>> FromAction(Action a)
+        public static Handler FromAction(Action a)
         {
             return (IHttpRequest _) =>
             {
@@ -19,7 +21,7 @@ namespace m.Http.Handlers
             };
         }
 
-        public static Func<IHttpRequest, Task<HttpResponse>> FromAsyncAction(Func<Task> f)
+        public static Handler FromAsyncAction(Func<Task> f)
         {
             return (IHttpRequest _) =>
             {
@@ -28,7 +30,7 @@ namespace m.Http.Handlers
             };
         }
 
-        public static Func<IHttpRequest, Task<HttpResponse>> FromAction(Action<IHttpRequest> a)
+        public static Handler FromAction(Action<IHttpRequest> a)
         {
             return (IHttpRequest req) =>
             {
@@ -37,7 +39,7 @@ namespace m.Http.Handlers
             };
         }
 
-        public static Func<IHttpRequest, Task<HttpResponse>> FromAsyncAction(Func<IHttpRequest, Task> a)
+        public static Handler FromAsyncAction(Func<IHttpRequest, Task> a)
         {
             return (IHttpRequest req) =>
             {
@@ -46,7 +48,7 @@ namespace m.Http.Handlers
             };
         }
 
-        public static Func<IHttpRequest, Task<HttpResponse>> From(Func<HttpResponse> f)
+        public static Handler From(Func<HttpResponse> f)
         {
             return (IHttpRequest _) =>
             {
@@ -55,7 +57,7 @@ namespace m.Http.Handlers
             };
         }
 
-        public static Func<IHttpRequest, Task<HttpResponse>> From(Func<IHttpRequest, HttpResponse> f)
+        public static Handler From(Func<IHttpRequest, HttpResponse> f)
         {
             return (IHttpRequest req) =>
             {
@@ -64,13 +66,13 @@ namespace m.Http.Handlers
             };
         }
 
-        public static Func<IHttpRequest, Task<HttpResponse>> FromAsync(Func<Task<HttpResponse>> f)
+        public static Handler FromAsync(Func<Task<HttpResponse>> f)
         {
             return (IHttpRequest _) => f();
         }
 
         #region Websocket
-        public static Func<IHttpRequest, Task<HttpResponse>> From(Func<IWebSocketUpgradeRequest, WebSocketUpgradeResponse> f)
+        public static Handler From(Func<IWebSocketUpgradeRequest, WebSocketUpgradeResponse> f)
         {
             return (IHttpRequest req) =>
             {
