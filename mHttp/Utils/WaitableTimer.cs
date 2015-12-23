@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 
-using NLog;
+using m.Logging;
 
 namespace m.Utils
 {
@@ -25,7 +25,7 @@ namespace m.Utils
             }
         }
 
-        readonly Logger logger = LogManager.GetCurrentClassLogger();
+        readonly LoggingProvider.ILogger logger = LoggingProvider.GetLogger(typeof(WaitableTimer));
 
         public readonly TimeSpan Period;
         readonly Job[] jobs;

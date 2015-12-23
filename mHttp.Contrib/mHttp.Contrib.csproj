@@ -25,6 +25,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Externalconsole>true</Externalconsole>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -52,13 +54,13 @@
     <Compile Include="Config\ConfigMap.cs" />
     <Compile Include="Config\EnvironmentVariableAttribute.cs" />
     <Compile Include="Config\IConfigurable.cs" />
-    <Compile Include="Config\LoggingDefaults.cs" />
     <Compile Include="Http\Lift.cs" />
     <Compile Include="Http\JsonRequest.cs" />
     <Compile Include="Http\JsonHandler.cs" />
     <Compile Include="Http\JsonEndpointBuilder.cs" />
     <Compile Include="Http\Json.cs" />
     <Compile Include="Http\JsonResponse.cs" />
+    <Compile Include="Logging\NLogAdapter.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -66,6 +68,7 @@
     <Folder Include="Deploy\" />
     <Folder Include="Config\" />
     <Folder Include="Http\" />
+    <Folder Include="Logging\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\mHttp\mHttp.csproj">

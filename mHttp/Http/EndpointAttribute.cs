@@ -8,7 +8,7 @@ namespace m.Http
         public readonly Method Method;
         public readonly string PathTemplate;
 
-        public EndpointAttribute(Method method, string pathTemplate)
+        public EndpointAttribute(Method method, string pathTemplate) //TODO: rateLimit
         {
             Method = method;
             PathTemplate = pathTemplate;

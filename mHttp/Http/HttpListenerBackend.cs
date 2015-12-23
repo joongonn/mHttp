@@ -3,18 +3,17 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
-using NLog;
-
 using m.Http.Backend;
+using m.Logging;
 using m.Utils;
 
 namespace m.Http
 {
     public sealed class HttpListenerBackend
     {
-        readonly HttpResponse ServiceUnavailable = new ErrorResponse(HttpStatusCode.ServiceUnavailable);
+        readonly LoggingProvider.ILogger logger = LoggingProvider.GetLogger(typeof(HttpListenerBackend));
 
-        readonly Logger logger = LogManager.GetCurrentClassLogger();
+        readonly HttpResponse ServiceUnavailable = new ErrorResponse(HttpStatusCode.ServiceUnavailable);
 
         readonly string ListenOn;
         readonly string name;

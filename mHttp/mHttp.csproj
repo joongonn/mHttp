@@ -25,13 +25,12 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Externalconsole>true</Externalconsole>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Net" />
-    <Reference Include="NLog">
-      <HintPath>..\packages\NLog.4.2.1\lib\net45\NLog.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -86,6 +85,9 @@
     <Compile Include="Http\EndpointAttribute.cs" />
     <Compile Include="Http\Endpoints.cs" />
     <Compile Include="Http\Handlers.cs" />
+    <Compile Include="Logging\NullLogger.cs" />
+    <Compile Include="Logging\LoggingProvider.cs" />
+    <Compile Include="Logging\TextWriterLogger.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -94,5 +96,6 @@
     <Folder Include="Http\Backend\" />
     <Folder Include="Http\Backend\Tcp\" />
     <Folder Include="Http\Backend\WebSockets\" />
+    <Folder Include="Logging\" />
   </ItemGroup>
 </Project>

@@ -1,11 +1,9 @@
-﻿using NLog;
-
-using m.Config;
+﻿using m.Logging;
 
 public abstract class BaseTest
 {
     static BaseTest()
     {
-        LogManager.Configuration = LoggingDefaults.ToConsole(LogLevel.Debug);
+        LoggingProvider.Use(LoggingProvider.ConsoleLoggingProvider);
     }
 }

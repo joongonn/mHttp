@@ -3,13 +3,13 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
-using NLog;
+using m.Logging;
 
 namespace m.DB
 {
     public abstract class LazyPool<TResource>
     {
-        readonly Logger logger = LogManager.GetCurrentClassLogger();
+        readonly LoggingProvider.ILogger logger;
 
         public readonly string Label;
         public readonly int MaxPoolSize;
@@ -25,6 +25,8 @@ namespace m.DB
 
         protected LazyPool(string label, int maxPoolSize, TimeSpan poolTimeout)
         {
+            logger = LoggingProvider.GetLogger(GetType());
+
             Label = label;
             MaxPoolSize = maxPoolSize;
             PoolTimeout = poolTimeout;

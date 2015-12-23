@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text;
 
-using m.Utils;
-
 namespace m.Http
 {
     sealed class ErrorResponse : HttpResponse

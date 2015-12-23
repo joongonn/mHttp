@@ -5,17 +5,16 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-using NLog;
-
 using m.Http.Backend;
 using m.Http.Backend.Tcp;
+using m.Logging;
 using m.Utils;
 
 namespace m.Http
 {
     public class TcpListenerBackend
     {
-        readonly Logger logger = LogManager.GetCurrentClassLogger();
+        readonly LoggingProvider.ILogger logger = LoggingProvider.GetLogger(typeof(TcpListenerBackend));
 
         readonly string name;
         readonly int maxKeepAlives;
@@ -104,6 +103,7 @@ namespace m.Http
         {
             listener.Start(backlog);
             logger.Info("Listening on {0}", listener.LocalEndpoint);
+
 
             while (true)
             {

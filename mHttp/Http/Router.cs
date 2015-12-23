@@ -5,22 +5,21 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
-using NLog;
-
-using m.Http.Routing;
+using m.Http.Backend;
 using m.Http.Metrics;
+using m.Http.Routing;
+using m.Logging;
 using m.Utils;
 
-using m.Http.Backend;
 
 namespace m.Http
 {
     public class Router : LifeCycleBase, IEnumerable<RouteTable>
     {
+        readonly LoggingProvider.ILogger logger = LoggingProvider.GetLogger(typeof(Router));
+
         static readonly HttpResponse NotFound = new ErrorResponse(HttpStatusCode.NotFound);
         static readonly HttpResponse BadRequest = new ErrorResponse(HttpStatusCode.BadRequest);
-
-        readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         readonly RouteTable[] routeTables;
         readonly RequestLogs requestLogs;

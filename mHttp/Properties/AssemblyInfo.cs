@@ -12,4 +12,5 @@ using System.Runtime.CompilerServices;
 
 [assembly: AssemblyVersion("0.1.*")]
 
+[assembly: InternalsVisibleTo("mHttp.Contrib")]
 [assembly: InternalsVisibleTo("mHttp.Tests")]
