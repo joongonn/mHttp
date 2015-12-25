@@ -7,13 +7,7 @@ namespace m.Http.Metrics
     {
         public class Endpoint
         {
-            public class Bytes
-            {
-                public long RequestBytesIn { get; set; }
-                public long ResponseBytesOut { get; set; }
-            }
-            
-            public class Counter
+            public class StatusCodeCounter
             {
                 public int StatusCode { get; set; }
                 public int Count { get; set; }
@@ -27,8 +21,9 @@ namespace m.Http.Metrics
 
             public string Method { get; set; }
             public string Route { get; set; }
-            public Bytes Traffic { get; set; }
-            public Counter[] Counters { get; set; }
+            public long? BytesIn { get; set; }
+            public long? BytesOut { get; set; }
+            public StatusCodeCounter[] StatusCodeCounters { get; set; }
             public HandlerTime[] HandlerTimes { get; set; }
         }
 
@@ -48,17 +43,12 @@ namespace m.Http.Metrics
                         {
                             Method = ep.Method.ToString(),
                             Route = ep.Route.PathTemplate,
+                            BytesIn = backendMetrics == null ? (long?)null : backendMetrics.totalRequestBytesIn[tableIndex][epIndex],
+                            BytesOut = backendMetrics == null ? (long?)null : backendMetrics.totalResponseBytesOut[tableIndex][epIndex],
 
-                            Traffic =
-                                backendMetrics == null ? null : new Report.Endpoint.Bytes
-                                {
-                                    RequestBytesIn = backendMetrics.totalRequestBytesIn[tableIndex][epIndex],
-                                    ResponseBytesOut = backendMetrics.totalResponseBytesOut[tableIndex][epIndex],
-                                },
-
-                            Counters = routerMetrics.statusCodesCounters[tableIndex][epIndex].Where(entry => entry.Count > 0)
-                                                                                             .Select(entry =>
-                                new Report.Endpoint.Counter
+                            StatusCodeCounters = routerMetrics.statusCodesCounters[tableIndex][epIndex].Where(entry => entry.Count > 0)
+                                                                                                       .Select(entry =>
+                                new Report.Endpoint.StatusCodeCounter
                                 {
                                     StatusCode = entry.Code,
                                     Count = entry.Count
