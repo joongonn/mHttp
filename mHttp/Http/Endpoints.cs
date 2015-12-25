@@ -35,12 +35,25 @@ namespace m.Http
             foreach (var pair in endpointMethods)
             {
                 var method = pair.Item1;
-                var endpoint = pair.Item2;
+                var endpointAttrb = pair.Item2;
 
                 Func<IHttpRequest, Task<HttpResponse>> handler;
                 if (IsValidEndpointHandler(method, targetClassInstance, out handler))
                 {
-                    endpoints.Add(new Endpoint(endpoint.Method, new Routing.Route(endpoint.PathTemplate), handler));
+                    if (endpointAttrb.RequestsPerSecond > 0)
+                    {
+                        endpoints.Add(new RateLimitedEndpoint(endpointAttrb.Method,
+                                                              new Routing.Route(endpointAttrb.PathTemplate),
+                                                              handler,
+                                                              endpointAttrb.RequestsPerSecond,
+                                                              endpointAttrb.BurstRequestsPerSecond));
+                    }
+                    else
+                    {
+                        endpoints.Add(new Endpoint(endpointAttrb.Method,
+                                                   new Routing.Route(endpointAttrb.PathTemplate),
+                                                   handler));
+                    }
                 }
                 else
                 {
