@@ -12,6 +12,7 @@ namespace m.Http.Backend.Tcp
         readonly TimeSpan readTimeout;
 
         int dataStart = 0;
+        int currentRequestBytes = 0;
         HttpRequest requestState;
         int requests = 0;
 
@@ -30,56 +31,62 @@ namespace m.Http.Backend.Tcp
             requestState = null;
         }
 
-        public bool TryParseNextRequestFromBuffer(out HttpRequest request)
+        public bool TryParseNextRequestFromBuffer(out int requestBytes, out HttpRequest request)
         {
             if (dataStart == readBufferOffset)
             {
+                requestBytes = -1;
                 request = null;
                 return false;
             }
 
             if (requestState == null)
             {
+                currentRequestBytes = 0;
                 requestState = new HttpRequest();
             }
-            
-            if (RequestParser.TryParseHttpRequest(readBuffer, ref dataStart, readBufferOffset, requestState, out request))
+
+            var initialDataStart = dataStart;
+            var isRequestComplete = RequestParser.TryParseHttpRequest(readBuffer, ref dataStart, readBufferOffset, requestState, out request);
+            currentRequestBytes += dataStart - initialDataStart;
+
+            if (isRequestComplete)
             {
+                requestBytes = currentRequestBytes;
                 CompactReadBuffer(ref dataStart);
+                currentRequestBytes = 0;
                 requestState = null;
                 requests++;
                 return true;
             }
             else
             {
+                requestBytes = -1;
                 request = null;
                 return false;
             }
         }
 
-        public void WriteResponse(HttpResponse response, bool keepAlive)
+        public int WriteResponse(HttpResponse response, bool keepAlive)
         {
             using (var outputBuffer = new MemoryStream(512 + response.Body.Length))
             {
-                HttpResponseWriter.Write(response, outputBuffer, keepAlive ? KeepAlivesRemaining : 0, readTimeout);
+                int bytesToWrite = HttpResponseWriter.Write(response, outputBuffer, keepAlive ? KeepAlivesRemaining : 0, readTimeout);
+                Write(outputBuffer.GetBuffer(), 0, bytesToWrite);
 
-                Write(outputBuffer.GetBuffer(), 0, (int)outputBuffer.Length);
+                return bytesToWrite;
             }
         }
 
-        public void WriteWebSocketUpgradeResponse(WebSocketUpgradeResponse response)
+        public int WriteWebSocketUpgradeResponse(WebSocketUpgradeResponse response)
         {
             using (var outputBuffer = new MemoryStream(512))
             {
-                HttpResponseWriter.WriteWebSocketUpgradeResponse(response, outputBuffer);
+                int bytesWritten = HttpResponseWriter.WriteWebSocketUpgradeResponse(response, outputBuffer);
+                Write(outputBuffer.GetBuffer(), 0, bytesWritten);
 
-                Write(outputBuffer.GetBuffer(), 0, (int)outputBuffer.Length);
+                return bytesWritten;
             }
-        }
-
-        public override void Dispose()
-        {
-            CloseQuiety();
         }
     }
 }

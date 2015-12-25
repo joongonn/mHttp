@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using m.Http.Backend;
 using m.Http.Backend.Tcp;
+using m.Http.Metrics;
 using m.Logging;
 using m.Utils;
 
@@ -36,6 +37,7 @@ namespace m.Http
         long acceptedWebSocketSessions = 0;
 
         Router router;
+        BackendMetrics metrics;
 
         public TcpListenerBackend(IPAddress address,
                                   int port,
@@ -72,6 +74,8 @@ namespace m.Http
 
         public void Start(Router router)
         {
+            metrics = new BackendMetrics(router);
+
             if (lifeCycleToken.Start())
             {
                 timer.Start();
@@ -136,9 +140,12 @@ namespace m.Http
         async Task HandleSession(Session session)
         {
             TrackSession(session);
+            var closeSessionOnReturn = true;
+
             try
             {
                 var continueSession = true;
+
                 while (continueSession && !session.IsDisconnected())
                 {
                     try
@@ -154,27 +161,33 @@ namespace m.Http
                         UntrackSessionRead(session.Id);
                     }
 
+                    int requestBytesParsed, responseBytesWritten;
                     HttpRequest request;
-                    while (continueSession && session.TryParseNextRequestFromBuffer(out request))
+                    while (continueSession && session.TryParseNextRequestFromBuffer(out requestBytesParsed, out request))
                     {
-                        HttpResponse response = await router.HandleRequest(request, DateTime.UtcNow).ConfigureAwait(false);
+                        Router.HandleResult result = await router.HandleRequest(request, DateTime.UtcNow).ConfigureAwait(false);
+                        HttpResponse response = result.HttpResponse;
 
                         var webSocketUpgradeResponse = response as WebSocketUpgradeResponse;
                         if (webSocketUpgradeResponse == null)
                         {
-                            session.WriteResponse(response, request.IsKeepAlive);
+                            responseBytesWritten = session.WriteResponse(response, request.IsKeepAlive);
                             continueSession = request.IsKeepAlive && session.KeepAlivesRemaining > 0;
                         }
                         else
                         {
-                            if (HandleWebsocketUpgrade(session, webSocketUpgradeResponse))
-                            {
-                                return;
-                            }
-                            else
-                            {
-                                continueSession = false;
-                            }
+                            var isUpgraded = HandleWebsocketUpgrade(session,
+                                                                    result.MatchedRouteTableIndex,
+                                                                    result.MatchedEndpointIndex,
+                                                                    webSocketUpgradeResponse,
+                                                                    out responseBytesWritten);
+                            continueSession = false;
+                            closeSessionOnReturn = !isUpgraded;
+                        }
+
+                        if (result.MatchedRouteTableIndex >= 0 && result.MatchedEndpointIndex >= 0)
+                        {
+                            metrics.CountBytes(result.MatchedRouteTableIndex, result.MatchedEndpointIndex, requestBytesParsed, responseBytesWritten);
                         }
                     }
                 }
@@ -194,14 +207,20 @@ namespace m.Http
             finally
             {
                 UntrackSession(session.Id);
+                if (closeSessionOnReturn)
+                {
+                    session.CloseQuiety();
+                }
             }
-
-            session.Dispose();
         }
 
-        bool HandleWebsocketUpgrade(Session session, WebSocketUpgradeResponse response)
+        bool HandleWebsocketUpgrade(Session session,
+                                    int routeTableIndex,
+                                    int endpointIndex,
+                                    WebSocketUpgradeResponse response,
+                                    out int responseBytesWritten)
         {
-            session.WriteWebSocketUpgradeResponse(response);
+            responseBytesWritten = session.WriteWebSocketUpgradeResponse(response);
 
             var acceptUpgradeResponse = response as WebSocketUpgradeResponse.AcceptUpgradeResponse;
             if (acceptUpgradeResponse == null)
@@ -211,9 +230,12 @@ namespace m.Http
             else
             {
                 long id = Interlocked.Increment(ref acceptedWebSocketSessions);
-                var webSocketSession = new WebSocketSession(id, session.TcpClient, () => UntrackWebSocketSession(id));
+                var webSocketSession = new WebSocketSession(id,
+                                                            session.TcpClient,
+                                                            bytesReceived => metrics.CountRequestBytesIn(routeTableIndex, endpointIndex, bytesReceived),
+                                                            bytesSent => metrics.CountResponseBytesOut(routeTableIndex, endpointIndex, bytesSent),
+                                                            () => UntrackWebSocketSession(id));
                 TrackWebSocketSession(webSocketSession);
-
                 try
                 {
                     acceptUpgradeResponse.OnAccepted(webSocketSession); //TODO: Task.Run this?
@@ -269,7 +291,7 @@ namespace m.Http
             {
                 if (now - kvp.Value > sessionReadTimeout.TotalMilliseconds)
                 {
-                    sessionTable[kvp.Key].Dispose();
+                    sessionTable[kvp.Key].CloseQuiety();
                 }
             }
         }
@@ -285,7 +307,7 @@ namespace m.Http
             {
                 Sessions = sessionTable.Count,
                 WebSocketSessions = webSocketSessionTable.Count,
-                Router = router.Metrics.GetReports(),
+                Reports = Report.Generate(router, router.Metrics, metrics)
             };
         }
     }

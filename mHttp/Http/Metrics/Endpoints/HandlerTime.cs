@@ -4,11 +4,11 @@ using m.Utils;
 
 namespace m.Http.Metrics.Endpoints
 {
-    sealed class ResponseTime
+    sealed class HandlerTime
     {
         readonly Reservoir<float> reservoir;
 
-        public ResponseTime(int size)
+        public HandlerTime(int size)
         {
             reservoir = new Reservoir<float>(size, Comparer<float>.Default);
         }

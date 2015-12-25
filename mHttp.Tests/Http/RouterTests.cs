@@ -26,11 +26,13 @@ namespace m.Http
             var router = new Router(routeTable);
 
             var req1 = new HttpRequest("localhost", Method.GET, new Uri("http://localhost/invalid"), "/invalid", string.Empty, new Dictionary<string, string>(), ContentTypes.Plain, 0, false, new MemoryStream());
-            var resp1 = await router.HandleRequest(req1, DateTime.UtcNow);
+            var result1 = await router.HandleRequest(req1, DateTime.UtcNow);
+            var resp1 = result1.HttpResponse;
             Assert.AreEqual(HttpStatusCode.NotFound, resp1.StatusCode);
 
             var req2 = new HttpRequest("localhost", Method.GET, new Uri("http://localhost/1"), "/1", string.Empty, new Dictionary<string, string>(), ContentTypes.Plain, 0, false, new MemoryStream());
-            var resp2 = await router.HandleRequest(req2, DateTime.UtcNow);
+            var result2 = await router.HandleRequest(req2, DateTime.UtcNow);
+            var resp2 = result2.HttpResponse;
             Assert.IsInstanceOf<TextResponse>(resp2);
             Assert.AreEqual(ContentTypes.Plain, resp2.ContentType);
             Assert.AreEqual("one", System.Text.Encoding.UTF8.GetString(resp2.Body));

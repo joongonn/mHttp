@@ -21,6 +21,8 @@ namespace m.Http.Backend.Tcp
         }
 
         readonly object stateLock = new object();
+        readonly Action<int> onBytesReceived;
+        readonly Action<int> onBytesSent;
         readonly Action onDisposed;
 
         int dataStart;
@@ -29,7 +31,7 @@ namespace m.Http.Backend.Tcp
         DecodeState decodeState;
         OpCode frameOpCode;
         bool isFin, isMasked;
-        int payloadLength;
+        int framePayloadLength;
         byte[] mask;
         #endregion
 
@@ -46,10 +48,14 @@ namespace m.Http.Backend.Tcp
 
         public WebSocketSession(long id,
                                 TcpClient tcpClient,
+                                Action<int> onBytesReceived,
+                                Action<int> onBytesSent,
                                 Action onDisposed,
                                 int initialReadBufferSize=1024,
                                 int writeTimeoutMs=5000) : base(id, tcpClient, initialReadBufferSize, writeTimeoutMs)
         {
+            this.onBytesReceived = onBytesReceived;
+            this.onBytesSent = onBytesSent;
             this.onDisposed = onDisposed;
             decodeState = DecodeState.DecodeHeader;
             dataStart = 0;
@@ -63,23 +69,23 @@ namespace m.Http.Backend.Tcp
                 switch (decodeState)
                 {
                     case DecodeState.DecodeHeader:
-                        if (FrameDecoder.TryDecodeHeader(readBuffer, ref dataStart, readBufferOffset, out isFin, out frameOpCode, out isMasked, out payloadLength, mask))
+                        if (FrameDecoder.TryDecodeHeader(readBuffer, ref dataStart, readBufferOffset, out isFin, out frameOpCode, out isMasked, out framePayloadLength, mask))
                         {
                             decodeState = DecodeState.DecodePayload;
 
                             switch (frameOpCode)
                             {
                                 case OpCode.Continuation:
-                                    if (payloadLength > 0)
+                                    if (framePayloadLength > 0)
                                     {
-                                        BufferUtils.Expand(ref messageBuffer, payloadLength);
+                                        BufferUtils.Expand(ref messageBuffer, framePayloadLength);
                                     }
                                     break;
 
                                 case OpCode.Text:
                                 case OpCode.Binary:
                                     messageOpCode = frameOpCode;
-                                    messageBuffer = new byte[payloadLength];
+                                    messageBuffer = new byte[framePayloadLength];
                                     messageBufferOffset = 0;
                                     break;
 
@@ -99,7 +105,7 @@ namespace m.Http.Backend.Tcp
     
                     case DecodeState.DecodePayload:
                         var decodeStart = dataStart;
-                        if (FrameDecoder.TryDecodePayload(readBuffer, ref dataStart, readBufferOffset, payloadLength, isMasked, mask))
+                        if (FrameDecoder.TryDecodePayload(readBuffer, ref dataStart, readBufferOffset, framePayloadLength, isMasked, mask))
                         {
                             decodeState = DecodeState.DecodeHeader;
 
@@ -108,7 +114,7 @@ namespace m.Http.Backend.Tcp
                                 case OpCode.Continuation:
                                 case OpCode.Text:
                                 case OpCode.Binary:
-                                    Array.Copy(readBuffer, decodeStart, messageBuffer, messageBufferOffset, payloadLength);
+                                    Array.Copy(readBuffer, decodeStart, messageBuffer, messageBufferOffset, framePayloadLength);
                                     CompactReadBuffer(ref dataStart);
                                     if (isFin)
                                     {
@@ -120,7 +126,7 @@ namespace m.Http.Backend.Tcp
                                     }
                                     else
                                     {
-                                        messageBufferOffset += payloadLength;
+                                        messageBufferOffset += framePayloadLength;
                                         continue;
                                     }
 
@@ -128,8 +134,8 @@ namespace m.Http.Backend.Tcp
                                 case OpCode.Ping:
                                 case OpCode.Pong:
                                     opCode = frameOpCode;
-                                    messagePayload = new byte[payloadLength];
-                                    Array.Copy(readBuffer, decodeStart, messagePayload, 0, payloadLength);
+                                    messagePayload = new byte[framePayloadLength];
+                                    Array.Copy(readBuffer, decodeStart, messagePayload, 0, framePayloadLength);
                                     CompactReadBuffer(ref dataStart);
                                     return true; // must be Fin
                             }
@@ -191,6 +197,7 @@ namespace m.Http.Backend.Tcp
 
                 if (bytesRead > 0)
                 {
+                    onBytesReceived(bytesRead);
                     continue;
                 }
                 else
@@ -268,6 +275,7 @@ namespace m.Http.Backend.Tcp
                     lock (stateLock)
                     {
                         Write(ms.GetBuffer(), 0, bytesWritten);
+                        onBytesSent(bytesWritten);
                     }
                 }
                 catch (SessionStreamException e)
@@ -303,7 +311,7 @@ namespace m.Http.Backend.Tcp
             }
         }
 
-        public override void Dispose()
+        public void Dispose()
         {
             try
             {

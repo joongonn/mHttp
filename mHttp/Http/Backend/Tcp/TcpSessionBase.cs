@@ -34,7 +34,7 @@ namespace m.Http.Backend.Tcp
             }
         }
 
-        public virtual void CloseQuiety()
+        public void CloseQuiety()
         {
             try
             {

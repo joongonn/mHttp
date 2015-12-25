@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace m.Http.Backend.Tcp
 {
-    abstract class SessionBase : IDisposable
+    abstract class SessionBase
     {
         public long Id { get; private set; }
         protected Stream inputStream;
@@ -67,7 +67,5 @@ namespace m.Http.Backend.Tcp
                 throw new SessionStreamException("Exception while reading from stream", e);
             }
         }
-
-        public abstract void Dispose();
     }
 }

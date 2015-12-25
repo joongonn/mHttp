@@ -107,10 +107,10 @@ namespace m.Http.Backend.WebSockets
 
                             if (isMasked)
                             {
-                                mask[0] = buffer[dataStart + 4];
-                                mask[1] = buffer[dataStart + 5];
-                                mask[2] = buffer[dataStart + 6];
-                                mask[3] = buffer[dataStart + 7];
+                                mask[0] = buffer[dataStart + 10];
+                                mask[1] = buffer[dataStart + 11];
+                                mask[2] = buffer[dataStart + 12];
+                                mask[3] = buffer[dataStart + 13];
                             }
 
                             dataStart += bytesRequired;

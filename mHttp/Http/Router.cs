@@ -16,6 +16,20 @@ namespace m.Http
 {
     public class Router : LifeCycleBase, IEnumerable<RouteTable>
     {
+        public struct HandleResult
+        {
+            public int MatchedRouteTableIndex;
+            public int MatchedEndpointIndex;
+            public readonly HttpResponse HttpResponse;
+
+            public HandleResult(int matchedRouteTableIndex, int matchedEndpointIndex, HttpResponse httpResponse)
+            {
+                MatchedRouteTableIndex = matchedRouteTableIndex;
+                MatchedEndpointIndex = matchedEndpointIndex;
+                HttpResponse = httpResponse;
+            }
+        }
+
         readonly LoggingProvider.ILogger logger = LoggingProvider.GetLogger(typeof(Router));
 
         static readonly HttpResponse NotFound = new ErrorResponse(HttpStatusCode.NotFound);
@@ -27,7 +41,7 @@ namespace m.Http
 
         readonly RateLimitedEndpoint[] rateLimitedEndpoints;
 
-        public RouterMetrics Metrics { get; private set; }
+        internal RouterMetrics Metrics { get; private set; }
         public RouteTable this[int RouteTableIndex] { get { return routeTables[RouteTableIndex]; } }
         public int Length { get { return routeTables.Length; } }
 
@@ -100,19 +114,20 @@ namespace m.Http
             return -1;
         }
 
-        public async Task<HttpResponse> HandleRequest(HttpRequest httpReq, DateTime requestArrivedOn)
+        public async Task<HandleResult> HandleRequest(HttpRequest httpReq, DateTime requestArrivedOn)
         {
             var requestedHost = httpReq.Host;
             if (string.IsNullOrEmpty(requestedHost))
             {
-                return BadRequest;
+                return new HandleResult(-1, -1, BadRequest);
             }
 
+            int routeTableIndex, endpointIndex;
             HttpResponse httpResp;
 
-            int routeTableIndex;
             if ((routeTableIndex = MatchRouteTable(requestedHost)) < 0)
             {
+                endpointIndex = -1;
                 httpResp = NotFound; // no matching host
             }
             else
@@ -121,7 +136,6 @@ namespace m.Http
 
                 //TODO: httpReq = routeTable.FilterRequest(httpReq);
 
-                int endpointIndex;
                 IReadOnlyDictionary<string, string> pathVariables;
                 if ((endpointIndex = routeTable.TryMatchEndpoint(httpReq.Method, httpReq.Url, out pathVariables)) < 0)
                 {
@@ -150,8 +164,9 @@ namespace m.Http
 
                 if (endpointIndex >= 0)
                 {
+                    var requestCompletedOn = DateTime.UtcNow;
                     int spins = 0;
-                    while (!requestLogs.TryAdd(routeTableIndex, endpointIndex, httpReq, httpResp, requestArrivedOn, DateTime.UtcNow))
+                    while (!requestLogs.TryAdd(routeTableIndex, endpointIndex, httpReq, httpResp, requestArrivedOn, requestCompletedOn))
                     {
                         spins++;
                         timer.Signal();
@@ -165,7 +180,7 @@ namespace m.Http
                 }
             }
 
-            return httpResp;
+            return new HandleResult(routeTableIndex, endpointIndex, httpResp);
         }
     }
 }

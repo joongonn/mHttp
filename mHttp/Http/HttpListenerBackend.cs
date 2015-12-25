@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using m.Http.Backend;
+using m.Http.Metrics;
 using m.Logging;
 using m.Utils;
 
@@ -99,7 +100,8 @@ namespace m.Http
                 try
                 {
                     HttpRequest httpReq = ctx.Request;
-                    httpResp = await router.HandleRequest(httpReq, requestArrivedOn);
+                    var result = await router.HandleRequest(httpReq, requestArrivedOn);
+                    httpResp = result.HttpResponse;
                 }
                 catch (Exception e)
                 {
@@ -155,7 +157,7 @@ namespace m.Http
                 throw new InvalidOperationException("Not started");
             }
 
-            return router.Metrics.GetReports();
+            return Report.Generate(router, router.Metrics);
         }
     }
 }
