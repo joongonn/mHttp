@@ -1,2 +1,8 @@
 language: csharp
 solution: mHttp.sln
+install:
+  - nuget install NUnit.Runners -Version 2.6.4 -OutputDirectory testrunner
+script:
+  - xbuild /p:Configuration=Release mHttp.sln
+  - mono ./testrunner/NUnit.Runners.2.6.4/tools/nunit-console.exe .//mHttp.Tests/bin/Release/mHttp.Tests.dll
+
