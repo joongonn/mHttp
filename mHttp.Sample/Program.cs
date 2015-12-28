@@ -2,12 +2,11 @@
 using System.Linq;
 using System.Threading.Tasks;
 
-using NLog;
-
 using m.Config;
 using m.DB;
 using m.Deploy;
 using m.Http;
+using m.Logging;
 
 using Dapper;
 
@@ -51,9 +50,9 @@ namespace m.Sample
             }
         }
 
-        public async Task<HttpResponse> GetAccountByIdEndpoint(Request req)
+        public async Task<HttpResponse> GetAccountByIdEndpoint(IHttpRequest req)
         {
-            var id = Convert.ToInt64(req.UrlVariables["id"]);
+            var id = Convert.ToInt64(req.PathVariables["id"]);
 
             using (var pooled = await db.GetAsync())
             {
@@ -107,7 +106,7 @@ namespace m.Sample
 
         public static void Main(string[] args)
         {
-            LogManager.Configuration = LoggingDefaults.ToConsole(LogLevel.Debug);
+            LoggingProvider.Use(LoggingProvider.ConsoleLoggingProvider);
 
             var config = ConfigManager.Load<ServerConfig>();
 
@@ -122,14 +121,14 @@ namespace m.Sample
             };
             var services = new SampleService(new MySqlPool("Sample", mySqlPoolConfig));
 
-            var server = new HttpListenerBackend(config.ListenAddress, config.ListenPort);
-            // var server = new TcpListenerBackend(System.Net.IPAddress.Any, config.ListenPort);
+            // var server = new HttpListenerBackend(config.ListenAddress, config.ListenPort);
+            var server = new TcpListenerBackend(System.Net.IPAddress.Any, config.ListenPort);
 
             var routeTable = new RouteTable(
                 Route.Get("/").With((request) => new TextResponse("Hello " + request.Headers["User-Agent"])),
                 Route.Post("/accounts").WithAsync(Lift.ToAsyncJsonHandler<Account.CreateRequest, Account>(services.CreateAccount)),
                 Route.Get("/accounts/{id}").WithAsync(services.GetAccountByIdEndpoint),
-                Route.Get("/metrics").With(server.GetMetricsReport).LimitRate(1),
+                Route.Get("/metrics").With(() => new JsonResponse(server.GetMetricsReport())).LimitRate(1),
                 Route.Get("/export").With(Lift.ToJsonHandler(DeploymentHelper.ExportEnvironmentVariables)),
                 Route.Post("/shutdown").WithAction(server.Shutdown)
             );
