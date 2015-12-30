@@ -71,8 +71,11 @@ namespace m.Sample
             [EnvironmentVariable("httpListenAddress")]
             public string ListenAddress { get; set; }
 
-            [EnvironmentVariable("httpListenPort")]
-            public int ListenPort { get; set; }
+            [EnvironmentVariable("httpPublicListenPort")]
+            public int PublicListenPort { get; set; }
+
+            [EnvironmentVariable("httpAdminListenPort")]
+            public int AdminListenPort { get; set; }
 
             [EnvironmentVariable("mySqlServer")]
             public string MySqlServer { get; set; }
@@ -94,7 +97,8 @@ namespace m.Sample
             {
                 // Defaults
                 ListenAddress = "*";
-                ListenPort = 8080;
+                PublicListenPort = 8080;
+                AdminListenPort = 8081;
 
                 MySqlServer = "localhost";
                 MySqlPort = 3306;
@@ -116,26 +120,27 @@ namespace m.Sample
                 Port = config.MySqlPort,
                 Database = config.MySqlDatabase, 
                 UserId = config.MySqlUserId,
-                Password = config.MySqlPassword
-
+                Password = config.MySqlPassword,
+                MaxPoolSize = 8
             };
             var services = new SampleService(new MySqlPool("Sample", mySqlPoolConfig));
 
-            // var server = new HttpListenerBackend(config.ListenAddress, config.ListenPort);
-            var server = new TcpListenerBackend(System.Net.IPAddress.Any, config.ListenPort);
-
-            var routeTable = new RouteTable(
-                Route.Get("/").With((request) => new TextResponse("Hello " + request.Headers["User-Agent"])),
+            var publicServer = new TcpListenerBackend(System.Net.IPAddress.Any, config.PublicListenPort);
+            var publicRouteTable = new RouteTable(
+                Route.Get("/").With(request => new TextResponse("Hello " + request.Headers["User-Agent"])),
                 Route.Post("/accounts").WithAsync(Lift.ToAsyncJsonHandler<Account.CreateRequest, Account>(services.CreateAccount)),
-                Route.Get("/accounts/{id}").WithAsync(services.GetAccountByIdEndpoint),
-                Route.Get("/metrics").With(() => new JsonResponse(server.GetMetricsReport())).LimitRate(1),
-                Route.Get("/export").With(Lift.ToJsonHandler(DeploymentHelper.ExportEnvironmentVariables)),
-                Route.Post("/shutdown").WithAction(server.Shutdown)
+                Route.Get("/accounts/{id}").WithAsync(services.GetAccountByIdEndpoint)
             );
 
-            var router = new Router(routeTable);
+            var adminServer = new TcpListenerBackend(System.Net.IPAddress.Any, config.AdminListenPort);
+            var adminRouteTable = new RouteTable(
+                Route.Get("/metrics").With(Lift.ToJsonHandler(publicServer.GetMetricsReport)).LimitRate(1),
+                Route.Get("/export").With(Lift.ToJsonHandler(DeploymentHelper.ExportEnvironmentVariables)),
+                Route.Post("/shutdown").WithAction(publicServer.Shutdown)
+            );
 
-            server.Start(router);
+            publicServer.Start(publicRouteTable);
+            adminServer.Start(adminRouteTable);
         }
     }
 }
