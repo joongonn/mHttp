@@ -8,7 +8,7 @@ namespace m.Http
         #region Json
         public static Func<IHttpRequest, HttpResponse> ToJsonHandler(Func<object> f)
         {
-            return (IHttpRequest req) =>
+            return (IHttpRequest _) =>
             {
                 object resp = f();
                 HttpResponse httpResp = new JsonResponse(resp);

@@ -35,6 +35,7 @@ namespace m.Http
 
         long acceptedSessions = 0;
         long acceptedWebSocketSessions = 0;
+        long maxConnectedSessions = 0;
 
         Router router;
         BackendMetrics metrics;
@@ -115,6 +116,12 @@ namespace m.Http
                 {
                     var client = listener.AcceptTcpClient();
                     var sessionId = ++acceptedSessions;
+
+                    var sessionCount = sessionTable.Count + 1;
+                    if (sessionCount > maxConnectedSessions)
+                    {
+                        maxConnectedSessions = sessionCount;
+                    }
 
                     Task.Run(() => HandleSession(new Session(sessionId, client, maxKeepAlives, sessionReadBufferSize, sessionReadTimeout, sessionWriteTimeout)));
                 }
@@ -305,8 +312,11 @@ namespace m.Http
 
             return new
             {
-                Sessions = sessionTable.Count,
-                WebSocketSessions = webSocketSessionTable.Count,
+                Backend = new {
+                    ConnectedSessions = sessionTable.Count,
+                    ConnectedWebSocketSessions = webSocketSessionTable.Count,
+                    MaxConnectedSessions = maxConnectedSessions
+                },
                 Reports = Report.Generate(router, router.Metrics, metrics)
             };
         }
