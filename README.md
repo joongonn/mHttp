@@ -16,27 +16,31 @@ To produce the `mHttp.dll` artifact under the `mHttp/bin/Release` directory.
 ## Hello World
 This example uses the [Mono C# command-line REPL](http://www.mono-project.com/docs/tools+libraries/tools/repl/).
 
-**1.** Start a C# REPL session, referencing the `mhttp.dll` assembly (and its dependencies):
+**1.** Start a C# REPL session, loading the `mHttp.dll` assembly:
 ```shell
-$ csharp -r:mHttp.dll,NLog.dll
+$ csharp -r:mHttp.dll
 Mono C# Shell, type "help;" for help
 
 Enter statements below.
+```
+
+**2.** : Import the `m.Http` namespace:
+```shell
 csharp> using m.Http;
 ```
-**2.** Instantiate the *route table* with a single route:
+
+**3.** Instantiate the *route table* with a single route:
 ```shell
 csharp> var routeTable = new RouteTable(
-      >   Route.Get("/").With((request) => new TextResponse("Hello " + request.Headers["User-Agent"]))
+      >   Route.Get("/").With(request => new TextResponse("Hello " + request.Headers["User-Agent"]))
       > );
 ```
-**3.** Instantiate and start the server *backend* listening on port 8080:
+**4.** Instantiate and start the server *backend* listening on port 8080:
 ```shell
 csharp> var server = new HttpListenerBackend("*", 8080);
 csharp> server.Start(routeTable);
-csharp>  
 ```
-**4.** Hit the endpoint:
+**5.** Hit the endpoint:
 ```shell
 $ curl -v http://localhost:8080
 > GET / HTTP/1.1
