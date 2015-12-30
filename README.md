@@ -24,7 +24,7 @@ Mono C# Shell, type "help;" for help
 Enter statements below.
 ```
 
-**2.** : Import the `m.Http` namespace:
+**2.** Import the `m.Http` namespace:
 ```shell
 csharp> using m.Http;
 ```
