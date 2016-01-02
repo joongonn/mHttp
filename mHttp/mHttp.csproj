@@ -80,7 +80,6 @@
     <Compile Include="Http\WebSocketException.cs" />
     <Compile Include="Http\WebSocketMessage.cs" />
     <Compile Include="Http\WebSocketUpgradeResponse.cs" />
-    <Compile Include="Http\EndpointBuilder.cs" />
     <Compile Include="Http\EndpointAttribute.cs" />
     <Compile Include="Http\Endpoints.cs" />
     <Compile Include="Http\Handlers.cs" />

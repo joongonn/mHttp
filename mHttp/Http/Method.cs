@@ -15,7 +15,7 @@ namespace m.Http
         TRACE
     }
 
-    public static class MethodExtensions
+    static class MethodExtensions
     {
         public static Method GetMethod(string s)
         {

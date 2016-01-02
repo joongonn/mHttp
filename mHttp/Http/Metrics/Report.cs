@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace m.Http.Metrics
 {
-    public class Report
+    public class HostReport
     {
         public class Endpoint
         {
@@ -30,16 +30,16 @@ namespace m.Http.Metrics
         public string Host { get; set; }
         public Endpoint[] Endpoints { get; set; }
 
-        internal static Report[] Generate(Router router, RouterMetrics routerMetrics, BackendMetrics backendMetrics=null)
+        internal static HostReport[] Generate(Router router, RouterMetrics routerMetrics, BackendMetrics backendMetrics=null)
         {
             Thread.MemoryBarrier();
 
             return router.Select((routeTable, tableIndex) =>
-                new Report
+                new HostReport
                 {
                     Host = routeTable.HostPattern,
                     Endpoints = routeTable.Select((ep, epIndex) =>
-                        new Report.Endpoint
+                        new HostReport.Endpoint
                         {
                             Method = ep.Method.ToString(),
                             Route = ep.Route.PathTemplate,
@@ -48,7 +48,7 @@ namespace m.Http.Metrics
 
                             StatusCodeCounters = routerMetrics.statusCodesCounters[tableIndex][epIndex].Where(entry => entry.Count > 0)
                                                                                                        .Select(entry =>
-                                new Report.Endpoint.StatusCodeCounter
+                                new HostReport.Endpoint.StatusCodeCounter
                                 {
                                     StatusCode = entry.Code,
                                     Count = entry.Count
@@ -57,7 +57,7 @@ namespace m.Http.Metrics
 
                             HandlerTimes = routerMetrics.handlerTimes[tableIndex][epIndex].GetTimes(0.5f, 0.9f, 0.999f)
                                                                                           .Zip(new [] { 50.0f, 90.0f, 99.9f }, (value, percentile) =>
-                                new Report.Endpoint.HandlerTime
+                                new HostReport.Endpoint.HandlerTime
                                 {
                                     Percentile = percentile,
                                     Value = value

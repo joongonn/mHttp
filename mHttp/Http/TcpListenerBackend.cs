@@ -312,12 +312,13 @@ namespace m.Http
 
             return new
             {
+                Time = DateTime.UtcNow.ToString(Time.StringFormat),
                 Backend = new {
                     ConnectedSessions = sessionTable.Count,
                     ConnectedWebSocketSessions = webSocketSessionTable.Count,
                     MaxConnectedSessions = maxConnectedSessions
                 },
-                Reports = Report.Generate(router, router.Metrics, metrics)
+                HostReports = HostReport.Generate(router, router.Metrics, metrics)
             };
         }
     }

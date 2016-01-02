@@ -2,6 +2,8 @@
 using System.IO;
 using System.Threading;
 
+using m.Utils;
+
 namespace m.Logging
 {
     class TextWriterLogger : LoggingProvider.ILogger
@@ -16,7 +18,7 @@ namespace m.Logging
         void Log(string level, string msg, params object[] args)
         {
             writer.WriteLine("{0} {1,5} [{2}#{3}] {4}",
-                             DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                             DateTime.UtcNow.ToString(Time.StringFormat),
                              level,
                              Thread.CurrentThread.Name,
                              Thread.CurrentThread.ManagedThreadId,

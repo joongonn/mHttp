@@ -135,9 +135,10 @@ namespace m.Sample
             var adminServer = new TcpListenerBackend(System.Net.IPAddress.Any, config.AdminListenPort);
             var adminRouteTable = new RouteTable(
                 Route.Get("/metrics/admin").With(Lift.ToJsonHandler(adminServer.GetMetricsReport)).LimitRate(1),
-                Route.Get("/metrics/public").With(Lift.ToJsonHandler(publicServer.GetMetricsReport)).LimitRate(1),
+                Route.Get("/metrics/public").With(Lift.ToJsonHandler(publicServer.GetMetricsReport)).LimitRate(5),
                 Route.Get("/export").With(Lift.ToJsonHandler(DeploymentHelper.ExportEnvironmentVariables)),
-                Route.Post("/shutdown").WithAction(publicServer.Shutdown)
+                Route.Post("/shutdown").WithAction(publicServer.Shutdown),
+                Route.Post("/gc").WithAction(GC.Collect)
             );
 
             publicServer.Start(publicRouteTable);

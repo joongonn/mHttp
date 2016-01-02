@@ -157,7 +157,7 @@ namespace m.Http
                 throw new InvalidOperationException("Not started");
             }
 
-            return Report.Generate(router, router.Metrics);
+            return HostReport.Generate(router, router.Metrics);
         }
     }
 }

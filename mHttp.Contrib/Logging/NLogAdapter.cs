@@ -6,12 +6,13 @@ using NLog.Targets;
 
 namespace m.Logging
 {
+    using Provider = Func<Type, LoggingProvider.ILogger>;
+
     public class NLogAdapter : LoggingProvider.ILogger
     {
         public static LoggingConfiguration ToConsole(LogLevel level)
         {
-            // public const string Layout = @"${date:universalTime=true:format=yyyy-MM-ddTHH\:mm\:ss.fffZ} ${pad:padding=5:inner=${level:uppercase=true}} [${threadname}#${threadid}] - ${message}"; // ${callsite:className=false:fileName=true:includeSourcePath=false:methodName=false:cleanNamesOfAnonymousDelegates=true};
-            const string Layout = @"${date:universalTime=true:format=yyyy-MM-ddTHH\:mm\:ss.fffZ} ${pad:padding=5:inner=${level:uppercase=true}} [${threadname}#${threadid}] - ${callsite:className=false:fileName=true:includeSourcePath=false:methodName=false:cleanNamesOfAnonymousDelegates=true} ${message}"; // ${callsite:className=false:fileName=true:includeSourcePath=false:methodName=false:cleanNamesOfAnonymousDelegates=true};
+            const string Layout = @"${date:universalTime=true:format=yyyy-MM-ddTHH\:mm\:ss.fffZ} ${pad:padding=5:inner=${level:uppercase=true}} [${threadname}#${threadid}] - ${callsite:className=false:fileName=true:includeSourcePath=false:methodName=false:cleanNamesOfAnonymousDelegates=true} ${message}";
 
             var consoleTarget = new ConsoleTarget
             {
@@ -26,7 +27,7 @@ namespace m.Logging
             return config;
         }
                 
-        public static readonly Func<Type, LoggingProvider.ILogger> Provider = type => new NLogAdapter(type);
+        public static readonly Provider Provider = type => new NLogAdapter(type);
 
         Logger logger;
 
@@ -35,15 +36,15 @@ namespace m.Logging
             logger = NLog.LogManager.GetLogger(type.Name);
         }
 
-        void Log(NLog.LogLevel level, string msg, params object[] args)
+        void Log(LogLevel level, string msg, params object[] args)
         {
-            logger.Log(typeof(NLogAdapter), new NLog.LogEventInfo(level, logger.Name, null, msg, args));
+            logger.Log(typeof(NLogAdapter), new LogEventInfo(level, logger.Name, null, msg, args));
         }
 
-        public void Debug(string msg, params object[] args) { Log(NLog.LogLevel.Debug, msg, args); }
-        public void Info(string msg, params object[] args)  { Log(NLog.LogLevel.Info, msg, args); }
-        public void Warn(string msg, params object[] args)  { Log(NLog.LogLevel.Warn, msg, args); }
-        public void Error(string msg, params object[] args) { Log(NLog.LogLevel.Error, msg, args); }
-        public void Fatal(string msg, params object[] args) { Log(NLog.LogLevel.Fatal, msg, args); }
+        public void Debug(string msg, params object[] args) { Log(LogLevel.Debug, msg, args); }
+        public void Info(string msg, params object[] args)  { Log(LogLevel.Info, msg, args); }
+        public void Warn(string msg, params object[] args)  { Log(LogLevel.Warn, msg, args); }
+        public void Error(string msg, params object[] args) { Log(LogLevel.Error, msg, args); }
+        public void Fatal(string msg, params object[] args) { Log(LogLevel.Fatal, msg, args); }
     }
 }
