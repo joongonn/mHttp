@@ -55,7 +55,6 @@
     <Compile Include="Utils\WaitableTimer.cs" />
     <Compile Include="Http\Metrics\RequestLogs.cs" />
     <Compile Include="Utils\LifeCycleToken.cs" />
-    <Compile Include="Http\Metrics\Report.cs" />
     <Compile Include="Utils\Compression.cs" />
     <Compile Include="Http\TcpListenerBackend.cs" />
     <Compile Include="Http\Backend\Tcp\ParseRequestException.cs" />
@@ -88,6 +87,7 @@
     <Compile Include="Logging\TextWriterLogger.cs" />
     <Compile Include="Http\Metrics\Endpoints\HandlerTime.cs" />
     <Compile Include="Http\Metrics\BackendMetrics.cs" />
+    <Compile Include="Http\Metrics\HostReport.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
