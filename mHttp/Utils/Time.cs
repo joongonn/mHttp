@@ -12,6 +12,8 @@ namespace m.Utils
 
         public static long CurrentTimeMillis { get { return (long)(DateTime.UtcNow - Epoch).TotalMilliseconds; } }
 
+        public static long CurrentTimeSeconds { get { return (long)(DateTime.UtcNow - Epoch).TotalSeconds; } }
+
         public static long ToTimeMillis(this DateTime utcDateTime)
         {
             return (long)(utcDateTime - Epoch).TotalMilliseconds;

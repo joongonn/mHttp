@@ -1,6 +1,6 @@
 ﻿namespace m.Utils
 {
-    public sealed class LifeCycleToken : LifeCycleBase
+    sealed class LifeCycleToken : LifeCycleBase
     {
         public LifeCycleToken() { }
 

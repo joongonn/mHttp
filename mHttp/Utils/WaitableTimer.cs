@@ -6,7 +6,7 @@ using m.Logging;
 
 namespace m.Utils
 {
-    public sealed class WaitableTimer : LifeCycleBase
+    sealed class WaitableTimer : LifeCycleBase
     {
         public sealed class Job
         {

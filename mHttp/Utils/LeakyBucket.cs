@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace m.Utils
 {
-    public sealed class LeakyBucket
+    sealed class LeakyBucket
     {
         public readonly int Capacity;
         public readonly int LeakRate;

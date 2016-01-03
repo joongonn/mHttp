@@ -2,7 +2,7 @@
 
 namespace m.Utils
 {
-    public static class BufferUtils
+    static class BufferUtils
     {
         public static void Expand(ref byte[] buffer, int space)
         {

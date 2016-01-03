@@ -26,9 +26,9 @@ namespace m.Http
         readonly TcpListener listener;
         readonly LifeCycleToken lifeCycleToken;
 
+        readonly RateCounter sessionRate = new RateCounter(10);
         readonly ConcurrentDictionary<long, Session> sessionTable;
         readonly ConcurrentDictionary<long, long> sessionReads;
-
         readonly ConcurrentDictionary<long, WebSocketSession> webSocketSessionTable; //TODO: track dead reads ?
 
         readonly WaitableTimer timer;
@@ -110,13 +110,14 @@ namespace m.Http
             listener.Start(backlog);
             logger.Info("Listening on {0}", listener.LocalEndpoint);
 
-
             while (true)
             {
                 try
                 {
                     var client = listener.AcceptTcpClient();
-                    var sessionId = ++acceptedSessions;
+                    var newSession = new Session(++acceptedSessions, client, maxKeepAlives, sessionReadBufferSize, sessionReadTimeout, sessionWriteTimeout);
+
+                    sessionRate.Count(Time.CurrentTimeMillis, 1);
 
                     var sessionCount = sessionTable.Count + 1;
                     if (sessionCount > maxConnectedSessions)
@@ -124,7 +125,7 @@ namespace m.Http
                         maxConnectedSessions = sessionCount;
                     }
 
-                    Task.Run(() => HandleSession(new Session(sessionId, client, maxKeepAlives, sessionReadBufferSize, sessionReadTimeout, sessionWriteTimeout)));
+                    Task.Run(() => HandleSession(newSession));
                 }
                 catch (SocketException e)
                 {
@@ -329,6 +330,7 @@ namespace m.Http
                 Time = DateTime.UtcNow.ToString(Time.StringFormat),
                 Backend = new {
                     Sessions = new {
+                        CurrentRate = sessionRate.GetCurrentRate(),
                         Current = sessionTable.Count,
                         Max = maxConnectedSessions,
                         Total = acceptedSessions

@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace m.Utils
 {
-    public sealed class Reservoir<TValue>
+    sealed class Reservoir<TValue>
     {
         readonly object sampleLock = new object();
         readonly Random rnd;

@@ -88,6 +88,7 @@
     <Compile Include="Http\Metrics\Endpoints\HandlerTime.cs" />
     <Compile Include="Http\Metrics\BackendMetrics.cs" />
     <Compile Include="Http\Metrics\HostReport.cs" />
+    <Compile Include="Utils\RateCounter.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

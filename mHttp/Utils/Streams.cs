@@ -4,7 +4,7 @@ using System.Text;
 
 namespace m.Utils
 {
-    public static class Streams
+    static class Streams
     {
         public static string ReadToEnd(this Stream stream)
         {

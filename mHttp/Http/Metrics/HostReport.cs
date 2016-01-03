@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Threading;
 
 namespace m.Http.Metrics
 {
@@ -27,6 +26,7 @@ namespace m.Http.Metrics
 
             public string Method { get; set; }
             public string Route { get; set; }
+            public int CurrentResponseRate { get; set; }
             public BytesTransferred Bytes { get; set; }
             public StatusCodeCounter[] StatusCodeCounters { get; set; }
             public HandlerTime[] HandlerTimes { get; set; }
@@ -46,6 +46,8 @@ namespace m.Http.Metrics
                         {
                             Method = ep.Method.ToString(),
                             Route = ep.Route.PathTemplate,
+
+                            CurrentResponseRate = routerMetrics.responseRateCounters[tableIndex][epIndex].GetCurrentRate(),
 
                             Bytes = backendMetrics == null ? null : new HostReport.Endpoint.BytesTransferred {
                                 In = backendMetrics.totalRequestBytesIn[tableIndex][epIndex],
