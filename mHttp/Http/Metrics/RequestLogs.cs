@@ -2,8 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-using m.Http.Backend;
-
 namespace m.Http.Metrics
 {
     sealed class RequestLogs

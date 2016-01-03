@@ -11,8 +11,8 @@ namespace m.Http
         IReadOnlyDictionary<string, string> PathVariables { get; }
         string Query { get; }
 
-        WebSocketUpgradeResponse.AcceptUpgradeResponse Accept(Action<IWebSocketSession> onAccepted);
+        WebSocketUpgradeResponse.AcceptUpgradeResponse AcceptUpgrade(Action<IWebSocketSession> onAccepted);
 
-        WebSocketUpgradeResponse.RejectUpgradeResponse Reject(HttpStatusCode reason);
+        WebSocketUpgradeResponse.RejectUpgradeResponse RejectUpgrade(HttpStatusCode reason);
     }
 }

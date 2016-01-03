@@ -19,10 +19,15 @@ namespace m.Http.Metrics
                 public float Value { get; set; }
             }
 
+            public class BytesTransferred
+            {
+                public long In { get; set; }
+                public long Out { get; set; }
+            }
+
             public string Method { get; set; }
             public string Route { get; set; }
-            public long? BytesIn { get; set; }
-            public long? BytesOut { get; set; }
+            public BytesTransferred Bytes { get; set; }
             public StatusCodeCounter[] StatusCodeCounters { get; set; }
             public HandlerTime[] HandlerTimes { get; set; }
         }
@@ -32,8 +37,6 @@ namespace m.Http.Metrics
 
         internal static HostReport[] Generate(Router router, RouterMetrics routerMetrics, BackendMetrics backendMetrics=null)
         {
-            Thread.MemoryBarrier();
-
             return router.Select((routeTable, tableIndex) =>
                 new HostReport
                 {
@@ -43,8 +46,11 @@ namespace m.Http.Metrics
                         {
                             Method = ep.Method.ToString(),
                             Route = ep.Route.PathTemplate,
-                            BytesIn = backendMetrics == null ? (long?)null : backendMetrics.totalRequestBytesIn[tableIndex][epIndex],
-                            BytesOut = backendMetrics == null ? (long?)null : backendMetrics.totalResponseBytesOut[tableIndex][epIndex],
+
+                            Bytes = backendMetrics == null ? null : new HostReport.Endpoint.BytesTransferred {
+                                In = backendMetrics.totalRequestBytesIn[tableIndex][epIndex],
+                                Out = backendMetrics.totalResponseBytesOut[tableIndex][epIndex]
+                            },
 
                             StatusCodeCounters = routerMetrics.statusCodesCounters[tableIndex][epIndex].Where(entry => entry.Count > 0)
                                                                                                        .Select(entry =>

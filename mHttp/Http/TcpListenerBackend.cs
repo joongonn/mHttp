@@ -35,7 +35,8 @@ namespace m.Http
 
         long acceptedSessions = 0;
         long acceptedWebSocketSessions = 0;
-        long maxConnectedSessions = 0;
+        int maxConnectedSessions = 0;
+        int maxConnectedWebSocketSessions = 0;
 
         Router router;
         BackendMetrics metrics;
@@ -243,6 +244,7 @@ namespace m.Http
                                                             bytesSent => metrics.CountResponseBytesOut(routeTableIndex, endpointIndex, bytesSent),
                                                             () => UntrackWebSocketSession(id));
                 TrackWebSocketSession(webSocketSession);
+
                 try
                 {
                     acceptUpgradeResponse.OnAccepted(webSocketSession); //TODO: Task.Run this?
@@ -282,6 +284,16 @@ namespace m.Http
         void TrackWebSocketSession(WebSocketSession session)
         {
             webSocketSessionTable[session.Id] = session;
+            var sessionCount = webSocketSessionTable.Count;
+
+            int currentMax;
+            while ((currentMax = maxConnectedWebSocketSessions) < sessionCount)
+            {
+                if (Interlocked.CompareExchange(ref maxConnectedWebSocketSessions, sessionCount, currentMax) != currentMax)
+                {
+                    continue;
+                }
+            }
         }
 
         void UntrackWebSocketSession(long id)
@@ -310,13 +322,22 @@ namespace m.Http
                 throw new InvalidOperationException("Not started");
             }
 
+            Thread.MemoryBarrier();
+
             return new
             {
                 Time = DateTime.UtcNow.ToString(Time.StringFormat),
                 Backend = new {
-                    ConnectedSessions = sessionTable.Count,
-                    ConnectedWebSocketSessions = webSocketSessionTable.Count,
-                    MaxConnectedSessions = maxConnectedSessions
+                    Sessions = new {
+                        Current = sessionTable.Count,
+                        Max = maxConnectedSessions,
+                        Total = acceptedSessions
+                    },
+                    WebSocketSessions = new {
+                        Current = webSocketSessionTable.Count,
+                        Max = maxConnectedWebSocketSessions,
+                        Total = acceptedWebSocketSessions
+                    }
                 },
                 HostReports = HostReport.Generate(router, router.Metrics, metrics)
             };

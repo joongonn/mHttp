@@ -108,7 +108,7 @@ namespace m.Http.Backend
             return (T)converter.ConvertFromString(value);
         }
 
-        WebSocketUpgradeResponse.AcceptUpgradeResponse IWebSocketUpgradeRequest.Accept(Action<IWebSocketSession> onAccepted)
+        WebSocketUpgradeResponse.AcceptUpgradeResponse IWebSocketUpgradeRequest.AcceptUpgrade(Action<IWebSocketSession> onAccepted)
         {
             string version, key, extensions;
 
@@ -122,7 +122,7 @@ namespace m.Http.Backend
             }
         }
 
-        WebSocketUpgradeResponse.RejectUpgradeResponse IWebSocketUpgradeRequest.Reject(HttpStatusCode reason)
+        WebSocketUpgradeResponse.RejectUpgradeResponse IWebSocketUpgradeRequest.RejectUpgrade(HttpStatusCode reason)
         {
             return new WebSocketUpgradeResponse.RejectUpgradeResponse(reason);
         }

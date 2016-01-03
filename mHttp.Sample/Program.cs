@@ -61,6 +61,36 @@ namespace m.Sample
                 return new JsonResponse(accounts.Single());
             }
         }
+
+        public static async Task HandleWebSocketSession(IWebSocketSession session)
+        {
+            using (session)
+            {
+                var message = await session.ReadNextMessageAsync();
+
+                while (session.IsOpen)
+                {
+                    switch (message.MessageType)
+                    {
+                        case WebSocketMessage.Type.Text:
+                            var text = (WebSocketMessage.Text)message;
+                            session.SendText(text.Payload);
+                            break;
+
+                        case WebSocketMessage.Type.Close:
+                            session.CloseSession();
+                            break;
+
+                        case WebSocketMessage.Type.Ping:
+                            session.SendPong();
+                            break;
+
+                        case WebSocketMessage.Type.Pong:
+                            break;
+                    }
+                }
+            }
+        }
     }
 
     class Program
@@ -123,13 +153,14 @@ namespace m.Sample
                 Password = config.MySqlPassword,
                 MaxPoolSize = 8
             };
-            var services = new SampleService(new MySqlPool("Sample", mySqlPoolConfig));
+            var sampleService = new SampleService(new MySqlPool("Sample", mySqlPoolConfig));
 
             var publicServer = new TcpListenerBackend(System.Net.IPAddress.Any, config.PublicListenPort);
             var publicRouteTable = new RouteTable(
                 Route.Get("/").With(request => new TextResponse("Hello " + request.Headers["User-Agent"])),
-                Route.Post("/accounts").WithAsync(Lift.ToAsyncJsonHandler<Account.CreateRequest, Account>(services.CreateAccount)),
-                Route.Get("/accounts/{id}").WithAsync(services.GetAccountByIdEndpoint)
+                Route.Post("/accounts").WithAsync(Lift.ToAsyncJsonHandler<Account.CreateRequest, Account>(sampleService.CreateAccount)),
+                Route.Get("/accounts/{id}").WithAsync(sampleService.GetAccountByIdEndpoint),
+                Route.GetWebSocketUpgrade("/ws").With(req => req.AcceptUpgrade(session => Task.Run(() => SampleService.HandleWebSocketSession(session))))
             );
 
             var adminServer = new TcpListenerBackend(System.Net.IPAddress.Any, config.AdminListenPort);
