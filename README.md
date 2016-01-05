@@ -4,7 +4,12 @@ Low footprint C# library (.NET 4.5) for standing up RESTful services.
 Developed using [MonoDevelop 5.10](http://www.monodevelop.com/) on [Mono 4.2.1](http://www.mono-project.com/) (on Xubuntu 14.04).
 
 
-## How to build [![Build Status](https://travis-ci.org/joongonn/mHttp.svg?branch=master)](https://travis-ci.org/joongonn/mHttp)
+## How to build 
+| CI | Platform | Status |
+| ---- | ---- | ---- |
+| Travis CI | Linux/Mono | [![Build Status](https://travis-ci.org/joongonn/mHttp.svg?branch=master)](https://travis-ci.org/joongonn/mHttp) |
+| AppVeyor | Windows | [![Build Status](https://ci.appveyor.com/api/projects/status/nu1rvyk7831m3jcm?svg=true)](https://ci.appveyor.com/project/joongonn/mhttp) |
+
 **IDE**: Open and build `mHttp.sln` in MonoDevelop 5 (also tested with Visual Studio Community 2015).
 
 **Command-line**: Otherwise, to build on the command-line in *nx environment with [Mono installed](http://www.mono-project.com/docs/getting-started/install/linux/):
