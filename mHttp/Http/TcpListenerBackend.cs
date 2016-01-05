@@ -26,7 +26,7 @@ namespace m.Http
         readonly TcpListener listener;
         readonly LifeCycleToken lifeCycleToken;
 
-        readonly RateCounter sessionRate = new RateCounter(10);
+        readonly RateCounter sessionRate = new RateCounter(100);
         readonly ConcurrentDictionary<long, Session> sessionTable;
         readonly ConcurrentDictionary<long, long> sessionReads;
         readonly ConcurrentDictionary<long, WebSocketSession> webSocketSessionTable; //TODO: track dead reads ?
@@ -85,14 +85,14 @@ namespace m.Http
                 this.router = router;
                 this.router.Start();
 
-                var acceptorLoopThread = new Thread(AcceptorLoop)
+                var connectionLoopThread = new Thread(ConnectionLoop)
                 {
                     Priority = ThreadPriority.AboveNormal,
                     IsBackground = false,
                     Name = name
                 };
 
-                acceptorLoopThread.Start();
+                connectionLoopThread.Start();
             }
         }
 
@@ -105,7 +105,7 @@ namespace m.Http
             }
         }
 
-        void AcceptorLoop()
+        void ConnectionLoop()
         {
             listener.Start(backlog);
             logger.Info("Listening on {0}", listener.LocalEndpoint);
@@ -115,17 +115,10 @@ namespace m.Http
                 try
                 {
                     var client = listener.AcceptTcpClient();
-                    var newSession = new Session(++acceptedSessions, client, maxKeepAlives, sessionReadBufferSize, sessionReadTimeout, sessionWriteTimeout);
+                    acceptedSessions++;
+                    long sessionId = acceptedSessions;
 
-                    sessionRate.Count(Time.CurrentTimeMillis, 1);
-
-                    var sessionCount = sessionTable.Count + 1;
-                    if (sessionCount > maxConnectedSessions)
-                    {
-                        maxConnectedSessions = sessionCount;
-                    }
-
-                    Task.Run(() => HandleSession(newSession));
+                    Task.Run(() => HandleNewConnection(sessionId, client));
                 }
                 catch (SocketException e)
                 {
@@ -146,9 +139,19 @@ namespace m.Http
             router.Shutdown();
         }
 
+        void HandleNewConnection(long sessionId, TcpClient client)
+        {
+            var stream = client.GetStream();
+            var newSession = new Session(sessionId, client, stream, maxKeepAlives, sessionReadBufferSize, sessionReadTimeout, sessionWriteTimeout);
+
+            sessionRate.Count(Time.CurrentTimeMillis, 1);
+
+            TrackSession(newSession);
+            Task.Run(() => HandleSession(newSession));
+        }
+
         async Task HandleSession(Session session)
         {
-            TrackSession(session);
             var closeSessionOnReturn = true;
 
             try
@@ -241,6 +244,7 @@ namespace m.Http
                 long id = Interlocked.Increment(ref acceptedWebSocketSessions);
                 var webSocketSession = new WebSocketSession(id,
                                                             session.TcpClient,
+                                                            session.Stream,
                                                             bytesReceived => metrics.CountRequestBytesIn(routeTableIndex, endpointIndex, bytesReceived),
                                                             bytesSent => metrics.CountResponseBytesOut(routeTableIndex, endpointIndex, bytesSent),
                                                             () => UntrackWebSocketSession(id));
@@ -263,6 +267,16 @@ namespace m.Http
         void TrackSession(Session session)
         {
             sessionTable[session.Id] = session;
+            var sessionCount = sessionTable.Count;
+
+            int currentMax;
+            while ((currentMax = maxConnectedSessions) < sessionCount)
+            {
+                if (Interlocked.CompareExchange(ref maxConnectedSessions, sessionCount, currentMax) != currentMax)
+                {
+                    continue;
+                }
+            }
         }
 
         void UntrackSession(long id)
@@ -285,8 +299,8 @@ namespace m.Http
         void TrackWebSocketSession(WebSocketSession session)
         {
             webSocketSessionTable[session.Id] = session;
-            var sessionCount = webSocketSessionTable.Count;
 
+            var sessionCount = webSocketSessionTable.Count;
             int currentMax;
             while ((currentMax = maxConnectedWebSocketSessions) < sessionCount)
             {

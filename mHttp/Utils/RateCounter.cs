@@ -5,8 +5,8 @@ namespace m.Utils
     class RateCounter
     {
         readonly int resolutionMs;
-        public readonly long[] times;
-        public readonly int[] counts;
+        readonly long[] times;
+        readonly int[] counts;
 
         public RateCounter(int resolutionMs)
         {
@@ -27,16 +27,19 @@ namespace m.Utils
             {
                 var remainder = timeMillis % resolutionMs;
                 timeMillis = timeMillis - remainder;
-                int slot = (int)(timeMillis % 1000) / resolutionMs;
+                int timeSlot = (int)(timeMillis % 1000) / resolutionMs;
 
-                if (timeMillis > times[slot])
+                lock (times)
                 {
-                    times[slot] = timeMillis;
-                    counts[slot] = count;
-                }
-                else
-                {
-                    counts[slot] += count;
+                    if (timeMillis > times[timeSlot])
+                    {
+                        times[timeSlot] = timeMillis;
+                        counts[timeSlot] = count;
+                    }
+                    else
+                    {
+                        counts[timeSlot] += count;
+                    }
                 }
             }
         }

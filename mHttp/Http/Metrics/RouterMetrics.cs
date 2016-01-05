@@ -30,7 +30,7 @@ namespace m.Http.Metrics
                 {
                     statusCodesCounters[i][j] = new StatusCodeCounter();
                     handlerTimes[i][j] = new HandlerTime(1024);
-                    responseRateCounters[i][j] = new RateCounter(10);
+                    responseRateCounters[i][j] = new RateCounter(100);
                 }
             }
         }

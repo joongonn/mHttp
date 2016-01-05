@@ -151,21 +151,21 @@ namespace m.Sample
                 Database = config.MySqlDatabase, 
                 UserId = config.MySqlUserId,
                 Password = config.MySqlPassword,
-                MaxPoolSize = 8
+                MaxPoolSize = Environment.ProcessorCount
             };
             var sampleService = new SampleService(new MySqlPool("Sample", mySqlPoolConfig));
 
             var publicServer = new TcpListenerBackend(System.Net.IPAddress.Any, config.PublicListenPort);
             var publicRouteTable = new RouteTable(
-                Route.Get("/").With(request => new TextResponse("Hello " + request.Headers["User-Agent"])),
+                Route.Get("/").With(request => new TextResponse("Hello")),
                 Route.Post("/accounts").WithAsync(Lift.ToAsyncJsonHandler<Account.CreateRequest, Account>(sampleService.CreateAccount)),
                 Route.Get("/accounts/{id}").WithAsync(sampleService.GetAccountByIdEndpoint),
                 Route.GetWebSocketUpgrade("/ws").With(req => req.AcceptUpgrade(session => Task.Run(() => SampleService.HandleWebSocketSession(session))))
             );
 
-            var adminServer = new TcpListenerBackend(System.Net.IPAddress.Any, config.AdminListenPort);
-            var adminRouteTable = new RouteTable(
-                Route.Get("/metrics/admin").With(Lift.ToJsonHandler(adminServer.GetMetricsReport)).LimitRate(1),
+            var privateServer = new TcpListenerBackend(System.Net.IPAddress.Any, config.AdminListenPort);
+            var privateRouteTable = new RouteTable(
+                Route.Get("/metrics/private").With(Lift.ToJsonHandler(privateServer.GetMetricsReport)).LimitRate(1),
                 Route.Get("/metrics/public").With(Lift.ToJsonHandler(publicServer.GetMetricsReport)).LimitRate(5),
                 Route.Get("/export").With(Lift.ToJsonHandler(DeploymentHelper.ExportEnvironmentVariables)),
                 Route.Post("/shutdown").WithAction(publicServer.Shutdown),
@@ -173,7 +173,7 @@ namespace m.Sample
             );
 
             publicServer.Start(publicRouteTable);
-            adminServer.Start(adminRouteTable);
+            privateServer.Start(privateRouteTable);
         }
     }
 }

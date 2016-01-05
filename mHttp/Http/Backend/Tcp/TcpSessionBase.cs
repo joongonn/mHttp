@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net.Sockets;
 
 namespace m.Http.Backend.Tcp
@@ -6,15 +7,18 @@ namespace m.Http.Backend.Tcp
     abstract class TcpSessionBase : SessionBase
     {
         internal readonly TcpClient TcpClient;
+        internal readonly Stream Stream;
 
         protected TcpSessionBase(long id,
                                  TcpClient tcpClient,
+                                 Stream stream,
                                  int initialReadBufferSize,
-                                 int writeTimeoutMs) : base(id, tcpClient.GetStream(), initialReadBufferSize)
+                                 int writeTimeoutMs) : base(id, stream, initialReadBufferSize)
         {
             TcpClient = tcpClient;
             TcpClient.NoDelay = true;
-            TcpClient.GetStream().WriteTimeout = writeTimeoutMs;
+            this.Stream = stream;
+            this.Stream.WriteTimeout = writeTimeoutMs;
         }
 
         public bool IsDisconnected()
@@ -26,7 +30,7 @@ namespace m.Http.Backend.Tcp
         {
             try
             {
-                TcpClient.GetStream().Write(buffer, offset, size);
+                Stream.Write(buffer, offset, size);
             }
             catch (Exception e)
             {
@@ -38,7 +42,7 @@ namespace m.Http.Backend.Tcp
         {
             try
             {
-                TcpClient.GetStream().Close();
+                Stream.Close();
                 TcpClient.Close();
             }
             catch

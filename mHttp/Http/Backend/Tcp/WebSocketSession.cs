@@ -48,11 +48,12 @@ namespace m.Http.Backend.Tcp
 
         public WebSocketSession(long id,
                                 TcpClient tcpClient,
+                                Stream stream,
                                 Action<int> onBytesReceived,
                                 Action<int> onBytesSent,
                                 Action onDisposed,
                                 int initialReadBufferSize=1024,
-                                int writeTimeoutMs=5000) : base(id, tcpClient, initialReadBufferSize, writeTimeoutMs)
+                                int writeTimeoutMs=5000) : base(id, tcpClient, stream, initialReadBufferSize, writeTimeoutMs)
         {
             this.onBytesReceived = onBytesReceived;
             this.onBytesSent = onBytesSent;

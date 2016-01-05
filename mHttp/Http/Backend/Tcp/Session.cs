@@ -20,10 +20,11 @@ namespace m.Http.Backend.Tcp
 
         public Session(long id,
                        TcpClient tcpClient,
+                       Stream stream,
                        int maxKeepAlives,
                        int initialReadBufferSize,
                        TimeSpan readTimeout,
-                       TimeSpan writeTimeout) : base(id, tcpClient, initialReadBufferSize, (int)writeTimeout.TotalMilliseconds)
+                       TimeSpan writeTimeout) : base(id, tcpClient, stream, initialReadBufferSize, (int)writeTimeout.TotalMilliseconds)
         {
             this.maxKeepAlives = maxKeepAlives;
             this.readTimeout = readTimeout;
