@@ -42,7 +42,7 @@ namespace m.Utils
             Period = period;
             this.jobs = jobs;
             evt = new AutoResetEvent(false);
-            toString = string.Format("{0}({1}Hz)", name, (1000 / Period.TotalMilliseconds));
+            toString = string.Format("{0}@{1}Hz", name, (1000 / Period.TotalMilliseconds));
         }
 
         public bool Signal()

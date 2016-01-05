@@ -36,7 +36,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Http\ContentTypes.cs" />
     <Compile Include="Http\Headers.cs" />
-    <Compile Include="Http\HttpListenerBackend.cs" />
     <Compile Include="Http\HttpResponse.cs" />
     <Compile Include="Http\Method.cs" />
     <Compile Include="Http\Metrics\Endpoints\StatusCodeCounter.cs" />
@@ -56,7 +55,6 @@
     <Compile Include="Http\Metrics\RequestLogs.cs" />
     <Compile Include="Utils\LifeCycleToken.cs" />
     <Compile Include="Utils\Compression.cs" />
-    <Compile Include="Http\TcpListenerBackend.cs" />
     <Compile Include="Http\Backend\Tcp\ParseRequestException.cs" />
     <Compile Include="Http\Backend\Tcp\RequestParser.cs" />
     <Compile Include="Http\Backend\Tcp\Session.cs" />
@@ -89,6 +87,8 @@
     <Compile Include="Http\Metrics\BackendMetrics.cs" />
     <Compile Include="Http\Metrics\HostReport.cs" />
     <Compile Include="Utils\RateCounter.cs" />
+    <Compile Include="Http\HttpBackend.cs" />
+    <Compile Include="Http\BCLHttpListenerBackend.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

@@ -10,9 +10,9 @@ using m.Utils;
 
 namespace m.Http
 {
-    public sealed class HttpListenerBackend
+    public sealed class BclHttpListenerBackend
     {
-        readonly LoggingProvider.ILogger logger = LoggingProvider.GetLogger(typeof(HttpListenerBackend));
+        readonly LoggingProvider.ILogger logger = LoggingProvider.GetLogger(typeof(BclHttpListenerBackend));
 
         readonly HttpResponse ServiceUnavailable = new ErrorResponse(HttpStatusCode.ServiceUnavailable);
 
@@ -24,7 +24,7 @@ namespace m.Http
 
         Router router;
 
-        public HttpListenerBackend(string listenAddress, int listenPort)
+        public BclHttpListenerBackend(string listenAddress, int listenPort)
         {
             ListenOn = string.Format("http://{0}:{1}/", listenAddress, listenPort);
             name = string.Format("HttpListenerBackend({0}:{1})", listenAddress, listenPort);

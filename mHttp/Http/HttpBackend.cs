@@ -13,9 +13,9 @@ using m.Utils;
 
 namespace m.Http
 {
-    public class TcpListenerBackend
+    public class HttpBackend
     {
-        readonly LoggingProvider.ILogger logger = LoggingProvider.GetLogger(typeof(TcpListenerBackend));
+        readonly LoggingProvider.ILogger logger = LoggingProvider.GetLogger(typeof(HttpBackend));
 
         readonly string name;
         readonly int maxKeepAlives;
@@ -41,7 +41,7 @@ namespace m.Http
         Router router;
         BackendMetrics metrics;
 
-        public TcpListenerBackend(IPAddress address,
+        public HttpBackend(IPAddress address,
                                   int port,
                                   int maxKeepAlives=100,
                                   int backlog=128,
@@ -60,9 +60,9 @@ namespace m.Http
             sessionReads = new ConcurrentDictionary<long, long>();
             webSocketSessionTable = new ConcurrentDictionary<long, WebSocketSession>();
 
-            name = string.Format("TcpListenerBackend({0}:{1})", address, port);
+            name = string.Format("{0}({1}:{2})", GetType().Name, address, port);
 
-            timer = new WaitableTimer("TcpListenerBackendTimer",
+            timer = new WaitableTimer(name,
                                       TimeSpan.FromSeconds(1),
                                       new [] {
                                           new WaitableTimer.Job("CheckSessionReadTimeouts", CheckSessionReadTimeouts)
@@ -139,15 +139,35 @@ namespace m.Http
             router.Shutdown();
         }
 
-        void HandleNewConnection(long sessionId, TcpClient client)
+        async Task HandleNewConnection(long sessionId, TcpClient client)
         {
-            var stream = client.GetStream();
-            var newSession = new Session(sessionId, client, stream, maxKeepAlives, sessionReadBufferSize, sessionReadTimeout, sessionWriteTimeout);
+            Session newSession;
+            try
+            {
+                newSession = await CreateSession(sessionId, client, maxKeepAlives, sessionReadBufferSize, sessionReadTimeout, sessionWriteTimeout).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                logger.Error("Error creating session - {0}", e);
+                client.Close();
+                return;
+            }
 
             sessionRate.Count(Time.CurrentTimeMillis, 1);
-
             TrackSession(newSession);
-            Task.Run(() => HandleSession(newSession));
+
+            await HandleSession(newSession).ConfigureAwait(false);
+        }
+
+        internal virtual Task<Session> CreateSession(long sessionId,
+                                                     TcpClient client,
+                                                     int _maxKeepAlives,
+                                                     int _sessionReadBufferSize,
+                                                     TimeSpan _sessionReadTimeout,
+                                                     TimeSpan _sessionWriteTimeout)
+
+        {
+            return Task.FromResult(new Session(sessionId, client, client.GetStream(), maxKeepAlives, sessionReadBufferSize, sessionReadTimeout, sessionWriteTimeout));
         }
 
         async Task HandleSession(Session session)

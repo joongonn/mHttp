@@ -66,10 +66,10 @@ namespace m.Sample
         {
             using (session)
             {
-                var message = await session.ReadNextMessageAsync();
-
                 while (session.IsOpen)
                 {
+                    var message = await session.ReadNextMessageAsync();
+
                     switch (message.MessageType)
                     {
                         case WebSocketMessage.Type.Text:
@@ -155,7 +155,7 @@ namespace m.Sample
             };
             var sampleService = new SampleService(new MySqlPool("Sample", mySqlPoolConfig));
 
-            var publicServer = new TcpListenerBackend(System.Net.IPAddress.Any, config.PublicListenPort);
+            var publicServer = new HttpBackend(System.Net.IPAddress.Any, config.PublicListenPort);
             var publicRouteTable = new RouteTable(
                 Route.Get("/").With(request => new TextResponse("Hello")),
                 Route.Post("/accounts").WithAsync(Lift.ToAsyncJsonHandler<Account.CreateRequest, Account>(sampleService.CreateAccount)),
@@ -163,7 +163,7 @@ namespace m.Sample
                 Route.GetWebSocketUpgrade("/ws").With(req => req.AcceptUpgrade(session => Task.Run(() => SampleService.HandleWebSocketSession(session))))
             );
 
-            var privateServer = new TcpListenerBackend(System.Net.IPAddress.Any, config.AdminListenPort);
+            var privateServer = new HttpBackend(System.Net.IPAddress.Any, config.AdminListenPort);
             var privateRouteTable = new RouteTable(
                 Route.Get("/metrics/private").With(Lift.ToJsonHandler(privateServer.GetMetricsReport)).LimitRate(1),
                 Route.Get("/metrics/public").With(Lift.ToJsonHandler(publicServer.GetMetricsReport)).LimitRate(5),
