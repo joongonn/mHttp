@@ -15,6 +15,7 @@ namespace m.Http.Backend
     {
         internal RequestParser.State State { get; set; }
 
+        public bool IsSecureConnection { get; private set; }
         public string Host { get; internal set; }
         public Method Method { get; internal set; }
         public Uri Url { get; internal set; }
@@ -31,14 +32,16 @@ namespace m.Http.Backend
 
         readonly Dictionary<string, string> headers;
 
-        internal HttpRequest()
+        internal HttpRequest(bool isSecureConnection)
         {
+            IsSecureConnection = isSecureConnection;
             State = RequestParser.State.ReadRequestLine;
 
             headers = new Dictionary<string, string>(8, StringComparer.OrdinalIgnoreCase);
         }
 
-        public HttpRequest(string host,
+        public HttpRequest(bool isSecureConnection,
+                           string host,
                            Method method,
                            Uri url,
                            string path,
@@ -49,6 +52,7 @@ namespace m.Http.Backend
                            bool isKeepAlive,
                            Stream body)
         {
+            IsSecureConnection = isSecureConnection;
             State = RequestParser.State.Completed;
 
             Host = host;
@@ -129,7 +133,8 @@ namespace m.Http.Backend
 
         public static implicit operator HttpRequest(HttpListenerRequest req)
         {
-            return new HttpRequest(req.Headers.Get("Host"), //TODO: nullable?
+            return new HttpRequest(req.IsSecureConnection,
+                                   req.Headers.Get("Host"), //TODO: nullable?
                                    req.GetMethod(),
                                    req.Url,
                                    req.Url.AbsolutePath,

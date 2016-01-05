@@ -6,6 +6,8 @@ namespace m.Http
 {
     public interface IHttpRequest
     {
+        bool IsSecureConnection { get; }
+
         Method Method { get; }
         Uri Url { get; }
         string Path { get; }

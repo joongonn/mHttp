@@ -89,6 +89,7 @@
     <Compile Include="Utils\RateCounter.cs" />
     <Compile Include="Http\HttpBackend.cs" />
     <Compile Include="Http\BCLHttpListenerBackend.cs" />
+    <Compile Include="Http\HttpsBackend.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

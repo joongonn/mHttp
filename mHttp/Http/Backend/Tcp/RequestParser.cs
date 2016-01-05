@@ -378,7 +378,7 @@ namespace m.Http.Backend.Tcp
             var connection = state.GetHeaderWithDefault(Headers.Connection, null);
             var isKeepAlive = false;
 
-            var url = new Uri(string.Format("{0}://{1}{2}", "http", host, state.Path)); //TODO: https
+            var url = new Uri(string.Format("{0}://{1}{2}", state.IsSecureConnection ? "https" : "http", host, state.Path));
 
             if (connection != null)
             {

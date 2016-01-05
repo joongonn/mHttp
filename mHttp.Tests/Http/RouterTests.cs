@@ -25,19 +25,19 @@ namespace m.Http
 
             var router = new Router(routeTable);
 
-            var req1 = new HttpRequest("localhost", Method.GET, new Uri("http://localhost/invalid"), "/invalid", string.Empty, new Dictionary<string, string>(), ContentTypes.Plain, 0, false, new MemoryStream());
+            var req1 = new HttpRequest(false, "localhost", Method.GET, new Uri("http://localhost/invalid"), "/invalid", string.Empty, new Dictionary<string, string>(), ContentTypes.Plain, 0, false, new MemoryStream());
             var result1 = await router.HandleRequest(req1, DateTime.UtcNow);
             var resp1 = result1.HttpResponse;
             Assert.AreEqual(HttpStatusCode.NotFound, resp1.StatusCode);
 
-            var req2 = new HttpRequest("localhost", Method.GET, new Uri("http://localhost/1"), "/1", string.Empty, new Dictionary<string, string>(), ContentTypes.Plain, 0, false, new MemoryStream());
+            var req2 = new HttpRequest(false, "localhost", Method.GET, new Uri("http://localhost/1"), "/1", string.Empty, new Dictionary<string, string>(), ContentTypes.Plain, 0, false, new MemoryStream());
             var result2 = await router.HandleRequest(req2, DateTime.UtcNow);
             var resp2 = result2.HttpResponse;
             Assert.IsInstanceOf<TextResponse>(resp2);
             Assert.AreEqual(ContentTypes.Plain, resp2.ContentType);
             Assert.AreEqual("one", System.Text.Encoding.UTF8.GetString(resp2.Body));
 
-            var req3 = new HttpRequest("localhost", Method.GET, new Uri("http://localhost/8/capture"), "/8/capture", string.Empty, new Dictionary<string, string>(), ContentTypes.Plain, 0, false, new MemoryStream());
+            var req3 = new HttpRequest(false, "localhost", Method.GET, new Uri("http://localhost/8/capture"), "/8/capture", string.Empty, new Dictionary<string, string>(), ContentTypes.Plain, 0, false, new MemoryStream());
             await router.HandleRequest(req3, DateTime.UtcNow);
             Assert.AreEqual("8", req3.PathVariables["number"]);
 

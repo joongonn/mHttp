@@ -15,7 +15,7 @@ namespace m.Http
 {
     public class HttpBackend
     {
-        readonly LoggingProvider.ILogger logger = LoggingProvider.GetLogger(typeof(HttpBackend));
+        protected readonly LoggingProvider.ILogger logger = LoggingProvider.GetLogger(typeof(HttpBackend));
 
         readonly string name;
         readonly int maxKeepAlives;
@@ -148,7 +148,7 @@ namespace m.Http
             }
             catch (Exception e)
             {
-                logger.Error("Error creating session - {0}", e);
+                logger.Warn("Error creating session - {0}", e);
                 client.Close();
                 return;
             }
@@ -167,7 +167,7 @@ namespace m.Http
                                                      TimeSpan _sessionWriteTimeout)
 
         {
-            return Task.FromResult(new Session(sessionId, client, client.GetStream(), maxKeepAlives, sessionReadBufferSize, sessionReadTimeout, sessionWriteTimeout));
+            return Task.FromResult(new Session(sessionId, client, client.GetStream(), false, maxKeepAlives, sessionReadBufferSize, sessionReadTimeout, sessionWriteTimeout));
         }
 
         async Task HandleSession(Session session)

@@ -8,6 +8,7 @@ namespace m.Http.Backend.Tcp
 {
     class Session : TcpSessionBase
     {
+        readonly bool isSecured;
         readonly int maxKeepAlives;
         readonly TimeSpan readTimeout;
 
@@ -21,11 +22,13 @@ namespace m.Http.Backend.Tcp
         public Session(long id,
                        TcpClient tcpClient,
                        Stream stream,
+                       bool isSecured,
                        int maxKeepAlives,
                        int initialReadBufferSize,
                        TimeSpan readTimeout,
                        TimeSpan writeTimeout) : base(id, tcpClient, stream, initialReadBufferSize, (int)writeTimeout.TotalMilliseconds)
         {
+            this.isSecured = isSecured;
             this.maxKeepAlives = maxKeepAlives;
             this.readTimeout = readTimeout;
 
@@ -44,7 +47,7 @@ namespace m.Http.Backend.Tcp
             if (requestState == null)
             {
                 currentRequestBytes = 0;
-                requestState = new HttpRequest();
+                requestState = new HttpRequest(isSecured);
             }
 
             var initialDataStart = dataStart;
