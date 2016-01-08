@@ -3,16 +3,18 @@ using System.Net;
 using System.Threading.Tasks;
 
 using m.Http.Backend;
+using m.Http.Handlers;
 
 namespace m.Http
 {
-    using Handler = Func<IHttpRequest, Task<HttpResponse>>;
+    using SyncHandler = Func<IHttpRequest, HttpResponse>;
+    using AsyncHandler = Func<IHttpRequest, Task<HttpResponse>>;
 
-    public static class Handlers
+    public static class Handler
     {
         static readonly Task<HttpResponse> EmptyResponse = Task.FromResult(new HttpResponse(HttpStatusCode.NoContent));
 
-        public static Handler FromAction(Action a)
+        public static AsyncHandler FromAction(Action a)
         {
             return (IHttpRequest _) =>
             {
@@ -21,7 +23,7 @@ namespace m.Http
             };
         }
 
-        public static Handler FromAsyncAction(Func<Task> f)
+        public static AsyncHandler FromAsyncAction(Func<Task> f)
         {
             return (IHttpRequest _) =>
             {
@@ -30,7 +32,7 @@ namespace m.Http
             };
         }
 
-        public static Handler FromAction(Action<IHttpRequest> a)
+        public static AsyncHandler FromAction(Action<IHttpRequest> a)
         {
             return (IHttpRequest req) =>
             {
@@ -39,7 +41,7 @@ namespace m.Http
             };
         }
 
-        public static Handler FromAsyncAction(Func<IHttpRequest, Task> a)
+        public static AsyncHandler FromAsyncAction(Func<IHttpRequest, Task> a)
         {
             return (IHttpRequest req) =>
             {
@@ -48,7 +50,7 @@ namespace m.Http
             };
         }
 
-        public static Handler From(Func<HttpResponse> f)
+        public static AsyncHandler From(Func<HttpResponse> f)
         {
             return (IHttpRequest _) =>
             {
@@ -57,7 +59,7 @@ namespace m.Http
             };
         }
 
-        public static Handler From(Func<IHttpRequest, HttpResponse> f)
+        public static AsyncHandler From(Func<IHttpRequest, HttpResponse> f)
         {
             return (IHttpRequest req) =>
             {
@@ -66,13 +68,12 @@ namespace m.Http
             };
         }
 
-        public static Handler FromAsync(Func<Task<HttpResponse>> f)
+        public static AsyncHandler FromAsync(Func<Task<HttpResponse>> f)
         {
             return (IHttpRequest _) => f();
         }
 
-        #region Websocket
-        public static Handler From(Func<IWebSocketUpgradeRequest, WebSocketUpgradeResponse> f)
+        public static AsyncHandler From(Func<IWebSocketUpgradeRequest, WebSocketUpgradeResponse> f)
         {
             return (IHttpRequest req) =>
             {
@@ -82,6 +83,10 @@ namespace m.Http
                 return Task.FromResult(resp);
             };
         }
-        #endregion
+
+        public static SyncHandler ServeDirectory(string route, string path)
+        {
+            return new StaticFileHandler(route, path).Handle;
+        }
     }
 }

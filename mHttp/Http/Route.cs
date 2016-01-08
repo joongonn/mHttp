@@ -66,37 +66,37 @@ namespace m.Http
 
         public static Endpoint WithAction(this MethodRoute pair, Action a)
         {
-            return new Endpoint(pair.Method, pair.Route, Handlers.FromAction(a));
+            return new Endpoint(pair.Method, pair.Route, Handler.FromAction(a));
         }
 
         public static Endpoint WithAsyncAction(this MethodRoute pair, Func<Task> a)
         {
-            return new Endpoint(pair.Method, pair.Route, Handlers.FromAsyncAction(a));
+            return new Endpoint(pair.Method, pair.Route, Handler.FromAsyncAction(a));
         }
 
         public static Endpoint With(this MethodRoute pair, Func<HttpResponse> f)
         {
-            return new Endpoint(pair.Method, pair.Route, Handlers.From(f));
+            return new Endpoint(pair.Method, pair.Route, Handler.From(f));
         }
 
         public static Endpoint WithAsync(this MethodRoute pair, Func<Task<HttpResponse>> f)
         {
-            return new Endpoint(pair.Method, pair.Route, Handlers.FromAsync(f));
+            return new Endpoint(pair.Method, pair.Route, Handler.FromAsync(f));
         }
 
         public static Endpoint WithAction(this MethodRoute pair, Action<IHttpRequest> a)
         {
-            return new Endpoint(pair.Method, pair.Route, Handlers.FromAction(a));
+            return new Endpoint(pair.Method, pair.Route, Handler.FromAction(a));
         }
 
         public static Endpoint WithAsyncAction(this MethodRoute pair, Func<IHttpRequest, Task> a)
         {
-            return new Endpoint(pair.Method, pair.Route, Handlers.FromAsyncAction(a));
+            return new Endpoint(pair.Method, pair.Route, Handler.FromAsyncAction(a));
         }
 
         public static Endpoint With(this MethodRoute pair, Func<IHttpRequest, HttpResponse> f)
         {
-            return new Endpoint(pair.Method, pair.Route, Handlers.From(f));
+            return new Endpoint(pair.Method, pair.Route, Handler.From(f));
         }
 
         public static Endpoint WithAsync(this MethodRoute pair, Func<IHttpRequest, Task<HttpResponse>> f)
@@ -106,7 +106,7 @@ namespace m.Http
 
         public static Endpoint With(this WebSocketRoute wsRoute, Func<IWebSocketUpgradeRequest, WebSocketUpgradeResponse> f)
         {
-            return new Endpoint(Method.GET, wsRoute.Route, Handlers.From(f));
+            return new Endpoint(Method.GET, wsRoute.Route, Handler.From(f));
         }
     }
 }

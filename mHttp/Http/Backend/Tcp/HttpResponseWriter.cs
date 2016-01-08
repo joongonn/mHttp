@@ -19,7 +19,7 @@ namespace m.Http.Backend.Tcp
 
             bytesWritten += ms.WriteAsciiFormat("HTTP/1.1 {0} {1}\r\n", (int)response.StatusCode, response.StatusDescription);
             bytesWritten += ms.WriteAsciiFormat("Server: {0}\r\n", Server);
-            bytesWritten += ms.WriteAsciiFormat("Date: {0}\r\n", DateTime.UtcNow.ToString("r"));
+            bytesWritten += ms.WriteAsciiFormat("Date: {0}\r\n", DateTime.UtcNow.ToString("R"));
 
             if (!string.IsNullOrEmpty(response.ContentType))
             {
@@ -63,7 +63,7 @@ namespace m.Http.Backend.Tcp
 
             bytesWritten += ms.WriteAsciiFormat("HTTP/1.1 {0} {1}\r\n", (int)response.StatusCode, response.StatusDescription);
             bytesWritten += ms.WriteAsciiFormat("Server: {0}\r\n", Server);
-            bytesWritten += ms.WriteAsciiFormat("Date: {0}\r\n", DateTime.UtcNow.ToString("r"));
+            bytesWritten += ms.WriteAsciiFormat("Date: {0}\r\n", DateTime.UtcNow.ToString("R"));
 
             var acceptResponse = response as WebSocketUpgradeResponse.AcceptUpgradeResponse;
             if (acceptResponse != null)

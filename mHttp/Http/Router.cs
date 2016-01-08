@@ -155,7 +155,7 @@ namespace m.Http
                     }
                     catch (Exception e)
                     {
-                        logger.Error("Error handling request:[{0}:{1}] - [{2}]: {3}", httpReq.Method, httpReq.Path, e.GetType().Name, e.Message);
+                        logger.Error("Error handling request:[{0}:{1}] - [{2}]: {3}", httpReq.Method, httpReq.Path, e.GetType().Name, e);
                         httpResp = new ErrorResponse(HttpStatusCode.InternalServerError, e);
                     }
                 }

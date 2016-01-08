@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Text;
+using System.Web;
 
 namespace m.Http
 {
@@ -30,9 +32,19 @@ namespace m.Http
         public TextResponse(string text) : base(HttpStatusCode.OK, ContentTypes.Plain, Encoding.UTF8.GetBytes(text)) { }
     }
 
+    public class FileResponse : HttpResponse
+    {
+        public readonly DateTime LastModified;
+
+        public FileResponse(FileInfo fileInfo) : base(HttpStatusCode.OK, MimeMapping.GetMimeMapping(fileInfo.Name), File.ReadAllBytes(fileInfo.FullName))
+        {
+            LastModified = fileInfo.LastWriteTimeUtc;
+            Headers[HttpHeader.LastModified] = LastModified.ToString("R");
+        }
+    }
+
     public class HttpResponse
     {
-        protected static readonly Dictionary<string, string> EmptyHeaders = new Dictionary<string, string>(0);
         protected static readonly byte[] EmptyBody = new byte[0];
 
         public HttpStatusCode StatusCode { get; private set; }
@@ -45,9 +57,9 @@ namespace m.Http
 
         public HttpResponse(HttpStatusCode statusCode, string contentType) : this(statusCode, contentType, EmptyBody) { }
 
-        public HttpResponse(HttpStatusCode statusCode, string contentType, byte[] body) : this(statusCode, statusCode.ToString(), contentType, EmptyHeaders, body) { }
+        public HttpResponse(HttpStatusCode statusCode, string contentType, byte[] body) : this(statusCode, statusCode.ToString(), contentType, new Dictionary<string, string>(0), body) { }
 
-        protected HttpResponse(HttpStatusCode statusCode, string statusDescription, string contentType) : this(statusCode, statusDescription, contentType, EmptyHeaders, EmptyBody) { }
+        protected HttpResponse(HttpStatusCode statusCode, string statusDescription, string contentType) : this(statusCode, statusDescription, contentType, new Dictionary<string, string>(0), EmptyBody) { }
 
         HttpResponse(HttpStatusCode statusCode, string statusDescription, string contentType, IDictionary<string, string> headers, byte[] body)
         {

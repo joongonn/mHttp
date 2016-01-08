@@ -374,8 +374,8 @@ namespace m.Http.Backend.Tcp
         static HttpRequest ParseHttpRequest(HttpRequest state)
         {
             var host = state.GetHeader("Host");
-            var contentType = state.GetHeaderWithDefault(Headers.ContentType, null);
-            var connection = state.GetHeaderWithDefault(Headers.Connection, null);
+            var contentType = state.GetHeaderWithDefault(HttpHeader.ContentType, null);
+            var connection = state.GetHeaderWithDefault(HttpHeader.Connection, null);
             var isKeepAlive = false;
 
             var url = new Uri(string.Format("{0}://{1}{2}", state.IsSecureConnection ? "https" : "http", host, state.Path));
@@ -437,7 +437,7 @@ namespace m.Http.Backend.Tcp
                                 case Method.POST:
                                 case Method.PUT:
                                     //FIXME:Transfer-Encoding: chunked
-                                    var contentLength = state.GetHeader<int>(Headers.ContentLength);
+                                    var contentLength = state.GetHeader<int>(HttpHeader.ContentLength);
                                     state.ContentLength = contentLength;
                                     state.Body = new MemoryStream(contentLength);
                                     state.State = State.ReadBody;

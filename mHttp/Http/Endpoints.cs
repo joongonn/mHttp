@@ -89,12 +89,12 @@ namespace m.Http
                 if (method.IsStatic)
                 {
                     var syncHandler = (HandlerSignature2)Delegate.CreateDelegate(typeof(HandlerSignature2), method);
-                    asHandler = Handlers.From(syncHandler);
+                    asHandler = Handler.From(syncHandler);
                 }
                 else
                 {
                     var syncHandler = (HandlerSignature2)Delegate.CreateDelegate(typeof(HandlerSignature2), targetClassInstance, method);
-                    asHandler = Handlers.From(syncHandler);
+                    asHandler = Handler.From(syncHandler);
                 }
                 return true;
             }
@@ -108,12 +108,12 @@ namespace m.Http
                 if (method.IsStatic)
                 {
                     var syncHandler = (HandlerSignature3)Delegate.CreateDelegate(typeof(HandlerSignature3), method);
-                    asHandler = Handlers.From(syncHandler);
+                    asHandler = Handler.From(syncHandler);
                 }
                 else
                 {
                     var syncHandler = (HandlerSignature3)Delegate.CreateDelegate(typeof(HandlerSignature3), targetClassInstance, method);
-                    asHandler = Handlers.From(syncHandler);
+                    asHandler = Handler.From(syncHandler);
                 }
                 return true;
             }

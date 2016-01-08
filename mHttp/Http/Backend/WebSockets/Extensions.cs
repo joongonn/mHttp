@@ -9,17 +9,17 @@ namespace m.Http.Backend.WebSockets
                                                      out string webSocketKey,
                                                      out string webSocketExtensions)
         {
-            var connection = req.GetHeaderWithDefault(Headers.Connection, null);
+            var connection = req.GetHeaderWithDefault(HttpHeader.Connection, null);
 
             if (connection != null &&
                 connection.IndexOf("upgrade", StringComparison.OrdinalIgnoreCase) >= 0)
             {
-                var upgrade = req.GetHeaderWithDefault(Headers.Upgrade, null);
+                var upgrade = req.GetHeaderWithDefault(HttpHeader.Upgrade, null);
                 if (string.Equals(upgrade, "websocket", StringComparison.OrdinalIgnoreCase))
                 {
-                    webSocketVersion = req.GetHeader(Headers.WebSocketVersion);
-                    webSocketKey = req.GetHeader(Headers.WebSocketKey);
-                    webSocketExtensions = req.GetHeader(Headers.WebSocketExtensions);
+                    webSocketVersion = req.GetHeader(HttpHeader.WebSocketVersion);
+                    webSocketKey = req.GetHeader(HttpHeader.WebSocketKey);
+                    webSocketExtensions = req.GetHeader(HttpHeader.WebSocketExtensions);
                     return true;
                 }
                 else
