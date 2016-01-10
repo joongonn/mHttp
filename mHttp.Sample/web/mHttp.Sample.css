@@ -11,8 +11,12 @@ h4 {
 ul {
   padding-left: 20px;
 }
+a {
+  font-color: #000;
+  text-decoration:underline;
+}
 .container {
-  width: 1000px;
+  width: 900px;
 }
 .table-container {
   padding-left: 48px;

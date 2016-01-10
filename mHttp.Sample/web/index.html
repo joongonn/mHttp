@@ -7,7 +7,6 @@
 
     <link href="css/bootstrap.css" rel="stylesheet">
     <link href="css/gh-fork-ribbon.min.css" rel="stylesheet">
-
     <link href="mHttp.Sample.css" rel="stylesheet">
 
     <script src="js/jquery.min.js"></script>
@@ -16,17 +15,17 @@
     <script src="js/bootstrap.min.js"></script>
     <script src="js/angular.min.js"></script>
     <script src="js/angular-resource.min.js"></script>
-
     <script src="mHttp.Sample.js"></script>
   </head>
 
   <body>
-    <a href="https://github.com/joongonn/mHttp"><img style="position: absolute; top: 0; right: 0; border: 0;" src="images/forkme_right_darkblue_121621.png"></a>
+    <a href="https://github.com/joongonn/mHttp"><img style="position: absolute; top: 0; left: 0; border: 0;" src="images/forkme_left_darkblue_121621.png"></a>
     <div class="container" ng-controller="MetricsController">
       <div align="right">
         <h2>mHttp</h2>
         <p><i>Low footprint self-hosting C# HTTP server library</i></p>
         <p><b>Sample Project</b></p>
+        <p><a href="https://github.com/joongonn/mHttp/blob/master/mHttp.Sample/Program.cs">Server src</a> | <a href="https://github.com/joongonn/mHttp/blob/master/mHttp.Sample/web/index.html">Page src</a></p>
       </div>
       <h4>Sessions</h4>
       <div class="table-container">
@@ -122,6 +121,7 @@
           <div class="input-container">
             <input id="input" ng-model="message" ng-disabled="!connected" ng-keyup="$event.keyCode == 13 && sendMessage()" type="text" placeholder="Message (Enter to send)">
           </div>
+          <hr>
         </div>
       </div>
     </div>
