@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+
+<html lang="en" ng-app="mHttpSample">
+
+  <head>
+    <title>mHttp.Sample</title>
+
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/gh-fork-ribbon.min.css" rel="stylesheet">
+
+    <link href="mHttp.Sample.css" rel="stylesheet">
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/underscore-min.js"></script>
+    <script src="js/moment.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/angular.min.js"></script>
+    <script src="js/angular-resource.min.js"></script>
+
+    <script src="mHttp.Sample.js"></script>
+  </head>
+
+  <body>
+    <a href="https://github.com/joongonn/mHttp"><img style="position: absolute; top: 0; right: 0; border: 0;" src="images/forkme_right_darkblue_121621.png"></a>
+    <div class="container" ng-controller="MetricsController">
+      <div align="right">
+        <h2>mHttp</h2>
+        <p><i>Low footprint self-hosting C# HTTP server library</i></p>
+        <p><b>Sample Project</b></p>
+      </div>
+      <h4>Sessions</h4>
+      <div class="table-container">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Current Rate (/sec)</th>
+              <th>Current</th>
+              <th>Max</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-show="metrics.Backend">
+              <td>{{ metrics.Backend.Sessions.CurrentRate }}</td>
+              <td>{{ metrics.Backend.Sessions.Current }}</td>
+              <td>{{ metrics.Backend.Sessions.Max }}</td>
+              <td>{{ metrics.Backend.Sessions.Total }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <h4>Route Table</h4>
+      <div class="table-container">
+        <table class="table table-bordered table-container">
+          <thead>
+            <tr>
+              <th rowspan="2">Route</th>
+              <th colspan="2" class="center">Traffic (bytes)</th>
+              <th colspan="2" class="center">Responses</th>
+              <th colspan="3" class="center">Handler Response Time (ms)</th>
+            </tr>
+            <tr>
+              <th>Total In</th>
+              <th>Total Out</th>
+              <th>Current Rate (/sec)</th>
+              <th>Total</th>
+              <th>50%</th>
+              <th>90%</th>
+              <th>99.9%</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="endpoint in metrics.HostReports[0].Endpoints">
+              <td>{{ endpoint.Method }}:{{ endpoint.Route }}</td>
+              <td>{{ endpoint.Bytes.In }}</td>
+              <td>{{ endpoint.Bytes.Out }}</td>
+              <td>{{ endpoint.CurrentResponseRate }}</td>
+              <td ng-switch="endpoint.$totalResponses > 0">
+                <span ng-switch-when="true" ng-click="endpoint.toggleResponseDetails()" class="clickable">{{ endpoint.$totalResponses }}</span>
+                <span ng-switch-when="false">0</span>
+                <ul ng-show="endpoint.$showResponseDetails">
+                  <li ng-repeat="counter in endpoint.StatusCodeCounters">
+                    <span class="bold">HTTP {{ counter.StatusCode }}</span> : <span>{{ counter.Count }}</span>
+                  </li>
+                </ul>
+              </td>
+              <td>{{ endpoint.$handlerResponseTime[0] }}</td>
+              <td>{{ endpoint.$handlerResponseTime[1] }}</td>
+              <td>{{ endpoint.$handlerResponseTime[2] }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>WebSocket Sessions</h4>
+      <div class="table-container">
+        <table class="table table-bordered" ng-show="metrics.Backend">
+          <thead>
+            <tr>
+              <th>Current</th>
+              <th>Max</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{{ metrics.Backend.WebSocketSessions.Current }}</td>
+              <td>{{ metrics.Backend.WebSocketSessions.Max }}</td>
+              <td>{{ metrics.Backend.WebSocketSessions.Total }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div ng-switch="ws.readyState" align="right">
+          <button ng-switch-when="0" class="btn btn-default">Connecting ...</button>
+          <button ng-switch-when="1" ng-click="disconnect()" class="btn btn-default">Disconnect</button>
+          <button ng-switch-default ng-click="connect()" class="btn btn-default">Connect</button>
+        </div>
+
+        <div class="room" ng-class="{'disconnected': !connected}">
+          <div id="messages"></div>
+          <div class="input-container">
+            <input id="input" ng-model="message" ng-disabled="!connected" ng-keyup="$event.keyCode == 13 && sendMessage()" type="text" placeholder="Message (Enter to send)">
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>

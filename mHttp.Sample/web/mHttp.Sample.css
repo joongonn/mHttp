@@ -1,0 +1,65 @@
+body {
+  padding: 10px;
+}
+h4 {
+  font-weight: bold;
+  margin-top: 40px;
+  margin-bottom: 24px;
+  padding-bottom: 4px;
+  border-bottom: 1px dotted #aaa;
+}
+ul {
+  padding-left: 20px;
+}
+.container {
+  width: 1000px;
+}
+.table-container {
+  padding-left: 48px;
+  font-family: monospace;
+  background-color: #fff;
+}
+.table-container > table > thead > tr > th {
+  color: #000;
+  background-color: #eee;
+}
+.bold {
+  font-weight: bold;
+}
+.clickable {
+  text-decoration: underline;
+  cursor: pointer;
+}
+.center {
+  text-align: center;
+}
+.room {
+  margin-top: 16px;
+  width: 100%;
+  height: 200px;
+  display: block;
+}
+.room > #messages {
+  background-color: #fff;
+  border: 1px solid #aaa;
+  padding: 8px;
+  overflow-y: scroll;
+  white-space: pre;
+  min-height: 200px;
+  max-height: 200px;
+  font-weight: bold;
+}
+.room > .input-container {
+  padding: 6px;
+  border: 1px solid #aaa;
+  border-top: 0;
+  background-color: #eee;
+  margin-bottom: 16px;
+}
+.room > .input-container > input {
+  width: 100%;
+  padding: 4px;
+}
+.disconnected {
+  opacity: 0.5;
+}

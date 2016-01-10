@@ -17,6 +17,7 @@ namespace m.Http
     {
         protected readonly LoggingProvider.ILogger logger = LoggingProvider.GetLogger(typeof(HttpBackend));
 
+        readonly int port;
         readonly string name;
         readonly int maxKeepAlives;
         readonly int backlog;
@@ -49,6 +50,7 @@ namespace m.Http
                            int sessionReadTimeoutMs=5000,
                            int sessionWriteTimeoutMs=5000)
         {
+            this.port = port;
             listener = new TcpListener(address, port);
             this.maxKeepAlives = maxKeepAlives;
             this.backlog = backlog;
@@ -363,6 +365,7 @@ namespace m.Http
             {
                 Time = DateTime.UtcNow.ToString(Time.StringFormat),
                 Backend = new {
+                    Port = port,
                     Sessions = new {
                         CurrentRate = sessionRate.GetCurrentRate(),
                         Current = sessionTable.Count,

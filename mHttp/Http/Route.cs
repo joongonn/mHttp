@@ -64,6 +64,11 @@ namespace m.Http
             return new RateLimitedEndpoint(ep.Method, ep.Route, ep.Handler, requestsPerSecond, burstRequestsPerSecond);
         }
 
+        public static Endpoint ServeDirectory(string route, string directory)
+        {
+            return Get(route).With(Handler.ServeDirectory(route, directory));
+        }
+
         public static Endpoint WithAction(this MethodRoute pair, Action a)
         {
             return new Endpoint(pair.Method, pair.Route, Handler.FromAction(a));

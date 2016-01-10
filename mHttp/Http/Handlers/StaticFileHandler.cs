@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.IO;
 using System.Net;
-using System.Web;
 
 using m.Http.Extensions;
 
@@ -19,8 +18,14 @@ namespace m.Http.Handlers
 
         public StaticFileHandler(string route, string directory)
         {
+            while (directory[0] == Path.DirectorySeparatorChar)
+            {
+                directory = directory.Substring(1);
+            };
+
             this.route = route;
             this.directory = AppDomain.CurrentDomain.BaseDirectory + directory;
+
             cache = new ConcurrentDictionary<string, FileResponse>(StringComparer.Ordinal);
         }
 
@@ -62,7 +67,7 @@ namespace m.Http.Handlers
 
         string GetFileFullName(IHttpRequest req)
         {
-            var filename = req.Path.Substring(route.Length);
+            var filename = req.Path.Substring(route.Length - 1); // trailing wildcard *
             var fullPath = Path.GetFullPath(directory + filename);
 
             if (fullPath.StartsWith(directory))

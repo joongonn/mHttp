@@ -27,7 +27,7 @@ namespace m.Http
         }
     }
 
-    public sealed class TextResponse : HttpResponse
+    public class TextResponse : HttpResponse
     {
         public TextResponse(string text) : base(HttpStatusCode.OK, ContentTypes.Plain, Encoding.UTF8.GetBytes(text)) { }
     }
@@ -40,6 +40,14 @@ namespace m.Http
         {
             LastModified = fileInfo.LastWriteTimeUtc;
             Headers[HttpHeader.LastModified] = LastModified.ToString("R");
+        }
+    }
+
+    public class RedirectResponse : HttpResponse
+    {
+        public RedirectResponse(string location) : base(HttpStatusCode.Moved, ContentTypes.Html)
+        {
+            Headers["Location"] = location;
         }
     }
 
