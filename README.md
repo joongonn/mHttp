@@ -3,6 +3,8 @@ Low footprint C# library (.NET 4.5) for standing up RESTful services.
 
 Developed using [MonoDevelop 5.10](http://www.monodevelop.com/) on [Mono 4.2.1](http://www.mono-project.com/) (on Xubuntu 14.04).
 
+## Demo
+Check out the sample project at [http://mhttp.net](http://mhttp.net).
 
 ## How to build 
 | CI | Platform | Status |
