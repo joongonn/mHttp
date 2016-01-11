@@ -9,12 +9,27 @@ namespace m.Http.Handlers
 {
     public class StaticFileHandler
     {
+        class CachedFile
+        {
+            public readonly FileResponse Response;
+            public readonly HttpResponse GZippedResponse;
+
+            public DateTime LastModified { get { return Response.LastModified; } }
+            public string ContentType { get { return Response.ContentType; } }
+
+            public CachedFile(FileInfo fileInfo)
+            {
+                Response = new FileResponse(fileInfo);
+                GZippedResponse = this.Response.GZip();
+            }
+        }
+
         static readonly HttpResponse NotFound = new HttpResponse(HttpStatusCode.NotFound);
 
         readonly string route;
         readonly string directory;
 
-        readonly ConcurrentDictionary<string, FileResponse> cache;
+        readonly ConcurrentDictionary<string, CachedFile> cache;
 
         public StaticFileHandler(string route, string directory)
         {
@@ -26,7 +41,7 @@ namespace m.Http.Handlers
             this.route = route;
             this.directory = AppDomain.CurrentDomain.BaseDirectory + directory;
 
-            cache = new ConcurrentDictionary<string, FileResponse>(StringComparer.Ordinal);
+            cache = new ConcurrentDictionary<string, CachedFile>(StringComparer.Ordinal);
         }
 
         public HttpResponse Handle(IHttpRequest req)
@@ -40,28 +55,28 @@ namespace m.Http.Handlers
             }
 
             DateTime ifModifiedSince;
-            FileResponse fileResponse;
+            CachedFile cachedFile;
 
-            var checkLastModified = req.TryGetIfLastModifiedSince(out ifModifiedSince);
-            var hasCachedResponse = checkLastModified ? TryGetCachedFileResponse(fullName, ifModifiedSince, out fileResponse) : TryGetCachedFileResponse(fullName, out fileResponse);
+            var checkLastModified = req.TryGetIfLastModifiedSince(out ifModifiedSince); // remote client has a cached version
+            var hasCachedResponse = checkLastModified ? TryGetCachedFileResponse(fullName, ifModifiedSince, out cachedFile) : TryGetCachedFileResponse(fullName, out cachedFile);
 
-            if (hasCachedResponse && fileInfo.LastWriteTimeUtc <= fileResponse.LastModified)
+            if (hasCachedResponse && fileInfo.LastWriteTimeUtc <= cachedFile.LastModified)
             {
                 if (checkLastModified)
                 {
-                    return NotChanged(fileResponse.ContentType);
+                    return NotChanged(cachedFile.ContentType);
                 }
                 else
                 {
-                    return fileResponse;
+                    return req.IsAcceptGZip() ? cachedFile.GZippedResponse : cachedFile.Response;
                 }
             }
             else
             {
-                fileResponse = new FileResponse(fileInfo);
-                cache[fullName] = fileResponse;
+                cachedFile = new CachedFile(fileInfo);
+                cache[fullName] = cachedFile;
 
-                return fileResponse;
+                return req.IsAcceptGZip() ? cachedFile.GZippedResponse : cachedFile.Response;
             }
         }
 
@@ -80,20 +95,20 @@ namespace m.Http.Handlers
             }
         }
 
-        bool TryGetCachedFileResponse(string fullName, out FileResponse fileResponse)
+        bool TryGetCachedFileResponse(string fullName, out CachedFile cached)
         {
-            return cache.TryGetValue(fullName, out fileResponse);
+            return cache.TryGetValue(fullName, out cached);
         }
 
-        bool TryGetCachedFileResponse(string filename, DateTime ifModifiedSince, out FileResponse fileResponse)
+        bool TryGetCachedFileResponse(string filename, DateTime ifModifiedSince, out CachedFile cached)
         {
-            if (cache.TryGetValue(filename, out fileResponse) && fileResponse.LastModified <= ifModifiedSince)
+            if (cache.TryGetValue(filename, out cached) && cached.LastModified <= ifModifiedSince)
             {
                 return true;
             }
             else
             {
-                fileResponse = null;
+                cached = null;
                 return false;
             }
         }

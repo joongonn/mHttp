@@ -18,5 +18,18 @@ namespace m.Http.Extensions
                 return false;
             }
         }
+
+        public static bool IsAcceptGZip(this IHttpRequest req)
+        {
+            string value;
+            if (req.Headers.TryGetValue(HttpHeader.AcceptEncoding, out value))
+            {
+                return value.IndexOf(HttpHeaderValue.GZip, StringComparison.OrdinalIgnoreCase) >= 0;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 }

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using m.Config;
 using m.Http;
 using m.Logging;
+using m.Http.Extensions;
 
 namespace m.Sample
 {
@@ -112,7 +113,9 @@ namespace m.Sample
                 Route.ServeDirectory("/web/*", "/web/"),
                 Route.Get("/").With(wsService.Redirect),
                 Route.GetWebSocketUpgrade("/ws").With(wsService.HandleUpgradeRequest),
-                Route.Get("/metrics").With(Lift.ToJsonHandler(server.GetMetricsReport)).LimitRate(100)
+                Route.Get("/metrics").With(Lift.ToJsonHandler(server.GetMetricsReport)
+                                               .FilterResponse(Filters.GZip))
+                                     .LimitRate(100)
             );
 
             server.Start(publicRouteTable);

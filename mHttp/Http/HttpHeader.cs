@@ -16,5 +16,12 @@
 
         public const string LastModified = "Last-Modified";
         public const string IfModifiedSince = "If-Modified-Since";
+
+        public const string AcceptEncoding = "Accept-Encoding";
+    }
+
+    public static class HttpHeaderValue
+    {
+        public const string GZip = "gzip";
     }
 }

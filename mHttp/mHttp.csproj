@@ -93,6 +93,9 @@
     <Compile Include="Http\HttpHeader.cs" />
     <Compile Include="Http\Extensions\HttpRequestExtensions.cs" />
     <Compile Include="Http\Handlers\StaticFileHandler.cs" />
+    <Compile Include="Http\Extensions\HttpResponseExtensions.cs" />
+    <Compile Include="Http\Extensions\HandlerExtensions.cs" />
+    <Compile Include="Http\Filters.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

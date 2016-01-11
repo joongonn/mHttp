@@ -51,7 +51,7 @@ namespace m.Http
         }
     }
 
-    public class HttpResponse
+    public class HttpResponse //TODO: reconsider mutability
     {
         protected static readonly byte[] EmptyBody = new byte[0];
 
@@ -65,11 +65,15 @@ namespace m.Http
 
         public HttpResponse(HttpStatusCode statusCode, string contentType) : this(statusCode, contentType, EmptyBody) { }
 
-        public HttpResponse(HttpStatusCode statusCode, string contentType, byte[] body) : this(statusCode, statusCode.ToString(), contentType, new Dictionary<string, string>(0), body) { }
+        public HttpResponse(HttpStatusCode statusCode, string contentType, byte[] body) : this(statusCode, statusCode.ToString(), contentType, new Dictionary<string, string>(0, StringComparer.OrdinalIgnoreCase), body) { }
 
-        protected HttpResponse(HttpStatusCode statusCode, string statusDescription, string contentType) : this(statusCode, statusDescription, contentType, new Dictionary<string, string>(0), EmptyBody) { }
+        protected HttpResponse(HttpStatusCode statusCode, string statusDescription, string contentType) : this(statusCode, statusDescription, contentType, new Dictionary<string, string>(0, StringComparer.OrdinalIgnoreCase), EmptyBody) { }
 
-        HttpResponse(HttpStatusCode statusCode, string statusDescription, string contentType, IDictionary<string, string> headers, byte[] body)
+        public HttpResponse(HttpStatusCode statusCode,
+                            string statusDescription,
+                            string contentType,
+                            IDictionary<string, string> headers, //TODO: copy or ref
+                            byte[] body)
         {
             StatusCode = statusCode;
             StatusDescription = statusDescription;
