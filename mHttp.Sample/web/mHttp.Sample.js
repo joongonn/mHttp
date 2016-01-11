@@ -77,4 +77,6 @@ app.controller('MetricsController', ['$scope', 'MetricsService', function($scope
     };
 
     $('#input').focus();
+
+    $scope.connect();
 }]);

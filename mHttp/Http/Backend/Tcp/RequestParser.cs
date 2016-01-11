@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 
 namespace m.Http.Backend.Tcp
@@ -327,22 +328,29 @@ namespace m.Http.Backend.Tcp
             }
         }
 
+        static string GetLineForDebug(byte[] buffer, int lineStart, int lineEnd, int maxChars)
+        {
+            return Encoding.ASCII.GetString(buffer, lineStart, Math.Min(maxChars, lineEnd - lineStart - 1));
+        }
+
         public static void ParseHeader(byte[] buffer,
                                        int lineStart,
                                        int lineEnd,
                                        out string name,
                                        out string value)
         {
+            var headerLineStart = lineStart;
+
             if (!TryMatchMany(buffer, ref lineStart, lineEnd, HeaderNameBytesAllowed, out name))
             {
-                throw new ParseRequestException("Invalid header line (name)");
+                throw new ParseRequestException(string.Format("Invalid header name - '{0}'", GetLineForDebug(buffer, headerLineStart, lineEnd, 128)));
             }
 
             TryMatchSpaces(buffer, ref lineStart, lineEnd);
 
             if (!TryMatch(buffer, ref lineStart, lineEnd, COLON))
             {
-                throw new ParseRequestException("Invalid header line (expecting colon)");
+                throw new ParseRequestException(string.Format("Invalid header line (expecting colon) - '{0}'", GetLineForDebug(buffer, headerLineStart, lineEnd, 128)));
             }
 
             TryMatchSpaces(buffer, ref lineStart, lineEnd);
@@ -428,7 +436,9 @@ namespace m.Http.Backend.Tcp
                             switch (state.Method)
                             {
                                 case Method.GET:
+                                case Method.HEAD:
                                 case Method.DELETE:
+                                case Method.OPTIONS:
                                     state.ContentLength = 0;
                                     state.Body = new MemoryStream(0);
                                     parsedRequest = ParseHttpRequest(state);
@@ -444,7 +454,7 @@ namespace m.Http.Backend.Tcp
                                     continue;
 
                                 default:
-                                    throw new ArgumentOutOfRangeException();
+                                    throw new RequestException(state.Method + " not supported", HttpStatusCode.MethodNotAllowed); //TODO
                             }
                         }
                         else
