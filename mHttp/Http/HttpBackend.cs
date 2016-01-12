@@ -40,7 +40,6 @@ namespace m.Http
         int maxConnectedWebSocketSessions = 0;
 
         Router router;
-        BackendMetrics metrics;
 
         public HttpBackend(IPAddress address,
                            int port,
@@ -78,8 +77,6 @@ namespace m.Http
 
         public void Start(Router router)
         {
-            metrics = new BackendMetrics(router);
-
             if (lifeCycleToken.Start())
             {
                 timer.Start();
@@ -221,7 +218,7 @@ namespace m.Http
 
                         if (result.MatchedRouteTableIndex >= 0 && result.MatchedEndpointIndex >= 0)
                         {
-                            metrics.CountBytes(result.MatchedRouteTableIndex, result.MatchedEndpointIndex, requestBytesParsed, responseBytesWritten);
+                            router.Metrics.CountBytes(result.MatchedRouteTableIndex, result.MatchedEndpointIndex, requestBytesParsed, responseBytesWritten);
                         }
                     }
                 }
@@ -267,8 +264,8 @@ namespace m.Http
                 var webSocketSession = new WebSocketSession(id,
                                                             session.TcpClient,
                                                             session.Stream,
-                                                            bytesReceived => metrics.CountRequestBytesIn(routeTableIndex, endpointIndex, bytesReceived),
-                                                            bytesSent => metrics.CountResponseBytesOut(routeTableIndex, endpointIndex, bytesSent),
+                                                            bytesReceived => router.Metrics.CountRequestBytesIn(routeTableIndex, endpointIndex, bytesReceived),
+                                                            bytesSent => router.Metrics.CountResponseBytesOut(routeTableIndex, endpointIndex, bytesSent),
                                                             () => UntrackWebSocketSession(id));
                 TrackWebSocketSession(webSocketSession);
 
@@ -361,9 +358,11 @@ namespace m.Http
 
             Thread.MemoryBarrier();
 
+            var now = DateTime.UtcNow;
             return new
             {
-                Time = DateTime.UtcNow.ToString(Time.StringFormat),
+                Time = now.ToString(Time.StringFormat),
+                TimeHours = now.ToTimeHours(),
                 Backend = new {
                     Port = port,
                     Sessions = new {
@@ -378,7 +377,7 @@ namespace m.Http
                         Total = acceptedWebSocketSessions
                     }
                 },
-                HostReports = HostReport.Generate(router, router.Metrics, metrics)
+                HostReports = HostReport.Generate(router, router.Metrics)
             };
         }
     }

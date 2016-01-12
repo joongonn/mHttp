@@ -20,7 +20,7 @@ app.controller('MetricsController', ['$scope', 'MetricsService', function($scope
                 endpoint.$showResponseDetails = showResponseDetails[endpointId];
                 endpoint.$totalResponses = _.reduce(endpoint.StatusCodeCounters, function(z, counter) { return z + counter.Count; }, 0);
                 var handlerTimesByPercentileAsc = _.sortBy(endpoint.HandlerTimes, function(entry) { return entry.Percentile; });
-                endpoint.$handlerResponseTime = _.map(handlerTimesByPercentileAsc, function(entry) { return entry.Value; });
+                endpoint.$handlerTime = _.map(handlerTimesByPercentileAsc, function(entry) { return entry.Value; });
 
                 endpoint.toggleResponseDetails = function() {
                     showResponseDetails[endpointId] = !showResponseDetails[endpointId];

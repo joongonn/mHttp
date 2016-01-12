@@ -12,6 +12,12 @@ namespace m.Http.Metrics
                 public int Count { get; set; }
             }
 
+            public class HourlyStatusCodeCounter
+            {
+                public int TimeHours { get; set; }
+                public StatusCodeCounter[] StatusCodeCounters { get; set; }
+            }
+
             public class HandlerTime
             {
                 public float Percentile { get; set; }
@@ -29,13 +35,14 @@ namespace m.Http.Metrics
             public int CurrentResponseRate { get; set; }
             public BytesTransferred Bytes { get; set; }
             public StatusCodeCounter[] StatusCodeCounters { get; set; }
+            public HourlyStatusCodeCounter[] StatusCodeCountersByHour { get; set; }
             public HandlerTime[] HandlerTimes { get; set; }
         }
 
         public string Host { get; set; }
         public Endpoint[] Endpoints { get; set; }
 
-        internal static HostReport[] Generate(Router router, RouterMetrics routerMetrics, BackendMetrics backendMetrics=null)
+        internal static HostReport[] Generate(Router router, RouterMetrics routerMetrics)
         {
             return router.Select((routeTable, tableIndex) =>
                 new HostReport
@@ -49,9 +56,9 @@ namespace m.Http.Metrics
 
                             CurrentResponseRate = routerMetrics.responseRateCounters[tableIndex][epIndex].GetCurrentRate(),
 
-                            Bytes = backendMetrics == null ? null : new HostReport.Endpoint.BytesTransferred {
-                                In = backendMetrics.totalRequestBytesIn[tableIndex][epIndex],
-                                Out = backendMetrics.totalResponseBytesOut[tableIndex][epIndex]
+                            Bytes = new HostReport.Endpoint.BytesTransferred {
+                                In = routerMetrics.totalRequestBytesIn[tableIndex][epIndex],
+                                Out = routerMetrics.totalResponseBytesOut[tableIndex][epIndex]
                             },
 
                             StatusCodeCounters = routerMetrics.statusCodesCounters[tableIndex][epIndex].Where(entry => entry.Count > 0)
@@ -60,6 +67,20 @@ namespace m.Http.Metrics
                                 {
                                     StatusCode = entry.Code,
                                     Count = entry.Count
+                                }
+                            ).ToArray(),
+
+                            StatusCodeCountersByHour = routerMetrics.hourlyStatusCodesCounters[tableIndex][epIndex].Select(entry =>
+                                new HostReport.Endpoint.HourlyStatusCodeCounter
+                                {
+                                    TimeHours = entry.TimeHours,
+                                    StatusCodeCounters = entry.StatusCodes.Select(kvp =>
+                                        new HostReport.Endpoint.StatusCodeCounter
+                                        {
+                                            StatusCode = (int)kvp.Key,
+                                            Count = kvp.Value
+                                        }
+                                    ).ToArray(),
                                 }
                             ).ToArray(),
 

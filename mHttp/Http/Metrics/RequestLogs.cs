@@ -2,6 +2,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
+using m.Utils;
+
 namespace m.Http.Metrics
 {
     sealed class RequestLogs
@@ -13,12 +15,18 @@ namespace m.Http.Metrics
             public readonly DateTime ArrivedOn;
             public readonly DateTime CompletedOn;
 
+            public readonly long CompletedOnTimeMillis;
+            public readonly int CompletedOnTimeHours;
+
             protected Log(IHttpRequest request, HttpResponse response, DateTime arrivedOn, DateTime completedOn)
             {
                 Request = request;
                 Response = response;
                 ArrivedOn = arrivedOn;
                 CompletedOn = completedOn;
+
+                CompletedOnTimeMillis = CompletedOn.ToTimeMillis();
+                CompletedOnTimeHours = CompletedOn.ToTimeHours();
             }
         }
 

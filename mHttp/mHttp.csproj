@@ -83,7 +83,6 @@
     <Compile Include="Logging\LoggingProvider.cs" />
     <Compile Include="Logging\TextWriterLogger.cs" />
     <Compile Include="Http\Metrics\Endpoints\HandlerTime.cs" />
-    <Compile Include="Http\Metrics\BackendMetrics.cs" />
     <Compile Include="Http\Metrics\HostReport.cs" />
     <Compile Include="Utils\RateCounter.cs" />
     <Compile Include="Http\HttpBackend.cs" />
@@ -96,6 +95,7 @@
     <Compile Include="Http\Extensions\HttpResponseExtensions.cs" />
     <Compile Include="Http\Extensions\HandlerExtensions.cs" />
     <Compile Include="Http\Filters.cs" />
+    <Compile Include="Http\Metrics\Endpoints\HourlyStatusCodeCounter.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

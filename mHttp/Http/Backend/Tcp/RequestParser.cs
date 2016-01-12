@@ -27,7 +27,7 @@ namespace m.Http.Backend.Tcp
         static readonly string[] Versions = new string[] { "HTTP/1.1", "HTTP/1.0" };
         static readonly byte[][] VersionsBytes = Versions.Select(v => Encoding.ASCII.GetBytes(v)).ToArray();
 
-        static readonly byte[] HeaderNameBytesAllowed = Encoding.ASCII.GetBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_");
+        static readonly byte[] HeaderNameBytesAllowed = Encoding.ASCII.GetBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_0123456789");
 
         static int FindFirstCRLF(byte[] buffer, int start, int end)
         {

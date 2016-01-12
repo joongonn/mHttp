@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 
 using m.Config;
 using m.Http;
-using m.Logging;
 using m.Http.Extensions;
+using m.Logging;
 
 namespace m.Sample
 {

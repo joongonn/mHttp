@@ -38,9 +38,9 @@ namespace m.Http
 
         public RouteTable(params Endpoint[][] endpointsGroups) : this("*", endpointsGroups.SelectMany(endpoints => endpoints).ToArray()) { }
 
-        public RouteTable(string hostPattern, params Endpoint[] endpoints)
+        RouteTable(string hostPattern, params Endpoint[] endpoints)
         {
-            HostPattern = hostPattern; //TODO: validate
+            HostPattern = hostPattern; //TODO: validate when exposed
             hostPatternParts = HostPattern.Split('.');
 
             allEndpoints = new Endpoint[endpoints.Length];

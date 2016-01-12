@@ -19,17 +19,17 @@ namespace m.Http.Metrics.Endpoints
             }
         }
 
-        readonly int[] countsByCodeIndex;
+        readonly int[] cummulativeCountsByCodeIndex;
 
         public StatusCodeCounter()
         {
-            countsByCodeIndex = new int[500];
-            Array.Clear(countsByCodeIndex, 0, countsByCodeIndex.Length);
+            cummulativeCountsByCodeIndex = new int[500];
+            Array.Clear(cummulativeCountsByCodeIndex, 0, cummulativeCountsByCodeIndex.Length);
         }
 
         public IEnumerator<Entry> GetEnumerator()
         {
-            return countsByCodeIndex.Select((count, codeIndex) => new Entry(codeIndex + 100, count)) .GetEnumerator();
+            return cummulativeCountsByCodeIndex.Select((count, codeIndex) => new Entry(codeIndex + 100, count)).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -41,8 +41,8 @@ namespace m.Http.Metrics.Endpoints
         {
             foreach (var log in logs)
             {
-                int codeIndex = (int)log.Response.StatusCode - 100;
-                countsByCodeIndex[codeIndex]++;
+                var statusCodeIndex = (int)log.Response.StatusCode - 100;
+                cummulativeCountsByCodeIndex[statusCodeIndex]++;
             }
         }
     }

@@ -14,9 +14,16 @@ namespace m.Utils
 
         public static long CurrentTimeSeconds { get { return (long)(DateTime.UtcNow - Epoch).TotalSeconds; } }
 
+        public static int CurrentTimeHours { get { return (int)(DateTime.UtcNow - Epoch).TotalHours; } }
+
         public static long ToTimeMillis(this DateTime utcDateTime)
         {
             return (long)(utcDateTime - Epoch).TotalMilliseconds;
+        }
+
+        public static int ToTimeHours(this DateTime utcDateTime)
+        {
+            return (int)(utcDateTime - Epoch).TotalHours;
         }
     }
 }

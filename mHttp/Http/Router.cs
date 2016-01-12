@@ -11,15 +11,14 @@ using m.Http.Routing;
 using m.Logging;
 using m.Utils;
 
-
 namespace m.Http
 {
     public class Router : LifeCycleBase, IEnumerable<RouteTable>
     {
         public struct HandleResult
         {
-            public int MatchedRouteTableIndex;
-            public int MatchedEndpointIndex;
+            public readonly int MatchedRouteTableIndex;
+            public readonly int MatchedEndpointIndex;
             public readonly HttpResponse HttpResponse;
 
             public HandleResult(int matchedRouteTableIndex, int matchedEndpointIndex, HttpResponse httpResponse)
@@ -45,9 +44,9 @@ namespace m.Http
         public RouteTable this[int RouteTableIndex] { get { return routeTables[RouteTableIndex]; } }
         public int Length { get { return routeTables.Length; } }
 
-        public Router(RouteTable routeTable, int requestLogsSize=4096, int timerPeriodMs=100) : this(new [] { routeTable }, requestLogsSize, timerPeriodMs) { }
+        public Router(RouteTable routeTable, int requestLogsSize=8192, int timerPeriodMs=100) : this(new [] { routeTable }, requestLogsSize, timerPeriodMs) { }
 
-        public Router(RouteTable[] routeTables, int requestLogsSize=4096, int timerPeriodMs=100)
+        Router(RouteTable[] routeTables, int requestLogsSize, int timerPeriodMs)
         {
             this.routeTables = routeTables;
 
@@ -95,7 +94,8 @@ namespace m.Http
         void ProcessRequestLogs()
         {
             IEnumerable<RequestLogs.Log>[][] logs;
-            if (requestLogs.Drain(out logs) > 0)
+            int drained = requestLogs.Drain(out logs);
+            if (drained > 0)
             {
                 Metrics.Update(logs);
             }
