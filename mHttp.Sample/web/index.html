@@ -3,31 +3,39 @@
 <html lang="en" ng-app="mHttpSample">
 
   <head>
+    <meta charset="utf-8"/>
     <title>mHttp.Sample</title>
 
     <link href="css/bootstrap.css" rel="stylesheet">
     <link href="css/gh-fork-ribbon.min.css" rel="stylesheet">
-    <link href="mHttp.Sample.css" rel="stylesheet">
+    <link href="css/metricsgraphics.css" rel="stylesheet">
 
     <script src="js/jquery.min.js"></script>
     <script src="js/underscore-min.js"></script>
     <script src="js/moment.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
+    <script src="js/d3.min.js" charset="utf-8"></script>
+    <script src="js/metricsgraphics.min.js"></script>
     <script src="js/angular.min.js"></script>
     <script src="js/angular-resource.min.js"></script>
+
+    <link href="mHttp.Sample.css" rel="stylesheet">
     <script src="mHttp.Sample.js"></script>
   </head>
 
   <body>
     <a href="https://github.com/joongonn/mHttp"><img style="position: fixed; top: 0; left: 0; border: 0;" src="images/forkme_left_darkblue_121621.png"></a>
-    <div class="container" ng-controller="MetricsController">
+
+    <div class="container">
       <div align="right">
         <h2>mHttp</h2>
         <p><i>Low footprint self-hosting C# HTTP server library</i></p>
-        <p><b>Sample Project</b></p>
-        <p><a href="https://github.com/joongonn/mHttp/blob/master/mHttp.Sample/Program.cs">Server src</a> | <a href="https://github.com/joongonn/mHttp/blob/master/mHttp.Sample/web/index.html">Page src</a></p>
+        <p><b>Sample Project &centerdot; </b> <a href="https://github.com/joongonn/mHttp/blob/master/mHttp.Sample/Program.cs">Server src</a> | <a href="https://github.com/joongonn/mHttp/blob/master/mHttp.Sample/web/index.html">Page src</a></p>
       </div>
-      <h4>Sessions</h4>
+    </div>
+
+    <div class="container" ng-controller="MetricsController" ng-init="refreshMetrics()">
+      <h4 class="metric-heading" style="margin-top: 0">Sessions</h4>
       <div class="table-container">
         <table class="table table-bordered">
           <thead>
@@ -48,7 +56,8 @@
           </tbody>
         </table>
       </div>
-      <h4>Route Table</h4>
+
+      <h4 class="metric-heading" >Route Table</h4>
       <div class="table-container">
         <table class="table table-bordered table-container">
           <thead>
@@ -62,7 +71,7 @@
               <th>Total In</th>
               <th>Total Out</th>
               <th>Current Rate (/sec)</th>
-              <th>Total</th>
+              <th>24 hrs Total</th>
               <th>50%</th>
               <th>90%</th>
               <th>99.9%</th>
@@ -74,14 +83,9 @@
               <td>{{ endpoint.Bytes.In }}</td>
               <td>{{ endpoint.Bytes.Out }}</td>
               <td>{{ endpoint.CurrentResponseRate }}</td>
-              <td ng-switch="endpoint.$totalResponses > 0">
-                <span ng-switch-when="true" ng-click="endpoint.toggleResponseDetails()" class="clickable">{{ endpoint.$totalResponses }}</span>
+              <td ng-switch="endpoint.$responses > 0">
+                <span ng-switch-when="true" ng-click="endpoint.$showResponsesGraph()" class="clickable">{{ endpoint.$responses }}</span>
                 <span ng-switch-when="false">0</span>
-                <ul ng-show="endpoint.$showResponseDetails">
-                  <li ng-repeat="counter in endpoint.StatusCodeCounters">
-                    <span class="bold">HTTP {{ counter.StatusCode }}</span> : <span>{{ counter.Count }}</span>
-                  </li>
-                </ul>
               </td>
               <td>{{ endpoint.$handlerTime[0] }}</td>
               <td>{{ endpoint.$handlerTime[1] }}</td>
@@ -89,9 +93,13 @@
             </tr>
           </tbody>
         </table>
+        <div ng-switch="refreshing" align="right">
+          <button ng-switch-when="true" ng-disabled="true" class="btn btn-default">Refreshing ...</button>
+          <button ng-switch-when="false" ng-click="refreshMetrics()" class="btn btn-default">Refresh</button>
+        </div>
       </div>
 
-      <h4>WebSocket Sessions</h4>
+      <h4 class="metric-heading" >WebSocket Sessions</h4>
       <div class="table-container">
         <table class="table table-bordered" ng-show="metrics.Backend">
           <thead>
@@ -109,22 +117,47 @@
             </tr>
           </tbody>
         </table>
+      </div>
 
-        <div ng-switch="ws.readyState" align="right">
-          <button ng-switch-when="0" class="btn btn-default">Connecting ...</button>
-          <button ng-switch-when="1" ng-click="disconnect()" class="btn btn-default">Disconnect</button>
-          <button ng-switch-default ng-click="connect()" class="btn btn-default">Connect</button>
-        </div>
+    </div>
 
+    <div class="container" ng-controller="WebSocketController">
+      <div class="table-container">
         <div class="room" ng-class="{'disconnected': !connected}">
           <div id="messages"></div>
           <div class="input-container">
             <input id="input" ng-model="message" ng-disabled="!connected" ng-keyup="$event.keyCode == 13 && sendMessage()" type="text" placeholder="Message (Enter to send)">
           </div>
-          <hr>
+        </div>
+        <div ng-switch="ws.readyState" align="right">
+          <button ng-switch-when="0" ng-disabled="true" class="btn btn-default">Connecting ...</button>
+          <button ng-switch-when="1" ng-click="disconnect()" class="btn btn-default">Disconnect</button>
+          <button ng-switch-default ng-click="connect()" class="btn btn-default">Connect</button>
+        </div>
+      </div>
+      <hr>
+    </div>
+
+    <!-- Response Graph Modal -->
+    <div class="modal" id="responsesGraphModal" tabindex="-1" role="dialog" ng-controller="ResponsesGraphController">
+      <div class="modal-dialog" role="document" style="width: 650px">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            <h4 class="modal-title">Responses: <code>{{ endpoint.$endpointId }}</code></h4>
+          </div>
+          <div class="modal-body" style="font-family: monospace;">
+            <div>
+              <ul>
+                <li ng-repeat="(statusCode, count) in endpoint.$responsesByStatusCode"><b>HTTP {{ statusCode }}</b> : <span ng-click="showGraph(statusCode)" class="clickable">{{ count }}</span></li>
+              </ul>
+            </div>
+            <div id="responsesGraph"></div> 
+          </div>
         </div>
       </div>
     </div>
+
   </body>
 
 </html>

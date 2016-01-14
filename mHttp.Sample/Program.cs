@@ -109,7 +109,7 @@ namespace m.Sample
             var wsService = new WebSocketService();
 
             var server = new HttpBackend(IPAddress.Any, config.ListenPort);
-            var publicRouteTable = new RouteTable(
+            var routeTable = new RouteTable(
                 Route.ServeDirectory("/web/*", "/web/"),
                 Route.Get("/").With(wsService.Redirect),
                 Route.GetWebSocketUpgrade("/ws").With(wsService.HandleUpgradeRequest),
@@ -118,7 +118,7 @@ namespace m.Sample
                                      .LimitRate(100)
             );
 
-            server.Start(publicRouteTable);
+            server.Start(routeTable);
         }
     }
 }
