@@ -4,18 +4,24 @@ namespace m.Utils
 {
     class RateCounter
     {
+        int maxRate;
+
         readonly int resolutionMs;
-        readonly long[] times;
+        readonly long[] timeSlots;
         readonly int[] counts;
+
+        public int MaxRate { get { return maxRate; } }
 
         public RateCounter(int resolutionMs)
         {
+            maxRate = 0;
+
             this.resolutionMs = resolutionMs;
             var slots = 1000 / resolutionMs;
 
-            times = new long[slots];
+            timeSlots = new long[slots];
             counts = new int[slots];
-            Array.Clear(times, 0, slots);
+            Array.Clear(timeSlots, 0, slots);
             Array.Clear(counts, 0, slots);
         }
 
@@ -25,20 +31,32 @@ namespace m.Utils
 
             if (now - timeMillis < 1000)
             {
-                var remainder = timeMillis % resolutionMs;
-                timeMillis = timeMillis - remainder;
-                int timeSlot = (int)(timeMillis % 1000) / resolutionMs;
+                timeMillis = timeMillis - (timeMillis % resolutionMs);
+                var slot = (int)(timeMillis % 1000) / resolutionMs;
 
-                lock (times)
+                lock (timeSlots)
                 {
-                    if (timeMillis > times[timeSlot])
+                    if (timeMillis > timeSlots[slot])
                     {
-                        times[timeSlot] = timeMillis;
-                        counts[timeSlot] = count;
+                        timeSlots[slot] = timeMillis;
+                        counts[slot] = count;
                     }
                     else
                     {
-                        counts[timeSlot] += count;
+                        counts[slot] += count;
+                    }
+
+                    var currentRate = 0;
+                    for (int i=0; i<timeSlots.Length; i++)
+                    {
+                        if (now - timeSlots[i] <= 1000)
+                        {
+                            currentRate += counts[i];
+                        }
+                    }
+                    if (currentRate > maxRate)
+                    {
+                        maxRate = currentRate;
                     }
                 }
             }
@@ -47,17 +65,17 @@ namespace m.Utils
         public int GetCurrentRate()
         {
             var now = Time.CurrentTimeMillis;
-            var rate = 0;
+            var currentRate = 0;
 
-            for (int slot=0; slot<times.Length; slot++)
+            for (int i=0; i<timeSlots.Length; i++)
             {
-                if (now - times[slot] <= 1000)
+                if (now - timeSlots[i] <= 1000)
                 {
-                    rate += counts[slot];
+                    currentRate += counts[i];
                 }
             }
 
-            return rate;
+            return currentRate;
         }
     }
 }

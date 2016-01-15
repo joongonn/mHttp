@@ -153,6 +153,7 @@ namespace m.Http
             }
 
             sessionRate.Count(Time.CurrentTimeMillis, 1);
+                
             TrackSession(newSession);
 
             await HandleSession(newSession).ConfigureAwait(false);
@@ -367,6 +368,7 @@ namespace m.Http
                     Port = port,
                     Sessions = new {
                         CurrentRate = sessionRate.GetCurrentRate(),
+                        MaxRate = sessionRate.MaxRate,
                         Current = sessionTable.Count,
                         Max = maxConnectedSessions,
                         Total = acceptedSessions

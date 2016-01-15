@@ -4,7 +4,7 @@
 
   <head>
     <meta charset="utf-8"/>
-    <title>mHttp.Sample</title>
+    <title>mHttp - Self-hosting C# HTTP server library</title>
 
     <link href="css/bootstrap.css" rel="stylesheet">
     <link href="css/gh-fork-ribbon.min.css" rel="stylesheet">
@@ -40,7 +40,8 @@
         <table class="table table-bordered">
           <thead>
             <tr>
-              <th>Current Rate (/sec)</th>
+              <th>Current Rate</th>
+              <th>Max Rate</th>
               <th>Current</th>
               <th>Max</th>
               <th>Total</th>
@@ -49,6 +50,7 @@
           <tbody>
             <tr ng-show="metrics.Backend">
               <td>{{ metrics.Backend.Sessions.CurrentRate }}</td>
+              <td>{{ metrics.Backend.Sessions.MaxRate }}</td>
               <td>{{ metrics.Backend.Sessions.Current }}</td>
               <td>{{ metrics.Backend.Sessions.Max }}</td>
               <td>{{ metrics.Backend.Sessions.Total }}</td>
@@ -64,13 +66,14 @@
             <tr>
               <th rowspan="2">Route</th>
               <th colspan="2" class="center">Traffic (bytes)</th>
-              <th colspan="2" class="center">Responses</th>
+              <th colspan="3" class="center">Responses</th>
               <th colspan="3" class="center">Handler Time (ms)</th>
             </tr>
             <tr>
               <th>Total In</th>
               <th>Total Out</th>
-              <th>Current Rate (/sec)</th>
+              <th>Current Rate</th>
+              <th>Max Rate</th>
               <th>24 hrs Total</th>
               <th>50%</th>
               <th>90%</th>
@@ -83,6 +86,7 @@
               <td>{{ endpoint.Bytes.In }}</td>
               <td>{{ endpoint.Bytes.Out }}</td>
               <td>{{ endpoint.CurrentResponseRate }}</td>
+              <td>{{ endpoint.MaxResponseRate }}</td>
               <td ng-switch="endpoint.$responses > 0">
                 <span ng-switch-when="true" ng-click="endpoint.$showResponsesGraph()" class="clickable">{{ endpoint.$responses }}</span>
                 <span ng-switch-when="false">0</span>

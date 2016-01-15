@@ -33,6 +33,7 @@ namespace m.Http.Metrics
             public string Method { get; set; }
             public string Route { get; set; }
             public int CurrentResponseRate { get; set; }
+            public int MaxResponseRate { get; set; }
             public BytesTransferred Bytes { get; set; }
             public StatusCodeCounter[] StatusCodeCounters { get; set; }
             public HourlyStatusCodeCounter[] StatusCodeCountersByHour { get; set; }
@@ -55,6 +56,7 @@ namespace m.Http.Metrics
                             Route = ep.Route.PathTemplate,
 
                             CurrentResponseRate = routerMetrics.responseRateCounters[tableIndex][epIndex].GetCurrentRate(),
+                            MaxResponseRate = routerMetrics.responseRateCounters[tableIndex][epIndex].MaxRate,
 
                             Bytes = new HostReport.Endpoint.BytesTransferred {
                                 In = routerMetrics.totalRequestBytesIn[tableIndex][epIndex],
