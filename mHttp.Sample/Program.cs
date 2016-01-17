@@ -11,6 +11,8 @@ namespace m.Sample
 {
     class WebSocketService
     {
+        readonly LoggingProvider.ILogger logger = LoggingProvider.GetLogger(typeof(WebSocketService));
+
         readonly HttpResponse Index = new RedirectResponse("/web/index.html");
         readonly ConcurrentDictionary<long, IWebSocketSession> sessions;
 
@@ -19,8 +21,11 @@ namespace m.Sample
             sessions = new ConcurrentDictionary<long, IWebSocketSession>();
         }
 
-        public HttpResponse Redirect()
+        public HttpResponse Redirect(IHttpRequest req)
         {
+            string userAgent;
+            req.Headers.TryGetValue(HttpHeader.UserAgent, out userAgent);
+            logger.Debug("Incoming request for index from:[{0}] with useragent:[{1}]", req.RemoteEndPoint, userAgent);
             return Index;
         }
 

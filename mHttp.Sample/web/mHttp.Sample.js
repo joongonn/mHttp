@@ -96,7 +96,7 @@ app.controller('ResponsesGraphController', ['$rootScope', '$scope', function($ro
         var total = _.reduce(data, function(z, entry) { return z + entry.value; }, 0);
 
         MG.data_graphic({
-            title: 'HTTP ' + statusCodeToGraph + ' - 24 hrs',
+            title: 'HTTP ' + statusCodeToGraph + ' responses (24 hrs)',
             data: data,
             target: target,
             width: 600,
@@ -106,6 +106,7 @@ app.controller('ResponsesGraphController', ['$rootScope', '$scope', function($ro
             show_secondary_x_label: false,
             x_mouseover: function(point) { return moment(point.date).utc().format('MMM DD ddd HH:mm') + " UTC - "; },
             utc_time: true,
+            interpolate: 'linear'
         });
     };
 

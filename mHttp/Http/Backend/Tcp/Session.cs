@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Net.Sockets;
 
 using m.Http;
@@ -47,7 +48,7 @@ namespace m.Http.Backend.Tcp
             if (requestState == null)
             {
                 currentRequestBytes = 0;
-                requestState = new HttpRequest(isSecured);
+                requestState = new HttpRequest((IPEndPoint)TcpClient.Client.RemoteEndPoint, isSecured);
             }
 
             var initialDataStart = dataStart;

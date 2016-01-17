@@ -18,6 +18,8 @@
         public const string IfModifiedSince = "If-Modified-Since";
 
         public const string AcceptEncoding = "Accept-Encoding";
+
+        public const string UserAgent = "User-Agent";
     }
 
     public static class HttpHeaderValue

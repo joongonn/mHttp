@@ -114,8 +114,7 @@ namespace m.Http
                 try
                 {
                     var client = listener.AcceptTcpClient();
-                    acceptedSessions++;
-                    long sessionId = acceptedSessions;
+                    var sessionId = ++acceptedSessions;
 
                     Task.Run(() => HandleNewConnection(sessionId, client));
                 }

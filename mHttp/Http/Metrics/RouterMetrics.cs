@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 
 using m.Http.Metrics.Endpoints;
 using m.Utils;
-using System.Threading;
 
 namespace m.Http.Metrics
 {

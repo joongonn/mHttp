@@ -23,7 +23,7 @@ namespace m.Logging
 
         static Provider getLogger;
 
-        internal static ILogger GetLogger(Type type)
+        public static ILogger GetLogger(Type type)
         {
             return getLogger(type);
         }

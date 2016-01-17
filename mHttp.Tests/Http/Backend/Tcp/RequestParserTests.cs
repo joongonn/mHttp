@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Text;
 
 using NUnit.Framework;
@@ -12,11 +13,33 @@ namespace m.Http.Backend.Tcp
     [TestFixture]
     public class RequestParserTests : BaseTest
     {
+        static readonly IPEndPoint RemoteEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 12345);
+
         static int WriteAscii(Stream stream, string content)
         {
             var bytes = Encoding.ASCII.GetBytes(content);
             stream.Write(bytes, 0, bytes.Length);
             return bytes.Length;
+        }
+
+        [Test]
+        [Ignore("TODO: guard rogue client")]
+        public void TestMixedNewLines()
+        {
+            var request = new MemoryStream(8192);
+            var buffer = request.GetBuffer();
+            var start = 0;
+
+            int lineStart, lineEnd;
+
+            WriteAscii(request, "User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0\n");
+            WriteAscii(request, "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\n");
+            WriteAscii(request, "Accept-language: en-US;q=0.7,en;q=0.3\n");
+            WriteAscii(request, "Connection: close\r\n");
+
+            Assert.IsTrue(RequestParser.TryReadLine(buffer, ref start, (int)request.Length, out lineStart, out lineEnd));
+            var line = Encoding.ASCII.GetString(buffer, lineStart, lineEnd);
+            Assert.AreEqual("User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0", line);
         }
 
         [Test]
@@ -132,7 +155,7 @@ namespace m.Http.Backend.Tcp
             WriteAscii(request, "Host: localhost:8080\r\n");
             WriteAscii(request, "Accept: */*\r\n");
 
-            var state = new HttpRequest(false);
+            var state = new HttpRequest(RemoteEndPoint, false);
             HttpRequest httpRequest;
             Assert.IsFalse(RequestParser.TryParseHttpRequest(buffer, ref start, (int)request.Length, state, out httpRequest));
 

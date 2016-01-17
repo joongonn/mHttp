@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 
 namespace m.Http
 {
     public interface IHttpRequest
     {
+        IPEndPoint RemoteEndPoint { get; }
         bool IsSecureConnection { get; }
 
         Method Method { get; }
