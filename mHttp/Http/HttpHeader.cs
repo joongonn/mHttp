@@ -20,6 +20,7 @@
         public const string AcceptEncoding = "Accept-Encoding";
 
         public const string UserAgent = "User-Agent";
+        public const string Referer = "Referer";
     }
 
     public static class HttpHeaderValue

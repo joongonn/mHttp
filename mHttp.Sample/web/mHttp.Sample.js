@@ -1,14 +1,14 @@
 var app = angular.module('mHttpSample', ['ngResource']);
 
 app.factory('MetricsService', ['$resource', function($resource) {
+    var hoursToGraph = 1 * 24;
     var processMetricsResponse = function(response) {
         var metrics = response.data;
         _.each(metrics.HostReports[0].Endpoints, function(endpoint) {
             endpoint.$endpointId = endpoint.Method + ':' + endpoint.Route;
 
-            // For the past 24 hours
             endpoint.$responsesByStatusCode = _.reduce(endpoint.StatusCodeCountersByHour, function(z, entryForHour) {
-                if (entryForHour.TimeHours > metrics.TimeHours - 24) {
+                if (entryForHour.TimeHours > metrics.TimeHours - hoursToGraph) {
                     _.each(entryForHour.StatusCodeCounters, function(countEntry) {
                         z[countEntry.StatusCode] = z[countEntry.StatusCode] ? z[countEntry.StatusCode] + countEntry.Count : countEntry.Count;
                     });
@@ -17,7 +17,7 @@ app.factory('MetricsService', ['$resource', function($resource) {
             }, {});
 
             endpoint.$responses = _.reduce(endpoint.StatusCodeCountersByHour, function(z, entryForHour) {
-                if (entryForHour.TimeHours > metrics.TimeHours - 24) {
+                if (entryForHour.TimeHours > metrics.TimeHours - hoursToGraph) {
                     return z + _.reduce(entryForHour.StatusCodeCounters, function(z2, countEntry) {
                         return z2 + countEntry.Count;
                     }, 0);
@@ -96,7 +96,7 @@ app.controller('ResponsesGraphController', ['$rootScope', '$scope', function($ro
         var total = _.reduce(data, function(z, entry) { return z + entry.value; }, 0);
 
         MG.data_graphic({
-            title: 'HTTP ' + statusCodeToGraph + ' responses (24 hrs)',
+            title: 'HTTP ' + statusCodeToGraph + ' responses (' + hoursToGraph + ' hrs)',
             data: data,
             target: target,
             width: 600,

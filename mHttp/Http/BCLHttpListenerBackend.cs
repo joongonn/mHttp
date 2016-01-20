@@ -10,6 +10,7 @@ using m.Utils;
 
 namespace m.Http
 {
+    [Obsolete]
     public sealed class BCLHttpListenerBackend
     {
         readonly LoggingProvider.ILogger logger = LoggingProvider.GetLogger(typeof(BCLHttpListenerBackend));

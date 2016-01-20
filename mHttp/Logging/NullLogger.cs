@@ -1,6 +1,6 @@
 ﻿namespace m.Logging
 {
-    class NullLoggerImpl : LoggingProvider.ILogger
+    class NullLogger : LoggingProvider.ILogger
     {
         public void Debug(string msg, params object[] args) { }
         public void Info(string msg, params object[] args) { }

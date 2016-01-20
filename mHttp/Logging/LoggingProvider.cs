@@ -15,7 +15,7 @@ namespace m.Logging
             void Fatal(string msg, params object[] args);
         }
 
-        static readonly NullLoggerImpl nullLoggerInstance = new NullLoggerImpl();
+        static readonly NullLogger nullLoggerInstance = new NullLogger();
         static readonly TextWriterLogger consoleLoggerInstance = new TextWriterLogger(Console.Out);
 
         public static readonly Provider ConsoleLoggingProvider = _ => consoleLoggerInstance;

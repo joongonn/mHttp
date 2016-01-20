@@ -28,9 +28,9 @@
 
     <div class="container">
       <div align="right">
-        <h2>mHttp</h2>
-        <p><i>Low footprint self-hosting C# HTTP server library</i></p>
-        <p><b>Sample Project &centerdot; </b> <a href="https://github.com/joongonn/mHttp/blob/master/mHttp.Sample/Program.cs">Server src</a> | <a href="https://github.com/joongonn/mHttp/blob/master/mHttp.Sample/web/index.html">Page src</a></p>
+        <h2>mHttp sample project</h2>
+        <p><i>Open source self-hosting C# HTTP server library</i></p>
+        <p><a href="https://github.com/joongonn/mHttp/blob/master/mHttp.Sample/Program.cs">Server src</a> | <a href="https://github.com/joongonn/mHttp/blob/master/mHttp.Sample/web/index.html">Page src</a></p>
       </div>
     </div>
 
@@ -40,9 +40,16 @@
         <table class="table table-bordered">
           <thead>
             <tr>
+                <th colspan="5" class="center">HTTP Sessions</th>
+                <th colspan="3">WebSocket Sessions</th>
+            </tr>
+            <tr>
               <th>Current Rate</th>
               <th>Max Rate</th>
               <th>Current</th>
+              <th>Max</th>
+              <th>Total</th>
+              <th>Current (online)</th>
               <th>Max</th>
               <th>Total</th>
             </tr>
@@ -54,6 +61,9 @@
               <td>{{ metrics.Backend.Sessions.Current }}</td>
               <td>{{ metrics.Backend.Sessions.Max }}</td>
               <td>{{ metrics.Backend.Sessions.Total }}</td>
+              <td>{{ metrics.Backend.WebSocketSessions.Current }}</td>
+              <td>{{ metrics.Backend.WebSocketSessions.Max }}</td>
+              <td>{{ metrics.Backend.WebSocketSessions.Total }}</td>
             </tr>
           </tbody>
         </table>
@@ -102,30 +112,10 @@
           <button ng-switch-when="false" ng-click="refreshMetrics()" class="btn btn-default">Refresh</button>
         </div>
       </div>
-
-      <h4 class="metric-heading" >WebSocket Sessions</h4>
-      <div class="table-container">
-        <table class="table table-bordered" ng-show="metrics.Backend">
-          <thead>
-            <tr>
-              <th>Current (online)</th>
-              <th>Max</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>{{ metrics.Backend.WebSocketSessions.Current }}</td>
-              <td>{{ metrics.Backend.WebSocketSessions.Max }}</td>
-              <td>{{ metrics.Backend.WebSocketSessions.Total }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
     </div>
 
     <div class="container" ng-controller="WebSocketController">
+      <h4 class="metric-heading" >WebSocket Sessions</h4>
       <div class="table-container">
         <div class="room" ng-class="{'disconnected': !connected}">
           <div id="messages"></div>

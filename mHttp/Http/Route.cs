@@ -12,7 +12,7 @@ namespace m.Http
             public readonly Method Method;
             public readonly Routing.Route Route;
 
-            public MethodRoute(Method method, Routing.Route route)
+            internal MethodRoute(Method method, Routing.Route route)
             {
                 Method = method;
                 Route = route;
@@ -23,7 +23,7 @@ namespace m.Http
         {
             public readonly Routing.Route Route;
 
-            public WebSocketRoute(Routing.Route route)
+            internal WebSocketRoute(Routing.Route route)
             {
                 Route = route;
             }
