@@ -28,7 +28,7 @@ namespace m.Http
         readonly LifeCycleToken lifeCycleToken;
 
         readonly RateCounter sessionRate = new RateCounter(100);
-        readonly ConcurrentDictionary<long, Session> sessionTable;
+        readonly ConcurrentDictionary<long, HttpSession> sessionTable;
         readonly ConcurrentDictionary<long, long> sessionReads;
         readonly ConcurrentDictionary<long, WebSocketSession> webSocketSessionTable; //TODO: track dead reads ?
 
@@ -45,7 +45,7 @@ namespace m.Http
                            int port,
                            int maxKeepAlives=100,
                            int backlog=128,
-                           int sessionReadBufferSize=1024,
+                           int sessionReadBufferSize=4096,
                            int sessionReadTimeoutMs=5000,
                            int sessionWriteTimeoutMs=5000)
         {
@@ -57,7 +57,7 @@ namespace m.Http
             sessionReadTimeout = TimeSpan.FromMilliseconds(sessionReadTimeoutMs);
             sessionWriteTimeout = TimeSpan.FromMilliseconds(sessionWriteTimeoutMs);
             lifeCycleToken = new LifeCycleToken();
-            sessionTable = new ConcurrentDictionary<long, Session>();
+            sessionTable = new ConcurrentDictionary<long, HttpSession>();
             sessionReads = new ConcurrentDictionary<long, long>();
             webSocketSessionTable = new ConcurrentDictionary<long, WebSocketSession>();
 
@@ -139,7 +139,7 @@ namespace m.Http
 
         async Task HandleNewConnection(long sessionId, TcpClient client)
         {
-            Session newSession;
+            HttpSession newSession;
             try
             {
                 newSession = await CreateSession(sessionId, client, maxKeepAlives, sessionReadBufferSize, sessionReadTimeout, sessionWriteTimeout).ConfigureAwait(false);
@@ -158,18 +158,18 @@ namespace m.Http
             await HandleSession(newSession).ConfigureAwait(false);
         }
 
-        internal virtual Task<Session> CreateSession(long sessionId,
-                                                     TcpClient client,
-                                                     int _maxKeepAlives,
-                                                     int _sessionReadBufferSize,
-                                                     TimeSpan _sessionReadTimeout,
-                                                     TimeSpan _sessionWriteTimeout)
+        internal virtual Task<HttpSession> CreateSession(long sessionId,
+                                                         TcpClient client,
+                                                         int _maxKeepAlives,
+                                                         int _sessionReadBufferSize,
+                                                         TimeSpan _sessionReadTimeout,
+                                                         TimeSpan _sessionWriteTimeout)
 
         {
-            return Task.FromResult(new Session(sessionId, client, client.GetStream(), false, maxKeepAlives, sessionReadBufferSize, sessionReadTimeout, sessionWriteTimeout));
+            return Task.FromResult(new HttpSession(sessionId, client, client.GetStream(), false, maxKeepAlives, sessionReadBufferSize, sessionReadTimeout, sessionWriteTimeout));
         }
 
-        async Task HandleSession(Session session)
+        async Task HandleSession(HttpSession session)
         {
             var closeSessionOnReturn = true;
 
@@ -245,7 +245,7 @@ namespace m.Http
             }
         }
 
-        bool HandleWebsocketUpgrade(Session session,
+        bool HandleWebsocketUpgrade(HttpSession session,
                                     int routeTableIndex,
                                     int endpointIndex,
                                     WebSocketUpgradeResponse response,
@@ -283,7 +283,7 @@ namespace m.Http
             }
         }
 
-        void TrackSession(Session session)
+        void TrackSession(HttpSession session)
         {
             sessionTable[session.Id] = session;
             var sessionCount = sessionTable.Count;
@@ -300,7 +300,7 @@ namespace m.Http
 
         void UntrackSession(long id)
         {
-            Session _;
+            HttpSession _;
             sessionTable.TryRemove(id, out _);
         }
 

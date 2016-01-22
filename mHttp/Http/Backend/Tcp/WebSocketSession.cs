@@ -79,7 +79,7 @@ namespace m.Http.Backend.Tcp
                                 case OpCode.Continuation:
                                     if (framePayloadLength > 0)
                                     {
-                                        BufferUtils.Expand(ref messageBuffer, framePayloadLength);
+                                        BufferUtils.Expand(ref messageBuffer, framePayloadLength); //TODO: limit, sanity guard
                                     }
                                     break;
 

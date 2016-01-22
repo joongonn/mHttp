@@ -26,6 +26,8 @@ app.factory('MetricsService', ['$resource', function($resource) {
                 }
             }, 0);
 
+            endpoint.$totalResponses = _.reduce(endpoint.StatusCodeCounters, function(z, counter) { return z + counter.Count; }, 0);
+
             var handlerTimesByPercentileAsc = _.sortBy(endpoint.HandlerTimes, function(entry) { return entry.Percentile; });
             endpoint.$handlerTime = _.map(handlerTimesByPercentileAsc, function(entry) { return entry.Value; });
         });

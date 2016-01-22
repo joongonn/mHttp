@@ -57,7 +57,6 @@
     <Compile Include="Utils\Compression.cs" />
     <Compile Include="Http\Backend\Tcp\ParseRequestException.cs" />
     <Compile Include="Http\Backend\Tcp\RequestParser.cs" />
-    <Compile Include="Http\Backend\Tcp\Session.cs" />
     <Compile Include="Http\Backend\Tcp\HttpResponseWriter.cs" />
     <Compile Include="Http\Route.cs" />
     <Compile Include="Http\Metrics\RouterMetrics.cs" />
@@ -96,6 +95,7 @@
     <Compile Include="Http\Extensions\HandlerExtensions.cs" />
     <Compile Include="Http\Filters.cs" />
     <Compile Include="Http\Metrics\Endpoints\HourlyStatusCodeCounter.cs" />
+    <Compile Include="Http\Backend\Tcp\HttpSession.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

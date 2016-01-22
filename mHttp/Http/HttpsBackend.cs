@@ -31,17 +31,17 @@ namespace m.Http
             this.serverCertificate = serverCertificate;
         }
 
-        internal override async Task<Session> CreateSession(long sessionId,
-                                                            TcpClient client,
-                                                            int _maxKeepAlives,
-                                                            int _sessionReadBufferSize,
-                                                            TimeSpan _sessionReadTimeout,
-                                                            TimeSpan _sessionWriteTimeout)
+        internal override async Task<HttpSession> CreateSession(long sessionId,
+                                                                TcpClient client,
+                                                                int _maxKeepAlives,
+                                                                int _sessionReadBufferSize,
+                                                                TimeSpan _sessionReadTimeout,
+                                                                TimeSpan _sessionWriteTimeout)
         {
             var sslStream = new SslStream(client.GetStream());
             await sslStream.AuthenticateAsServerAsync(serverCertificate, false, System.Security.Authentication.SslProtocols.Default, false);
 
-            return new Session(sessionId, client, sslStream, true, _maxKeepAlives, _sessionReadBufferSize, _sessionReadTimeout, _sessionWriteTimeout);
+            return new HttpSession(sessionId, client, sslStream, true, _maxKeepAlives, _sessionReadBufferSize, _sessionReadTimeout, _sessionWriteTimeout);
         }
     }
 }

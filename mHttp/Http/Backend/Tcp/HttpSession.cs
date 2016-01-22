@@ -7,7 +7,7 @@ using m.Http;
 
 namespace m.Http.Backend.Tcp
 {
-    class Session : TcpSessionBase
+    class HttpSession : TcpSessionBase
     {
         readonly bool isSecured;
         readonly int maxKeepAlives;
@@ -20,14 +20,14 @@ namespace m.Http.Backend.Tcp
 
         public int KeepAlivesRemaining { get { return maxKeepAlives - requests; } }
 
-        public Session(long id,
-                       TcpClient tcpClient,
-                       Stream stream,
-                       bool isSecured,
-                       int maxKeepAlives,
-                       int initialReadBufferSize,
-                       TimeSpan readTimeout,
-                       TimeSpan writeTimeout) : base(id, tcpClient, stream, initialReadBufferSize, (int)writeTimeout.TotalMilliseconds)
+        public HttpSession(long id,
+                           TcpClient tcpClient,
+                           Stream stream,
+                           bool isSecured,
+                           int maxKeepAlives,
+                           int initialReadBufferSize,
+                           TimeSpan readTimeout,
+                           TimeSpan writeTimeout) : base(id, tcpClient, stream, initialReadBufferSize, (int)writeTimeout.TotalMilliseconds)
         {
             this.isSecured = isSecured;
             this.maxKeepAlives = maxKeepAlives;
@@ -54,6 +54,14 @@ namespace m.Http.Backend.Tcp
             var initialDataStart = dataStart;
             var isRequestComplete = RequestParser.TryParseHttpRequest(readBuffer, ref dataStart, readBufferOffset, requestState, out request);
             currentRequestBytes += dataStart - initialDataStart;
+
+            if (requestState.State == RequestParser.State.ReadBody) // eg. incoming file upload (POST)
+            {
+                if (readBuffer.Length >= 32768) // read in blocks of 32kb, do not allow further expansion
+                {
+                    CompactReadBuffer(ref dataStart);
+                }
+            }
 
             if (isRequestComplete)
             {

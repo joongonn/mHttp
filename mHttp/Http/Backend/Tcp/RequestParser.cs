@@ -22,10 +22,10 @@ namespace m.Http.Backend.Tcp
         const byte COLON = (byte)':';
 
         static readonly Method[] Methods = (Method[])Enum.GetValues(typeof(Method));
-        static readonly byte[][] MethodsBytes = Enum.GetNames(typeof(Method)).Select(m => Encoding.ASCII.GetBytes(m)).ToArray();
+        static readonly byte[][] MethodsBytes = Enum.GetNames(typeof(Method)).Select(Encoding.ASCII.GetBytes).ToArray();
         static readonly byte[] EndOfPath = new byte[] { (byte)'?', SP };
         static readonly string[] Versions = new string[] { "HTTP/1.1", "HTTP/1.0" };
-        static readonly byte[][] VersionsBytes = Versions.Select(v => Encoding.ASCII.GetBytes(v)).ToArray();
+        static readonly byte[][] VersionsBytes = Versions.Select(Encoding.ASCII.GetBytes).ToArray();
 
         static readonly byte[] HeaderNameBytesAllowed = Encoding.ASCII.GetBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_0123456789");
 
@@ -449,7 +449,7 @@ namespace m.Http.Backend.Tcp
                                     //FIXME:Transfer-Encoding: chunked
                                     var contentLength = state.GetHeader<int>(HttpHeader.ContentLength);
                                     state.ContentLength = contentLength;
-                                    state.Body = new MemoryStream(contentLength);
+                                    state.Body = new MemoryStream(contentLength); //TODO: limit length, or stream-based body. otherwise requires large max-heap-size (mono)
                                     state.State = State.ReadBody;
                                     continue;
 

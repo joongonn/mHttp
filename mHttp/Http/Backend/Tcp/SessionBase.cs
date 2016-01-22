@@ -2,6 +2,8 @@
 using System.IO;
 using System.Threading.Tasks;
 
+using m.Utils;
+
 namespace m.Http.Backend.Tcp
 {
     abstract class SessionBase
@@ -17,13 +19,6 @@ namespace m.Http.Backend.Tcp
             Id = id;
             this.inputStream = inputStream;
             readBuffer = new byte[initialReadBufferSize];
-        }
-
-        void ResizeReadBuffer()
-        {
-            var newReadBuffer = new byte[readBuffer.Length * 2]; //TODO: boundary
-            Array.Copy(readBuffer, newReadBuffer, readBuffer.Length);
-            readBuffer = newReadBuffer;
         }
 
         protected void CompactReadBuffer(ref int dataStart)
@@ -51,7 +46,7 @@ namespace m.Http.Backend.Tcp
             var bufferRemaining = readBuffer.Length - readBufferOffset;
             if (bufferRemaining == 0)
             {
-                ResizeReadBuffer();
+                BufferUtils.Expand(ref readBuffer, readBuffer.Length);
                 bufferRemaining = readBuffer.Length - readBufferOffset;
             }
 
