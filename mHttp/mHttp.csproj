@@ -96,6 +96,7 @@
     <Compile Include="Http\Filters.cs" />
     <Compile Include="Http\Metrics\Endpoints\HourlyStatusCodeCounter.cs" />
     <Compile Include="Http\Backend\Tcp\HttpSession.cs" />
+    <Compile Include="Http\Backend\RequestStream.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

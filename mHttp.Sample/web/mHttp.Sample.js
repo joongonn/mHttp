@@ -108,7 +108,7 @@ app.controller('ResponsesGraphController', ['$rootScope', '$scope', function($ro
             show_secondary_x_label: false,
             x_mouseover: function(point) { return moment(point.date).utc().format('MMM DD ddd HH:mm') + " UTC - "; },
             utc_time: true,
-            interpolate: 'linear'
+            interpolate: 'monotone'
         });
     };
 

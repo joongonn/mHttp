@@ -55,7 +55,7 @@ namespace m.Http.Backend.Tcp
             var isRequestComplete = RequestParser.TryParseHttpRequest(readBuffer, ref dataStart, readBufferOffset, requestState, out request);
             currentRequestBytes += dataStart - initialDataStart;
 
-            if (requestState.State == RequestParser.State.ReadBody) // eg. incoming file upload (POST)
+            if (requestState.State == RequestParser.State.ReadBodyToEnd) // eg. incoming file upload (POST)
             {
                 if (readBuffer.Length >= 32768) // read in blocks of 32kb, do not allow further expansion
                 {

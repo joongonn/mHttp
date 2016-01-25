@@ -9,6 +9,7 @@ using m.Utils;
 
 namespace m.Http.Metrics.Endpoints
 {
+    //TODO: abstract to 'HourlyCounter<HttpStatusCode>'
     class HourlyStatusCodeCounter : IEnumerable<HourlyStatusCodeCounter.Entry>
     {
         public struct Entry

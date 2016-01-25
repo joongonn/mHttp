@@ -39,7 +39,7 @@ namespace m.Http.Backend
             IsSecureConnection = isSecureConnection;
             State = RequestParser.State.ReadRequestLine;
 
-            headers = new Dictionary<string, string>(8, StringComparer.OrdinalIgnoreCase);
+            headers = new Dictionary<string, string>(8, StringComparer.OrdinalIgnoreCase); //TODO: observable performance penalty with case insensitivity support
         }
 
         public HttpRequest(IPEndPoint remoteEndPoint,
@@ -80,7 +80,7 @@ namespace m.Http.Backend
         {
             string value;
 
-            if (Headers.TryGetValue(nameIgnoreCase, out value))
+            if (headers.TryGetValue(nameIgnoreCase, out value))
             {
                 if (value == string.Empty)
                 {
@@ -98,7 +98,7 @@ namespace m.Http.Backend
         public string GetHeaderWithDefault(string nameIgnoreCase, string defaultValue)
         {
             string value;
-            if (Headers.TryGetValue(nameIgnoreCase, out value))
+            if (headers.TryGetValue(nameIgnoreCase, out value))
             {
                 return value;
             }
@@ -114,6 +114,20 @@ namespace m.Http.Backend
             var converter = TypeDescriptor.GetConverter(typeof(T));
 
             return (T)converter.ConvertFromString(value);
+        }
+
+        public T GetHeaderWithDefault<T>(string nameIgnoreCase, T defaultValue)
+        {
+            string value;
+            if (headers.TryGetValue(nameIgnoreCase, out value))
+            {
+                var converter = TypeDescriptor.GetConverter(typeof(T));
+                return (T)converter.ConvertFromString(value);
+            }
+            else
+            {
+                return defaultValue;
+            }
         }
 
         WebSocketUpgradeResponse.AcceptUpgradeResponse IWebSocketUpgradeRequest.AcceptUpgrade(Action<IWebSocketSession> onAccepted)

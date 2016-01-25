@@ -233,6 +233,7 @@ namespace m.Http
             }
             catch (Exception e)
             {
+                //TODO: count session-fatal errors (not captured as route table 500s)
                 logger.Fatal("Internal server error handling session - {0}", e.ToString());
             }
             finally

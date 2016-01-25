@@ -59,7 +59,7 @@ namespace m.Http
         public string StatusDescription { get; private set; }
         public string ContentType { get; private set; }
         public IDictionary<string, string> Headers { get; private set; }
-        public byte[] Body { get; private set; }
+        public byte[] Body { get; private set; } //TODO: streamable
 
         public HttpResponse(HttpStatusCode statusCode) : this(statusCode, ContentTypes.Html) { }
 
