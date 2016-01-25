@@ -138,7 +138,7 @@ namespace m.Http.Backend.Tcp
         }
 
         [Test]
-        public void TestTryParseHttpRequest()
+        public void TestTryParseHttpGetRequest()
         {
             var request = new MemoryStream(8192);
             var buffer = request.GetBuffer();
@@ -155,11 +155,32 @@ namespace m.Http.Backend.Tcp
 
             request.WriteAscii("\r\n");
             Assert.IsTrue(RequestParser.TryParseHttpRequest(buffer, ref start, (int)request.Length, state, out httpRequest));
-            Assert.AreEqual(Method.GET, ((HttpRequest)httpRequest).Method);
+            Assert.AreEqual(Method.GET, httpRequest.Method);
             Assert.AreEqual("http://localhost:8080/index.jsp", httpRequest.Url.AbsoluteUri);
             Assert.AreEqual("curl/7.35.0", httpRequest.Headers["User-Agent"]);
         }
 
-        //TODO: Test POST
+        [Test]
+        public void TestTryParseHttpPostRequest()
+        {
+            var request = new MemoryStream(8192);
+            var buffer = request.GetBuffer();
+            var start = 0;
+
+            request.WriteAscii("POST /accounts/create HTTP/1.1\r\n");
+            request.WriteAscii("Host: localhost:8080\r\n");
+            request.WriteAscii("Content-Length: 23\r\n");
+            request.WriteAscii("\r\n");
+            request.WriteAscii(@"{ ""username"" : ""test"" }");
+
+            var state = new HttpRequest(RemoteEndPoint, false);
+            HttpRequest httpRequest;
+            Assert.IsTrue(RequestParser.TryParseHttpRequest(buffer, ref start, (int)request.Length, state, out httpRequest));
+            Assert.AreEqual(Method.POST, httpRequest.Method);
+            Assert.AreEqual("http://localhost:8080/accounts/create", httpRequest.Url.AbsoluteUri);
+
+            var requestBody = httpRequest.Body.ReadToEnd();
+            Assert.AreEqual(@"{ ""username"" : ""test"" }", requestBody);
+        }
     }
 }
