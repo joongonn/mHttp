@@ -8,7 +8,7 @@ namespace m.Http.Backend.Tcp
 {
     abstract class SessionBase
     {
-        public long Id { get; private set; }
+        public long Id { get; }
         protected Stream inputStream;
 
         protected byte[] readBuffer;
@@ -23,22 +23,7 @@ namespace m.Http.Backend.Tcp
 
         protected void CompactReadBuffer(ref int dataStart)
         {
-            if (dataStart == readBufferOffset)
-            {
-                dataStart = 0;
-                readBufferOffset = 0;
-            }
-            else
-            {
-                int available = readBufferOffset - dataStart;
-                for (int i=0; i<available; i++)
-                {
-                    readBuffer[i] = readBuffer[dataStart + i];
-                }
-
-                dataStart = 0;
-                readBufferOffset = available;
-            }
+            readBuffer.Compact(ref dataStart, ref readBufferOffset);
         }
 
         internal async Task<int> ReadToBufferAsync()
@@ -46,7 +31,7 @@ namespace m.Http.Backend.Tcp
             var bufferRemaining = readBuffer.Length - readBufferOffset;
             if (bufferRemaining == 0)
             {
-                BufferUtils.Expand(ref readBuffer, readBuffer.Length);
+                BufferUtils.Expand(ref readBuffer, readBuffer.Length); // double buffer
                 bufferRemaining = readBuffer.Length - readBufferOffset;
             }
 

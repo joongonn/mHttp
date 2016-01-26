@@ -22,8 +22,8 @@ namespace m.Http.Backend.Tcp
 
         static readonly Method[] Methods = (Method[])Enum.GetValues(typeof(Method));
         static readonly byte[][] MethodsBytes = Enum.GetNames(typeof(Method)).Select(Encoding.ASCII.GetBytes).ToArray();
-        static readonly byte[] EndOfPath = new byte[] { (byte)'?', SP };
-        static readonly string[] Versions = new string[] { "HTTP/1.1", "HTTP/1.0" };
+        static readonly byte[] EndOfPath = { (byte)'?', SP };
+        static readonly string[] Versions = { "HTTP/1.1", "HTTP/1.0" };
         static readonly byte[][] VersionsBytes = Versions.Select(Encoding.ASCII.GetBytes).ToArray();
 
         static readonly byte[] HeaderNameBytesAllowed = Encoding.ASCII.GetBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_0123456789");
@@ -141,6 +141,7 @@ namespace m.Http.Backend.Tcp
             return Encoding.ASCII.GetString(buffer, lineStart, Math.Min(maxChars, lineEnd - lineStart - 1));
         }
 
+        //TODO: probably mutate header names to lowercase
         public static void ParseHeader(byte[] buffer,
                                        int lineStart,
                                        int lineEnd,
@@ -209,6 +210,7 @@ namespace m.Http.Backend.Tcp
             return state;
         }
 
+        //TODO: split to TryParseHttpRequest(out hasBody) + TryParseHttpRequestBody (IF we want to read ahead)
         public static bool TryParseHttpRequest(byte[] buffer,
                                                ref int start,
                                                int end,

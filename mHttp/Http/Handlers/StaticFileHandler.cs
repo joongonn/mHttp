@@ -11,8 +11,8 @@ namespace m.Http.Handlers
     {
         class CachedFile
         {
-            public readonly FileResponse Response;
-            public readonly HttpResponse GZippedResponse;
+            public FileResponse Response { get; }
+            public HttpResponse GZippedResponse { get; }
 
             public DateTime LastModified { get { return Response.LastModified; } }
             public string ContentType { get { return Response.ContentType; } }
@@ -95,10 +95,7 @@ namespace m.Http.Handlers
             }
         }
 
-        bool TryGetCachedFileResponse(string fullName, out CachedFile cached)
-        {
-            return cache.TryGetValue(fullName, out cached);
-        }
+        bool TryGetCachedFileResponse(string fullName, out CachedFile cached) => cache.TryGetValue(fullName, out cached);
 
         bool TryGetCachedFileResponse(string filename, DateTime ifModifiedSince, out CachedFile cached)
         {
@@ -113,9 +110,6 @@ namespace m.Http.Handlers
             }
         }
 
-        static HttpResponse NotChanged(string contentType)
-        {
-            return new HttpResponse(HttpStatusCode.NotModified, contentType); //TODO: cache
-        }
+        static HttpResponse NotChanged(string contentType) => new HttpResponse(HttpStatusCode.NotModified, contentType); //TODO: cache
     }
 }

@@ -5,8 +5,8 @@ namespace m.Utils
 {
     sealed class LeakyBucket
     {
-        public readonly int Capacity;
-        public readonly int LeakRate;
+        public int Capacity { get; }
+        public int LeakRate { get; }
 
         int currentSize;
 
@@ -15,8 +15,8 @@ namespace m.Utils
 
         public LeakyBucket(int capacity, int leaksPerSecond)
         {
-            this.Capacity = capacity;
-            this.LeakRate = leaksPerSecond;
+            Capacity = capacity;
+            LeakRate = leaksPerSecond;
 
             currentSize = 0;
             lastLeakOn = DateTime.UtcNow;

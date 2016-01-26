@@ -26,6 +26,9 @@ a {
   color: #000;
   background-color: #eee;
 }
+.shadow {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, .1)
+}
 .bold {
   font-weight: bold;
 }

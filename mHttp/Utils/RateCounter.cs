@@ -4,17 +4,15 @@ namespace m.Utils
 {
     class RateCounter
     {
-        int maxRate;
-
         readonly int resolutionMs;
         readonly long[] timeSlots;
         readonly int[] counts;
 
-        public int MaxRate { get { return maxRate; } }
+        public int MaxRate { get; private set; }
 
         public RateCounter(int resolutionMs)
         {
-            maxRate = 0;
+            MaxRate = 0;
 
             this.resolutionMs = resolutionMs;
             var slots = 1000 / resolutionMs;
@@ -54,9 +52,9 @@ namespace m.Utils
                             currentRate += counts[i];
                         }
                     }
-                    if (currentRate > maxRate)
+                    if (currentRate > MaxRate)
                     {
-                        maxRate = currentRate;
+                        MaxRate = currentRate;
                     }
                 }
             }

@@ -5,11 +5,11 @@ namespace m.Http.Backend
 {
     abstract class RequestStream : Stream
     {
-        public override bool CanRead { get { return true; } }
+        public override bool CanRead { get; } = true;
 
-        public override bool CanSeek { get { return false; } }
+        public override bool CanSeek { get; } = false;
 
-        public override bool CanWrite { get { return false; } }
+        public override bool CanWrite { get; } = false;
 
         public override long Position
         {
@@ -39,12 +39,9 @@ namespace m.Http.Backend
     {
         public static readonly EmptyRequestStream Instance = new EmptyRequestStream();
 
-        public override long Length { get { return 0; } }
+        public override long Length { get; } = 0;
 
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            return 0;
-        }
+        public override int Read(byte[] buffer, int offset, int count) => 0;
 
         EmptyRequestStream() { }
 

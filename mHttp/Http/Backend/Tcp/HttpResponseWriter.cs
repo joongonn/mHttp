@@ -10,7 +10,7 @@ namespace m.Http.Backend.Tcp
 {
     static class HttpResponseWriter
     {
-        static readonly byte[] CRLF = new byte[] { 13, 10 };
+        static readonly byte[] CRLF = { 13, 10 };
         static readonly string Server = string.Format("mHttp {0}", Assembly.GetExecutingAssembly().GetName().Version);
 
         public static int Write(HttpResponse response, MemoryStream ms, int keepAlives, TimeSpan keepAliveTimeout)
@@ -29,7 +29,7 @@ namespace m.Http.Backend.Tcp
             bytesWritten += ms.WriteAsciiFormat("Content-Length: {0}\r\n", contentLength);
 
             var headers = response.Headers;
-            if (headers != null && headers.Count > 0)
+            if (headers?.Count > 0)
             {
                 foreach (var kvp in headers) //TODO: duplicate handling with fixed headers
                 {

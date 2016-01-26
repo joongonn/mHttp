@@ -6,8 +6,8 @@ namespace m.Http.Backend.Tcp
 {
     abstract class TcpSessionBase : SessionBase
     {
-        internal readonly TcpClient TcpClient;
-        internal readonly Stream Stream;
+        internal TcpClient TcpClient { get; }
+        internal Stream Stream { get; }
 
         protected TcpSessionBase(long id,
                                  TcpClient tcpClient,
@@ -17,8 +17,8 @@ namespace m.Http.Backend.Tcp
         {
             TcpClient = tcpClient;
             TcpClient.NoDelay = true;
-            this.Stream = stream;
-            this.Stream.WriteTimeout = writeTimeoutMs;
+            Stream = stream;
+            Stream.WriteTimeout = writeTimeoutMs;
         }
 
         public bool IsDisconnected()

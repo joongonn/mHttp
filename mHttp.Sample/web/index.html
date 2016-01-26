@@ -37,7 +37,7 @@
     <div class="container" ng-controller="MetricsController" ng-init="refreshMetrics()">
       <h4 class="metric-heading" style="margin-top: 0">Sessions</h4>
       <div class="table-container">
-        <table class="table table-bordered">
+        <table class="table table-bordered shadow">
           <thead>
             <tr>
                 <th colspan="5" class="center">HTTP Sessions</th>
@@ -71,7 +71,7 @@
 
       <h4 class="metric-heading" >Route Table</h4>
       <div class="table-container">
-        <table class="table table-bordered table-container">
+        <table class="table table-bordered shadow">
           <thead>
             <tr>
               <th rowspan="2">Route</th>
@@ -119,7 +119,7 @@
     <div class="container" ng-controller="WebSocketController">
       <h4 class="metric-heading" >WebSocket Sessions</h4>
       <div class="table-container">
-        <div class="room" ng-class="{'disconnected': !connected}">
+        <div class="room shadow" ng-class="{'disconnected': !connected}">
           <div id="messages"></div>
           <div class="input-container">
             <input id="input" ng-model="message" ng-disabled="!connected" ng-keyup="$event.keyCode == 13 && sendMessage()" type="text" placeholder="Message (Enter to send)">

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Threading;
 
@@ -10,7 +10,7 @@ namespace m.Utils
     {
         public sealed class Job
         {
-            public readonly string Name;
+            public string Name { get; }
             readonly Action callback;
 
             public Job(string name, Action callback)
@@ -27,7 +27,7 @@ namespace m.Utils
 
         readonly LoggingProvider.ILogger logger = LoggingProvider.GetLogger(typeof(WaitableTimer));
 
-        public readonly TimeSpan Period;
+        public TimeSpan Period { get; }
         readonly Job[] jobs;
         readonly AutoResetEvent evt;
         readonly string toString;
@@ -68,7 +68,7 @@ namespace m.Utils
             logger.Info("{0} with {1} jobs started", this, jobs.Length);
 
             var stopWatch = new Stopwatch();
-            double jobsTimeMs = 0;
+            var jobsTimeMs = 0d;
 
             while (!IsShutdown)
             {
@@ -99,22 +99,19 @@ namespace m.Utils
 
         void RunJobs()
         {
-            foreach (var job in jobs)
+            for (int i=0; i<jobs.Length; i++)
             {
                 try
                 {
-                    job.Run();
+                    jobs[i].Run();
                 }
                 catch (Exception e)
                 {
-                    logger.Fatal("WaitableTimer.Job:[{0}] exception - {1}", job.Name, e.ToString());
+                    logger.Fatal("WaitableTimer.Job:[{0}] exception - {1}", jobs[i].Name, e.ToString());
                 }
             }
         }
 
-        public override string ToString()
-        {
-            return toString;
-        }
+        public override string ToString() => toString;
     }
 }

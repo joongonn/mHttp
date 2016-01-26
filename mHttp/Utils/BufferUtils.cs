@@ -199,6 +199,26 @@ namespace m.Utils
                 return false;
             }
         }
+
+        public static void Compact(this byte[] buffer, ref int dataStart, ref int offset)
+        {
+            if (dataStart == offset)
+            {
+                dataStart = 0;
+                offset = 0;
+            }
+            else
+            {
+                var available = offset - dataStart;
+                for (int i=0; i<available; i++)
+                {
+                    buffer[i] = buffer[dataStart + i];
+                }
+
+                dataStart = 0;
+                offset = available;
+            }
+        }
         
         public static void Expand(ref byte[] buffer, int space)
         {

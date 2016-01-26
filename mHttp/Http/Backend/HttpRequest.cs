@@ -15,15 +15,15 @@ namespace m.Http.Backend
     {
         internal RequestParser.State State { get; set; }
 
-        public IPEndPoint RemoteEndPoint { get; private set; }
-        public bool IsSecureConnection { get; private set; }
+        public IPEndPoint RemoteEndPoint { get; }
+        public bool IsSecureConnection { get; }
         public string Host { get; internal set; }
         public Method Method { get; internal set; }
         public Uri Url { get; internal set; }
         public string Path { get; internal set; }
         public IReadOnlyDictionary<string, string> PathVariables { get; internal set; }
         public string Query { get; internal set; }
-        public IReadOnlyDictionary<string, string> Headers  { get { return headers; } }
+        public IReadOnlyDictionary<string, string> Headers { get { return headers; } }
         public string ContentType { get; internal set; }
         public int ContentLength { get; internal set; }
 

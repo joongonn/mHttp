@@ -11,8 +11,7 @@ namespace m.Http.Backend.WebSockets
         {
             var connection = req.GetHeaderWithDefault(HttpHeader.Connection, null);
 
-            if (connection != null &&
-                connection.IndexOf("upgrade", StringComparison.OrdinalIgnoreCase) >= 0)
+            if (connection?.IndexOf("upgrade", StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 var upgrade = req.GetHeaderWithDefault(HttpHeader.Upgrade, null);
                 if (string.Equals(upgrade, "websocket", StringComparison.OrdinalIgnoreCase))
