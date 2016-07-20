@@ -115,7 +115,7 @@ namespace m.Sample
 
             var server = new HttpBackend(IPAddress.Any, config.ListenPort);
             var routeTable = new RouteTable(
-                Route.ServeDirectory("/web/*", "/web/"),
+                Route.ServeDirectory("/web/*", "./web/"),
                 Route.Get("/").With(wsService.Redirect),
                 Route.GetWebSocketUpgrade("/ws").With(wsService.HandleUpgradeRequest),
                 Route.Get("/metrics").With(Lift.ToJsonHandler(server.GetMetricsReport)

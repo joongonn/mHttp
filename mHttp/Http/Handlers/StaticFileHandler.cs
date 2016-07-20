@@ -39,7 +39,16 @@ namespace m.Http.Handlers
             };
 
             this.route = route;
-            this.directory = AppDomain.CurrentDomain.BaseDirectory + directory;
+
+            var dirInfo = new DirectoryInfo(directory);
+            if (dirInfo.Exists)
+            {
+                this.directory = dirInfo.FullName;
+            }
+            else
+            {
+                throw new DirectoryNotFoundException($"The specified directory ${directory} could not be found.");
+            }
 
             cache = new ConcurrentDictionary<string, CachedFile>(StringComparer.Ordinal);
         }
