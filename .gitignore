@@ -2,3 +2,6 @@ mHttp.userprefs
 bin/
 obj/
 
+/.vs/mHttp/v14/.suo
+/packages/NuGet.CommandLine.3.4.3
+/mHttp/packages.config

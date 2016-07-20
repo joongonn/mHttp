@@ -107,7 +107,7 @@ namespace m.Sample
 
         public static void Main(string[] args)
         {
-            LoggingProvider.Use(LoggingProvider.ConsoleLoggingProvider);
+            LoggingProvider.Use(LoggingProvider.NullLoggingProvider);
 
             var config = ConfigManager.Load<ServerConfig>();
 
@@ -115,7 +115,8 @@ namespace m.Sample
 
             var server = new HttpBackend(IPAddress.Any, config.ListenPort);
             var routeTable = new RouteTable(
-                Route.ServeDirectory("/web/*", "/web/"),
+                //Route.Post("/API/*").With((req) => new HttpResponse(HttpStatusCode.Accepted)),
+                Route.ServeDirectory("/web/*", "./web/"),
                 Route.Get("/").With(wsService.Redirect),
                 Route.GetWebSocketUpgrade("/ws").With(wsService.HandleUpgradeRequest),
                 Route.Get("/metrics").With(Lift.ToJsonHandler(server.GetMetricsReport)
