@@ -1,8 +1,9 @@
 # mHttp
-Low footprint C# library (.NET 4.5) for standing up RESTful services.
+Low footprint C# HTTP/1.1 server library (.NET 4.5) for standing up RESTful services.
 
 Developed using [MonoDevelop 5.10](http://www.monodevelop.com/) on [Mono 4.2.1](http://www.mono-project.com/) (on Xubuntu 14.04).
 
+Released under the [MIT License](https://github.com/joongonn/mHttp/blob/master/LICENSE.txt).
 ## Demo
 Check out the sample project at [http://mhttp.net](http://mhttp.net).
 
@@ -44,7 +45,7 @@ csharp> var routeTable = new RouteTable(
 ```
 **4.** Instantiate and start the server *backend* listening on port 8080:
 ```shell
-csharp> var server = new BCLHttpListenerBackend("*", 8080);
+csharp> var server = new HttpBackend(System.Net.IPAddress.Any, 8080);
 csharp> server.Start(routeTable);
 ```
 **5.** Hit the endpoint:
