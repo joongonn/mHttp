@@ -47,7 +47,7 @@ namespace m.Http.Handlers
             }
             else
             {
-                throw new DirectoryNotFoundException($"The specified directory ${directory} could not be found.");
+                throw new DirectoryNotFoundException($"The specified directory {dirInfo.FullName} could not be found.");
             }
 
             cache = new ConcurrentDictionary<string, CachedFile>(StringComparer.Ordinal);
