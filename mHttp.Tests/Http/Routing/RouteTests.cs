@@ -56,13 +56,12 @@ namespace m.Http.Routing
             Assert.True(r0.TryMatch(new Uri("http://localhost?k=v"), out pathVariables));
 
             var r1 = new Route("/*");
-            Assert.True(r1.TryMatch(new Uri("http://localhost/"), out pathVariables));
+            Assert.False(r1.TryMatch(new Uri("http://localhost/"), out pathVariables));
             Assert.True(r1.TryMatch(new Uri("http://localhost/whatever"), out pathVariables));
-            Assert.True(r1.TryMatch(new Uri("http://localhost?k=v"), out pathVariables));
 
             var r2 = new Route("/files/*");
             Assert.False(r2.TryMatch(new Uri("http://localhost/files"), out pathVariables));
-            Assert.True(r2.TryMatch(new Uri("http://localhost/files/"), out pathVariables));
+            Assert.True(r2.TryMatch(new Uri("http://localhost/files/anything.html"), out pathVariables));
 
             var r3 = new Route("/accounts");
             Assert.True(r3.TryMatch(new Uri("http://localhost/accounts"), out pathVariables));
