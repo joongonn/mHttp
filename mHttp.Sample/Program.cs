@@ -13,7 +13,7 @@ namespace m.Sample
     {
         readonly LoggingProvider.ILogger logger = LoggingProvider.GetLogger(typeof(WebSocketService));
 
-        readonly HttpResponse Index = new RedirectResponse("/web/index.html");
+        readonly HttpResponse Index = new RedirectResponse("/index.html");
         readonly ConcurrentDictionary<long, IWebSocketSession> sessions;
 
         public WebSocketService()
@@ -114,9 +114,11 @@ namespace m.Sample
             var wsService = new WebSocketService();
 
             var server = new HttpBackend(IPAddress.Any, config.ListenPort);
+            var greeting = new TextResponse("Hello, World");
             var routeTable = new RouteTable(
-                Route.ServeDirectory("/web/*", "./web/"),
+                Route.ServeDirectory("/*", "./web/"),
                 Route.Get("/").With(wsService.Redirect),
+                Route.Get("/plaintext").With(() => greeting),
                 Route.GetWebSocketUpgrade("/ws").With(wsService.HandleUpgradeRequest),
                 Route.Get("/metrics").With(Lift.ToJsonHandler(server.GetMetricsReport)
                                                .FilterResponse(Filters.GZip))

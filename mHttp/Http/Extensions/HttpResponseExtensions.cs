@@ -1,26 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using m.Utils;
-
 namespace m.Http.Extensions
 {
     public static class HttpResponseExtensions
     {
-        public static HttpResponse GZip(this HttpResponse response) //TODO: or give it its own type ie. public class GzipResponse : HttpResponse
+        //TODO: or give it its own type ie. public class GzipResponse : HttpResponse
+        public static HttpResponse GZip(this HttpResponse response, Func<byte[], byte[]> gzipFunc)
         {
-            var gzippedBody = response.Body.GZip();
-            var newHeaders = new Dictionary<string, string>(response.Headers, StringComparer.OrdinalIgnoreCase);
+            var newHeaders = new Dictionary<string, string>(response.Headers, StringComparer.OrdinalIgnoreCase)
+            {
+                { HttpHeader.ContentEncoding, HttpHeaderValue.GZip }
+            };
 
-            newHeaders[HttpHeader.ContentEncoding] = HttpHeaderValue.GZip;
-
-            var gzippedResponse = new HttpResponse(response.StatusCode,
-                                                   response.StatusDescription,
-                                                   response.ContentType,
-                                                   newHeaders,
-                                                   gzippedBody);
-
-            return gzippedResponse;
+            return new HttpResponse(response.StatusCode,
+                                    response.StatusDescription,
+                                    response.ContentType,
+                                    newHeaders,
+                                    gzipFunc(response.Body));
         }
     }
 }

@@ -14,13 +14,15 @@ namespace m.Http.Handlers
             public FileResponse Response { get; }
             public HttpResponse GZippedResponse { get; }
 
-            public DateTime LastModified { get { return Response.LastModified; } }
-            public string ContentType { get { return Response.ContentType; } }
+            public DateTime LastModified { get; }
+            public string ContentType { get; }
 
-            public CachedFile(FileInfo fileInfo)
+            public CachedFile(FileResponse response, HttpResponse gzippedResponse)
             {
-                Response = new FileResponse(fileInfo);
-                GZippedResponse = this.Response.GZip();
+                Response = response;
+                LastModified = response.LastModified;
+                ContentType = response.ContentType;
+                GZippedResponse = gzippedResponse;
             }
         }
 
@@ -28,10 +30,11 @@ namespace m.Http.Handlers
 
         readonly string route;
         readonly string directory;
+        readonly Func<byte[], byte[]> gzipFunc;
 
         readonly ConcurrentDictionary<string, CachedFile> cache;
 
-        public StaticFileHandler(string route, string directory)
+        public StaticFileHandler(string route, string directory, Func<byte[], byte[]> gzipFunc)
         {
             while (directory[0] == Path.DirectorySeparatorChar)
             {
@@ -47,8 +50,10 @@ namespace m.Http.Handlers
             }
             else
             {
-                throw new DirectoryNotFoundException($"The specified directory ${directory} could not be found.");
+                throw new DirectoryNotFoundException($"The specified directory {dirInfo.FullName} could not be found.");
             }
+
+            this.gzipFunc = gzipFunc;
 
             cache = new ConcurrentDictionary<string, CachedFile>(StringComparer.Ordinal);
         }
@@ -82,7 +87,8 @@ namespace m.Http.Handlers
             }
             else
             {
-                cachedFile = new CachedFile(fileInfo);
+                var fileResponse = new FileResponse(fileInfo);
+                cachedFile = new CachedFile(fileResponse, fileResponse.GZip(gzipFunc));
                 cache[fullName] = cachedFile;
 
                 return req.IsAcceptGZip() ? cachedFile.GZippedResponse : cachedFile.Response;

@@ -2,12 +2,13 @@
 using System.Threading.Tasks;
 
 using m.Http.Routing;
+using m.Utils;
 
 namespace m.Http
 {
     public static class Route
     {
-        public class MethodRoute
+        public sealed class MethodRoute
         {
             public readonly Method Method;
             public readonly Routing.Route Route;
@@ -19,7 +20,7 @@ namespace m.Http
             }
         }
 
-        public class WebSocketRoute
+        public sealed class WebSocketRoute
         {
             public readonly Routing.Route Route;
 
@@ -66,7 +67,12 @@ namespace m.Http
 
         public static Endpoint ServeDirectory(string route, string directory)
         {
-            return Get(route).With(Handler.ServeDirectory(route, directory));
+            return ServeDirectory(route, directory, Compression.GZip);
+        }
+
+        public static Endpoint ServeDirectory(string route, string directory, Func<byte[], byte[]> gzipFunc)
+        {
+            return Get(route).With(Handler.ServeDirectory(route, directory, gzipFunc));
         }
 
         public static Endpoint WithAction(this MethodRoute pair, Action a)
