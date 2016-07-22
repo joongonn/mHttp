@@ -7,20 +7,23 @@ namespace m.Http.Routing
     
     public class Endpoint : IComparable<Endpoint>
     {
-        public readonly Method Method;
-        public readonly Route Route;
-        public readonly AsyncHandler Handler;
+        readonly string toString;
+
+        public Method Method { get; }
+        public Route Route { get; }
+        public AsyncHandler Handler { get; }
 
         public Endpoint(Method method, Route route, AsyncHandler handler)
         {
             Method = method;
             Route = route;
             Handler = handler;
+
+            toString = $"Endpoint({Method}:{Route.PathTemplate})";
         }
 
-        public int CompareTo(Endpoint other)
-        {
-            return Route.CompareTo(other.Route);
-        }
+        public int CompareTo(Endpoint other) => Route.CompareTo(other.Route);
+
+        public override string ToString() => toString;
     }
 }

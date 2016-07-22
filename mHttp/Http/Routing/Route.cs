@@ -22,16 +22,16 @@ namespace m.Http.Routing
             toString = string.Format("Route({0})", PathTemplate);
         }
 
-        internal static ITemplatePart[] BuildTemplate(string pathTemplate)
+        static ITemplatePart[] BuildTemplate(string pathTemplate)
         {
             if (String.IsNullOrEmpty(pathTemplate))
             {   
-                throw new ArgumentException("Must not be null or empty", "pathTemplate");
+                throw new ArgumentException("Must not be null or empty", nameof(pathTemplate));
             }
 
             if (pathTemplate[0] != '/')
             {
-                throw new ArgumentException("Must begin with '/'", "pathTemplate");
+                throw new ArgumentException("Must begin with '/'", nameof(pathTemplate));
             }
 
             var match = TemplateRegex.Match(pathTemplate);
@@ -114,12 +114,12 @@ namespace m.Http.Routing
 
                 if (i == segments.Length || i == templateParts.Length)
                 {
-                    if (segments.Length < templateParts.Length)
-                    {
-                        isMatched = templateParts[i] is Wildcard;
-                        break;
-                    }
-                    else
+                    // if (segments.Length < templateParts.Length)
+                    // {
+                    //    isMatched = templateParts[i] is Wildcard; // eg if we want "/html" to be captured by "/html/*"
+                    //    break;
+                    // }
+                    // else
                     {
                         isMatched = segments.Length == templateParts.Length;
                         break;
