@@ -84,9 +84,9 @@ namespace m.Http
             };
         }
 
-        public static SyncHandler ServeDirectory(string route, string path)
+        public static SyncHandler ServeDirectory(string route, string path, Func<byte[], byte[]> gzipFunc)
         {
-            return new StaticFileHandler(route, path).Handle;
+            return new StaticFileHandler(route, path, gzipFunc).Handle;
         }
     }
 }
