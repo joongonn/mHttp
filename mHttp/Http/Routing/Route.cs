@@ -14,7 +14,7 @@ namespace m.Http.Routing
 
         readonly string toString;
 
-        public Route(string pathTemplate)
+        internal Route(string pathTemplate)
         {
             templateParts = BuildTemplate(pathTemplate);
             PathTemplate = pathTemplate;

@@ -9,11 +9,11 @@ namespace m.Http.Routing
     {
         readonly string toString;
 
-        public Method Method { get; }
-        public Route Route { get; }
-        public AsyncHandler Handler { get; }
+        internal Method Method { get; }
+        internal Route Route { get; }
+        internal AsyncHandler Handler { get; }
 
-        public Endpoint(Method method, Route route, AsyncHandler handler)
+        internal Endpoint(Method method, Route route, AsyncHandler handler)
         {
             Method = method;
             Route = route;
