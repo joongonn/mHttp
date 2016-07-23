@@ -16,7 +16,7 @@ namespace m.Http
 
         public static AsyncHandler FromAction(Action a)
         {
-            return (IHttpRequest _) =>
+            return _ =>
             {
                 a();
                 return EmptyResponse;
@@ -25,7 +25,7 @@ namespace m.Http
 
         public static AsyncHandler FromAsyncAction(Func<Task> f)
         {
-            return (IHttpRequest _) =>
+            return _ =>
             {
                 f();
                 return EmptyResponse;
@@ -34,7 +34,7 @@ namespace m.Http
 
         public static AsyncHandler FromAction(Action<IHttpRequest> a)
         {
-            return (IHttpRequest req) =>
+            return req =>
             {
                 a(req);
                 return EmptyResponse;
@@ -43,7 +43,7 @@ namespace m.Http
 
         public static AsyncHandler FromAsyncAction(Func<IHttpRequest, Task> a)
         {
-            return (IHttpRequest req) =>
+            return req =>
             {
                 a(req);
                 return EmptyResponse;
@@ -52,7 +52,7 @@ namespace m.Http
 
         public static AsyncHandler From(Func<HttpResponse> f)
         {
-            return (IHttpRequest _) =>
+            return _ =>
             {
                 HttpResponse resp = f();
                 return Task.FromResult(resp);
@@ -61,7 +61,7 @@ namespace m.Http
 
         public static AsyncHandler From(Func<IHttpRequest, HttpResponse> f)
         {
-            return (IHttpRequest req) =>
+            return req =>
             {
                 HttpResponse resp = f(req);
                 return Task.FromResult(resp);
@@ -70,23 +70,18 @@ namespace m.Http
 
         public static AsyncHandler FromAsync(Func<Task<HttpResponse>> f)
         {
-            return (IHttpRequest _) => f();
+            return _ => f();
         }
 
         public static AsyncHandler From(Func<IWebSocketUpgradeRequest, WebSocketUpgradeResponse> f)
         {
-            return (IHttpRequest req) =>
+            return req =>
             {
                 var httpRequest = (HttpRequest)req;
 
                 HttpResponse resp = f((IWebSocketUpgradeRequest)httpRequest);
                 return Task.FromResult(resp);
             };
-        }
-
-        public static SyncHandler ServeDirectory(string route, string path, Func<byte[], byte[]> gzipFunc)
-        {
-            return new StaticFileHandler(route, path, gzipFunc).Handle;
         }
     }
 }
