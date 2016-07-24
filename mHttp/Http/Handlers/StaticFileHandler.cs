@@ -92,7 +92,7 @@ namespace m.Http.Handlers
                 cachedFile = new CachedFile(fileResponse, gzipFunc != null ? fileResponse.GZip(gzipFunc) : null);
                 cache[fullName] = cachedFile;
 
-                return req.IsAcceptGZip() ? cachedFile.GZippedResponse : cachedFile.Response;
+                return req.IsAcceptGZip() && cachedFile.GZippedResponse != null ? cachedFile.GZippedResponse : cachedFile.Response;
             }
         }
 
