@@ -82,13 +82,14 @@ namespace m.Http.Handlers
                 }
                 else
                 {
-                    return req.IsAcceptGZip() ? cachedFile.GZippedResponse : cachedFile.Response;
+                    return req.IsAcceptGZip() && cachedFile.GZippedResponse != null ? cachedFile.GZippedResponse : cachedFile.Response;
                 }
             }
             else
             {
                 var fileResponse = new FileResponse(fileInfo);
-                cachedFile = new CachedFile(fileResponse, fileResponse.GZip(gzipFunc));
+
+                cachedFile = new CachedFile(fileResponse, gzipFunc != null ? fileResponse.GZip(gzipFunc) : null);
                 cache[fullName] = cachedFile;
 
                 return req.IsAcceptGZip() ? cachedFile.GZippedResponse : cachedFile.Response;
