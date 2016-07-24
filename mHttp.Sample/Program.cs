@@ -97,12 +97,7 @@ namespace m.Sample
         class ServerConfig : IConfigurable
         {
             [EnvironmentVariable("httpListenPort")]
-            public int ListenPort { get; set; }
-
-            public ServerConfig()
-            {
-                ListenPort = 8080; // Default
-            }
+            public int ListenPort { get; set; } = 8080; // Default
         }
 
         public static void Main(string[] args)
