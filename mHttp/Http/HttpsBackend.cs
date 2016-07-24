@@ -39,7 +39,7 @@ namespace m.Http
                                                                 TimeSpan _sessionWriteTimeout)
         {
             var sslStream = new SslStream(client.GetStream());
-            await sslStream.AuthenticateAsServerAsync(serverCertificate, false, System.Security.Authentication.SslProtocols.Default, false);
+            await sslStream.AuthenticateAsServerAsync(serverCertificate, false, System.Security.Authentication.SslProtocols.Tls12, false);
 
             return new HttpSession(sessionId, client, sslStream, true, _maxKeepAlives, _sessionReadBufferSize, _sessionReadTimeout, _sessionWriteTimeout);
         }
