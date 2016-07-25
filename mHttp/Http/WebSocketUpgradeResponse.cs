@@ -7,16 +7,16 @@ namespace m.Http
     {
         public sealed class AcceptUpgradeResponse : WebSocketUpgradeResponse
         {
-            public readonly string RequestVersion;
-            public readonly string RequestKey;
-            public readonly string RequestExtensions;
+            public string RequestVersion { get; }
+            public string RequestKey { get; }
+            public string RequestExtensions { get; }
 
-            public readonly Action<IWebSocketSession> OnAccepted;
+            public Action<IWebSocketSession> OnAccepted { get; }
 
-            public AcceptUpgradeResponse(string requestVersion,
-                                         string requestKey,
-                                         string requestExtensions,
-                                         Action<IWebSocketSession> onAccepted) : base(HttpStatusCode.SwitchingProtocols)
+            internal AcceptUpgradeResponse(string requestVersion,
+                                           string requestKey,
+                                           string requestExtensions,
+                                           Action<IWebSocketSession> onAccepted) : base(HttpStatusCode.SwitchingProtocols)
             {
                 RequestVersion = requestVersion;
                 RequestKey = requestKey;
@@ -27,9 +27,9 @@ namespace m.Http
 
         public sealed class RejectUpgradeResponse : WebSocketUpgradeResponse
         {
-            public RejectUpgradeResponse(HttpStatusCode reason) : base(reason) { }
+            internal RejectUpgradeResponse(HttpStatusCode reason) : base(reason) { }
         }
 
-        protected WebSocketUpgradeResponse(HttpStatusCode statusCode) : base(statusCode) { }
+        WebSocketUpgradeResponse(HttpStatusCode statusCode) : base(statusCode) { }
     }
 }

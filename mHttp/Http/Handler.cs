@@ -3,14 +3,13 @@ using System.Net;
 using System.Threading.Tasks;
 
 using m.Http.Backend;
-using m.Http.Handlers;
 
 namespace m.Http
 {
     using SyncHandler = Func<IHttpRequest, HttpResponse>;
     using AsyncHandler = Func<IHttpRequest, Task<HttpResponse>>;
 
-    public static class Handler
+    static class Handler
     {
         static readonly Task<HttpResponse> EmptyResponse = Task.FromResult(new HttpResponse(HttpStatusCode.NoContent));
 

@@ -100,6 +100,14 @@ namespace m.Sample
             public int ListenPort { get; set; } = 8080; // Default
         }
 
+        static readonly HttpResponse greeting = new TextResponse("Hello, World");
+
+        static async Task<HttpResponse> DelayedGreeter()
+        {
+            await Task.Delay(1000);
+            return greeting;
+        }
+
         public static void Main(string[] args)
         {
             LoggingProvider.Use(LoggingProvider.ConsoleLoggingProvider);
@@ -109,11 +117,11 @@ namespace m.Sample
             var wsService = new WebSocketService();
 
             var server = new HttpBackend(IPAddress.Any, config.ListenPort);
-            var greeting = new TextResponse("Hello, World");
             var routeTable = new RouteTable(
                 Route.ServeDirectory("/*", "./web/"),
                 Route.Get("/").With(wsService.Redirect),
                 Route.Get("/plaintext").With(() => greeting),
+                Route.Get("/plaintext/delayed").WithAsync(DelayedGreeter),
                 Route.GetWebSocketUpgrade("/ws").With(wsService.HandleUpgradeRequest),
                 Route.Get("/metrics").With(Lift.ToJsonHandler(server.GetMetricsReport)
                                                .FilterResponse(Filters.GZip))
