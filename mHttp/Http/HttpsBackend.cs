@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
@@ -12,8 +13,10 @@ namespace m.Http
     public class HttpsBackend : HttpBackend
     {
         readonly X509Certificate2 serverCertificate;
+        readonly SslProtocols sslProtocols;
 
         public HttpsBackend(X509Certificate2 serverCertificate,
+                            SslProtocols sslProtocols,
                             IPAddress address,
                             int port,
                             int maxKeepAlives=100,
@@ -29,6 +32,7 @@ namespace m.Http
                                                                    sessionWriteTimeoutMs)
         {
             this.serverCertificate = serverCertificate;
+            this.sslProtocols = sslProtocols;
         }
 
         internal override async Task<HttpSession> CreateSession(long sessionId,
@@ -39,7 +43,7 @@ namespace m.Http
                                                                 TimeSpan _sessionWriteTimeout)
         {
             var sslStream = new SslStream(client.GetStream());
-            await sslStream.AuthenticateAsServerAsync(serverCertificate, false, System.Security.Authentication.SslProtocols.Tls12, false);
+            await sslStream.AuthenticateAsServerAsync(serverCertificate, false, sslProtocols, false);
 
             return new HttpSession(sessionId, client, sslStream, true, _maxKeepAlives, _sessionReadBufferSize, _sessionReadTimeout, _sessionWriteTimeout);
         }
