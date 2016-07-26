@@ -35,9 +35,9 @@ namespace m.Http.Handlers
 
         readonly ConcurrentDictionary<string, CachedFile> cache;
 
-        internal StaticFileHandler(int pathFilenameStartIndex, DirectoryInfo dirInfo, Func<byte[], byte[]> gzipFuncImpl)
+        public StaticFileHandler(int pathFilenameStartIndex, DirectoryInfo dirInfo, Func<byte[], byte[]> gzipFuncImpl)
         {
-            this.pathFilenameStartIndex = pathFilenameStartIndex;
+            this.pathFilenameStartIndex = pathFilenameStartIndex; // position (string index) of incoming `request.Path` at which the requested filename is expected to begin
             directory = dirInfo.FullName;
             gzipFunc = gzipFuncImpl;
 
@@ -51,7 +51,7 @@ namespace m.Http.Handlers
                 directory = directory.Substring(1);
             }
 
-            pathFilenameStartIndex = route.Length - 1;
+            pathFilenameStartIndex = route.Length - 1; // trailing wildcard *
 
             var dirInfo = new DirectoryInfo(directory);
             if (dirInfo.Exists)
@@ -108,7 +108,7 @@ namespace m.Http.Handlers
 
         string GetFileFullName(IHttpRequest req)
         {
-            var filename = HttpUtility.UrlDecode(req.Path.Substring(pathFilenameStartIndex)); // trailing wildcard *
+            var filename = HttpUtility.UrlDecode(req.Path.Substring(pathFilenameStartIndex));
             var fullPath = Path.Combine(directory, filename);
 
             if (fullPath.StartsWith(directory))

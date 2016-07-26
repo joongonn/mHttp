@@ -60,7 +60,7 @@ namespace m.Http
         {
             if (dirInfo.Exists)
             {
-                //TODO: check format of `Route.PathTemplate` 
+                //TODO: check format of `Route.PathTemplate` eg. '/{capture}/folder/*' would NOT work
                 var pathFilenameStartIndex = Route.PathTemplate.Length - 1; // (assumed) trailing '/*' to indicate start of filename
                 RequestHandler fileHandler = new StaticFileHandler(pathFilenameStartIndex, dirInfo, gzipFuncImpl).Handle;
                 return new Endpoint(Method, Route, Handler.From(fileHandler));
