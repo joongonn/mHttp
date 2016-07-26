@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace m.Http.Routing
 {
-    using AsyncHandler = Func<IHttpRequest, Task<HttpResponse>>;
+    using AsyncRequestHandler = Func<IHttpRequest, Task<HttpResponse>>;
     
     public class Endpoint : IComparable<Endpoint>
     {
@@ -11,9 +11,9 @@ namespace m.Http.Routing
 
         internal Method Method { get; }
         internal Route Route { get; }
-        internal AsyncHandler Handler { get; }
+        internal AsyncRequestHandler Handler { get; }
 
-        internal Endpoint(Method method, Route route, AsyncHandler handler)
+        internal Endpoint(Method method, Route route, AsyncRequestHandler handler)
         {
             Method = method;
             Route = route;

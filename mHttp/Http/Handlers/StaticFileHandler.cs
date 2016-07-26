@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.IO;
 using System.Net;
+using System.Web;
 
 using m.Http.Extensions;
 
@@ -28,20 +29,29 @@ namespace m.Http.Handlers
 
         static readonly HttpResponse NotFound = new HttpResponse(HttpStatusCode.NotFound);
 
-        readonly string route;
+        readonly int pathFilenameStartIndex;
         readonly string directory;
         readonly Func<byte[], byte[]> gzipFunc;
 
         readonly ConcurrentDictionary<string, CachedFile> cache;
 
-        public StaticFileHandler(string route, string directory, Func<byte[], byte[]> gzipFunc)
+        internal StaticFileHandler(int pathFilenameStartIndex, DirectoryInfo dirInfo, Func<byte[], byte[]> gzipFuncImpl)
+        {
+            this.pathFilenameStartIndex = pathFilenameStartIndex;
+            directory = dirInfo.FullName;
+            gzipFunc = gzipFuncImpl;
+
+            cache = new ConcurrentDictionary<string, CachedFile>(StringComparer.Ordinal);
+        }
+
+        [Obsolete] public StaticFileHandler(string route, string directory, Func<byte[], byte[]> gzipFunc)
         {
             while (directory[0] == Path.DirectorySeparatorChar)
             {
                 directory = directory.Substring(1);
-            };
+            }
 
-            this.route = route;
+            pathFilenameStartIndex = route.Length - 1;
 
             var dirInfo = new DirectoryInfo(directory);
             if (dirInfo.Exists)
@@ -98,8 +108,8 @@ namespace m.Http.Handlers
 
         string GetFileFullName(IHttpRequest req)
         {
-            var filename = req.Path.Substring(route.Length - 1); // trailing wildcard *
-            var fullPath = Path.GetFullPath(directory + filename);
+            var filename = HttpUtility.UrlDecode(req.Path.Substring(pathFilenameStartIndex)); // trailing wildcard *
+            var fullPath = Path.Combine(directory, filename);
 
             if (fullPath.StartsWith(directory))
             {
@@ -115,15 +125,7 @@ namespace m.Http.Handlers
 
         bool TryGetCachedFileResponse(string filename, DateTime ifModifiedSince, out CachedFile cached)
         {
-            if (cache.TryGetValue(filename, out cached) && cached.LastModified <= ifModifiedSince)
-            {
-                return true;
-            }
-            else
-            {
-                cached = null;
-                return false;
-            }
+            return cache.TryGetValue(filename, out cached) && cached.LastModified <= ifModifiedSince;
         }
 
         static HttpResponse NotChanged(string contentType) => new HttpResponse(HttpStatusCode.NotModified, contentType); //TODO: cache

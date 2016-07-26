@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 
 using m.Http.Routing;
@@ -7,6 +8,8 @@ using m.Utils;
 
 namespace m.Http
 {
+    using RequestHandler = Func<IHttpRequest, HttpResponse>;
+
     public static class Route
     {
         public static EndpointBuilder Get(string route) => new EndpointBuilder(Method.GET, route);
@@ -19,9 +22,9 @@ namespace m.Http
 
         public static EndpointBuilder Delete(string route) => new EndpointBuilder(Method.DELETE, route);
 
-        public static Endpoint ServeDirectory(string route, string directory) => ServeDirectory(route, directory, Compression.GZip);
+        [Obsolete] public static Endpoint ServeDirectory(string route, string directory) => ServeDirectory(route, directory, Compression.GZip);
 
-        public static Endpoint ServeDirectory(string route, string directory, Func<byte[], byte[]> gzipFunc) => Get(route).With(new StaticFileHandler(route, directory, gzipFunc).Handle);
+        [Obsolete] public static Endpoint ServeDirectory(string route, string directory, Func<byte[], byte[]> gzipFunc) => Get(route).With(new StaticFileHandler(route, directory, gzipFunc).Handle);
     }
 
     public sealed class EndpointBuilder
@@ -50,6 +53,23 @@ namespace m.Http
         public Endpoint With(Func<IHttpRequest, HttpResponse> f) => new Endpoint(Method, Route, Handler.From(f));
 
         public Endpoint WithAsync(Func<IHttpRequest, Task<HttpResponse>> f) => new Endpoint(Method, Route, f);
+
+        public Endpoint With(DirectoryInfo dirInfo) => With(dirInfo, Compression.GZip);
+
+        public Endpoint With(DirectoryInfo dirInfo, Func<byte[], byte[]> gzipFuncImpl)
+        {
+            if (dirInfo.Exists)
+            {
+                //TODO: check format of `Route.PathTemplate` 
+                var pathFilenameStartIndex = Route.PathTemplate.Length - 1; // (assumed) trailing '/*' to indicate start of filename
+                RequestHandler fileHandler = new StaticFileHandler(pathFilenameStartIndex, dirInfo, gzipFuncImpl).Handle;
+                return new Endpoint(Method, Route, Handler.From(fileHandler));
+            }
+            else
+            {
+                throw new DirectoryNotFoundException($"The specified directory {dirInfo.FullName} could not be found.");
+            }
+        }
     }
 
     public sealed class WebSocketEndpointBuilder

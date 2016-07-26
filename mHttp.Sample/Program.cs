@@ -1,4 +1,6 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
+using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -114,11 +116,13 @@ namespace m.Sample
 
             var config = ConfigManager.Load<ServerConfig>();
 
-            var wsService = new WebSocketService();
-
             var server = new HttpBackend(IPAddress.Any, config.ListenPort);
+
+            var wsService = new WebSocketService();
+            var staticWebContentFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "web");
+
             var routeTable = new RouteTable(
-                Route.ServeDirectory("/*", "./web/"),
+                Route.Get("/*").With(new DirectoryInfo(staticWebContentFolder)),
                 Route.Get("/").With(wsService.Redirect),
                 Route.Get("/plaintext").With(() => greeting),
                 Route.Get("/plaintext/delayed").WithAsync(DelayedGreeter),

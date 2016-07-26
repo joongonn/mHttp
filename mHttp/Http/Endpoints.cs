@@ -88,13 +88,13 @@ namespace m.Http
             {
                 if (method.IsStatic)
                 {
-                    var syncHandler = (HandlerSignature2)Delegate.CreateDelegate(typeof(HandlerSignature2), method);
-                    asHandler = Handler.From(syncHandler);
+                    var handler = (HandlerSignature2)Delegate.CreateDelegate(typeof(HandlerSignature2), method);
+                    asHandler = Handler.From(handler);
                 }
                 else
                 {
-                    var syncHandler = (HandlerSignature2)Delegate.CreateDelegate(typeof(HandlerSignature2), targetClassInstance, method);
-                    asHandler = Handler.From(syncHandler);
+                    var handler = (HandlerSignature2)Delegate.CreateDelegate(typeof(HandlerSignature2), targetClassInstance, method);
+                    asHandler = Handler.From(handler);
                 }
                 return true;
             }
@@ -107,13 +107,13 @@ namespace m.Http
             {
                 if (method.IsStatic)
                 {
-                    var syncHandler = (HandlerSignature3)Delegate.CreateDelegate(typeof(HandlerSignature3), method);
-                    asHandler = Handler.From(syncHandler);
+                    var handler = (HandlerSignature3)Delegate.CreateDelegate(typeof(HandlerSignature3), method);
+                    asHandler = Handler.From(handler);
                 }
                 else
                 {
-                    var syncHandler = (HandlerSignature3)Delegate.CreateDelegate(typeof(HandlerSignature3), targetClassInstance, method);
-                    asHandler = Handler.From(syncHandler);
+                    var handler = (HandlerSignature3)Delegate.CreateDelegate(typeof(HandlerSignature3), targetClassInstance, method);
+                    asHandler = Handler.From(handler);
                 }
                 return true;
             }

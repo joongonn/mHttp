@@ -134,7 +134,7 @@ namespace m.Http
             {
                 RouteTable routeTable = routeTables[routeTableIndex];
 
-                //TODO: httpReq = routeTable.FilterRequest(httpReq);
+                //TODO: httpReq = filterChain.FilterRequest(httpReq);
 
                 IReadOnlyDictionary<string, string> pathVariables;
                 if ((endpointIndex = routeTable.TryMatchEndpoint(httpReq.Method, httpReq.Url, out pathVariables)) < 0)
@@ -164,19 +164,18 @@ namespace m.Http
 
                 if (endpointIndex >= 0)
                 {
-                    var requestCompletedOn = DateTime.UtcNow;
-                    int spins = 0;
-                    while (!requestLogs.TryAdd(routeTableIndex, endpointIndex, httpReq, httpResp, requestArrivedOn, requestCompletedOn))
+                    // int spins = 0;
+                    while (!requestLogs.TryAdd(routeTableIndex, endpointIndex, httpReq, httpResp, requestArrivedOn, DateTime.UtcNow))
                     {
-                        spins++;
+                        // spins++;
                         timer.Signal();
                         // await Task.Yield();
                     }
 
-                    if (spins > 0)
-                    {
-                        // logger.Warn("Incurred {0} spins to add request log", spins);
-                    }
+                    // if (spins > 0)
+                    // {
+                    //     logger.Warn("Incurred {0} spins to add request log", spins);
+                    // }
                 }
             }
 
