@@ -127,8 +127,8 @@ namespace m.Sample
                 Route.Get("/plaintext").With(() => greeting),
                 Route.Get("/plaintext/delayed").WithAsync(DelayedGreeter),
                 Route.GetWebSocketUpgrade("/ws").With(wsService.HandleUpgradeRequest),
-                Route.Get("/metrics").With(Lift.ToJsonHandler(server.GetMetricsReport)
-                                               .FilterResponse(Filters.GZip))
+                Route.Get("/metrics").With(Lift.ToJsonHandler(server.GetMetricsReport))
+                                     .FilterResponse(Filters.GZip)
                                      .LimitRate(100)
             );
 

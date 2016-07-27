@@ -9,6 +9,7 @@ using m.Utils;
 namespace m.Http
 {
     using RequestHandler = Func<IHttpRequest, HttpResponse>;
+    using AsyncRequestHandler = Func<IHttpRequest, Task<HttpResponse>>;
 
     public static class Route
     {
@@ -86,7 +87,7 @@ namespace m.Http
 
     public static class EndpointHelper
     {
-        public static RateLimitedEndpoint LimitRate(this Endpoint ep, int requestsPerSecond, int burstRequestsPerSecond=0)
+        public static Endpoint LimitRate(this Endpoint ep, int requestsPerSecond, int burstRequestsPerSecond=0)
         {
             if (burstRequestsPerSecond == 0)
             {
@@ -94,6 +95,28 @@ namespace m.Http
             }
 
             return new RateLimitedEndpoint(ep.Method, ep.Route, ep.Handler, requestsPerSecond, burstRequestsPerSecond);
+        }
+
+        public static Endpoint FilterResponse(this Endpoint ep, Func<IHttpRequest, HttpResponse, HttpResponse> filter)
+        {
+            AsyncRequestHandler filteredHandler = async req => {
+                var originalResp = await ep.Handler(req);
+                var filteredResp = filter(req, originalResp);
+                return filteredResp;
+            };
+
+            return new Endpoint(ep.Method, ep.Route, filteredHandler);
+        }
+
+        public static Endpoint FilterResponse(this Endpoint ep, Func<IHttpRequest, HttpResponse, Task<HttpResponse>> asyncFilter)
+        {
+            AsyncRequestHandler filteredHandler = async req => {
+                var originalResp = await ep.Handler(req);
+                var filteredResp = await asyncFilter(req, originalResp);
+                return filteredResp;
+            };
+
+            return new Endpoint(ep.Method, ep.Route, filteredHandler);
         }
     }
 }

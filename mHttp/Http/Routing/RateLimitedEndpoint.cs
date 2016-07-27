@@ -27,17 +27,7 @@ namespace m.Http.Routing
 
         static Func<IHttpRequest, Task<HttpResponse>> Wrap(Func<IHttpRequest, Task<HttpResponse>> handler, LeakyBucket rateLimitBucket)
         {
-            return (IHttpRequest request) =>
-            {
-                if (rateLimitBucket.Fill(1))
-                {
-                    return handler(request);
-                }
-                else
-                {
-                    return Task.FromResult(TooManyRequests);
-                }
-            };
+            return request => rateLimitBucket.Fill(1) ? handler(request) : Task.FromResult(TooManyRequests);
         }
 
         public void UpdateRateLimitBucket()
