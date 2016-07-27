@@ -4,10 +4,12 @@ Low footprint fully managed C# HTTP/1.1 server library (.NET 4.5) for standing u
 Developed using [MonoDevelop 5.10](http://www.monodevelop.com/) on [Mono 4.4.1](http://www.mono-project.com/) (on Xubuntu 14.04).
 
 Released under the [MIT License](https://github.com/joongonn/mHttp/blob/master/LICENSE.txt).
-## Demo
-Check out the sample project at [http://mhttp.net](http://mhttp.net).
+# Demo
+Check out the [sample project](https://github.com/joongonn/mHttp/blob/master/mHttp.Sample/Program.cs) at [http://mhttp.net](http://mhttp.net).
 
-## How to build 
+![](https://raw.githubusercontent.com/wiki/joongonn/mHttp/images/demo.png)
+
+# How to build 
 | CI | Platform | Status |
 | ---- | ---- | ---- |
 | Travis CI | Linux/Mono | [![Build Status](https://travis-ci.org/joongonn/mHttp.svg?branch=master)](https://travis-ci.org/joongonn/mHttp) |
@@ -21,7 +23,7 @@ $ xbuild /p:Configuration=Release mHttp.sln
 ```
 To produce the `mHttp.dll` artifact under the `mHttp/bin/Release` directory.
 
-## Hello World
+# Hello World
 This example uses the [Mono C# command-line REPL](http://www.mono-project.com/docs/tools+libraries/tools/repl/).
 
 **1.** Start a C# REPL session, loading the `mHttp.dll` assembly:
@@ -64,7 +66,7 @@ Hello curl/7.35.0
 See the [sample project](https://github.com/joongonn/mHttp/blob/master/mHttp.Sample/Program.cs) for a more involved example.
 
 
-## Performance
+# Performance
 A quick `ab` sampling of the [sample project](https://github.com/joongonn/mHttp/blob/master/mHttp.Sample/Program.cs) at its trivial `/plaintext` endpoint as of **22/7/2016** with the following setup:
 
 * **Server**: i7-3770K; 32gb ram; Xubuntu 14.04.4 LTS
