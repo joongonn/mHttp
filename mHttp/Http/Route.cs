@@ -97,7 +97,7 @@ namespace m.Http
             return new RateLimitedEndpoint(ep.Method, ep.Route, ep.Handler, requestsPerSecond, burstRequestsPerSecond);
         }
 
-        public static Endpoint FilterResponse(this Endpoint ep, Func<IHttpRequest, HttpResponse, HttpResponse> filter)
+        public static Endpoint ApplyResponseFilter(this Endpoint ep, Func<IHttpRequest, HttpResponse, HttpResponse> filter)
         {
             AsyncRequestHandler filteredHandler = async req => {
                 var originalResp = await ep.Handler(req);
@@ -108,7 +108,7 @@ namespace m.Http
             return new Endpoint(ep.Method, ep.Route, filteredHandler);
         }
 
-        public static Endpoint FilterResponse(this Endpoint ep, Func<IHttpRequest, HttpResponse, Task<HttpResponse>> asyncFilter)
+        public static Endpoint ApplyAsyncResponseFilter(this Endpoint ep, Func<IHttpRequest, HttpResponse, Task<HttpResponse>> asyncFilter)
         {
             AsyncRequestHandler filteredHandler = async req => {
                 var originalResp = await ep.Handler(req);
