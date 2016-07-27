@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Net;
 
+using m.Http.Backend;
+
 namespace m.Http
 {
     public sealed class JsonRequest<TReq>

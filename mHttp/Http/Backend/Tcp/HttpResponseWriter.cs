@@ -8,6 +8,7 @@ using m.Utils;
 
 namespace m.Http.Backend.Tcp
 {
+    //TODO: consider avoiding underlying string.Format by going calling WriteAscii() multiple times for each header instead
     static class HttpResponseWriter
     {
         static readonly byte[] CRLF = { 13, 10 };
@@ -39,12 +40,12 @@ namespace m.Http.Backend.Tcp
 
             if (keepAlives > 0)
             {
-                bytesWritten += ms.WriteAsciiFormat("Connection: keep-alive\r\n", keepAlives);
+                bytesWritten += ms.WriteAscii("Connection: keep-alive\r\n");
                 bytesWritten += ms.WriteAsciiFormat("Keep-Alive: timeout={0},max={1}\r\n", (int)keepAliveTimeout.TotalSeconds, keepAlives);
             }
             else
             {
-                bytesWritten += ms.WriteAsciiFormat("Connection: close\r\n", keepAlives);
+                bytesWritten += ms.WriteAscii("Connection: close\r\n");
             }
 
             bytesWritten += ms.Write(CRLF);

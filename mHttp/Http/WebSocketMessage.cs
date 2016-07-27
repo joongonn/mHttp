@@ -55,7 +55,7 @@
 
         public Type MessageType { get; private set; }
 
-        protected WebSocketMessage(Type messageType)
+        WebSocketMessage(Type messageType)
         {
             MessageType = messageType;
         }

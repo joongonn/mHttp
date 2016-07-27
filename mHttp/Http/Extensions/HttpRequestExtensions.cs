@@ -2,6 +2,7 @@
 using System.Net;
 
 using m.Logging;
+using m.Http.Backend;
 
 namespace m.Http.Extensions
 {

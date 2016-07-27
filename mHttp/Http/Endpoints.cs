@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
+using m.Http.Handlers;
 using m.Http.Routing;
 
 namespace m.Http

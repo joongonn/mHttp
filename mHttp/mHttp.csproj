@@ -39,7 +39,6 @@
     <Compile Include="Http\HttpResponse.cs" />
     <Compile Include="Http\Method.cs" />
     <Compile Include="Http\Metrics\Endpoints\StatusCodeCounter.cs" />
-    <Compile Include="Http\RequestException.cs" />
     <Compile Include="Http\Router.cs" />
     <Compile Include="Http\RouteTable.cs" />
     <Compile Include="Http\Routing\Endpoint.cs" />
@@ -73,7 +72,6 @@
     <Compile Include="Http\IWebSocketSession.cs" />
     <Compile Include="Http\IWebSocketUpgradeRequest.cs" />
     <Compile Include="Utils\BufferUtils.cs" />
-    <Compile Include="Http\WebSocketException.cs" />
     <Compile Include="Http\WebSocketMessage.cs" />
     <Compile Include="Http\WebSocketUpgradeResponse.cs" />
     <Compile Include="Http\EndpointAttribute.cs" />
@@ -87,16 +85,17 @@
     <Compile Include="Http\HttpBackend.cs" />
     <Compile Include="Http\BCLHttpListenerBackend.cs" />
     <Compile Include="Http\HttpsBackend.cs" />
-    <Compile Include="Http\Handler.cs" />
     <Compile Include="Http\HttpHeader.cs" />
     <Compile Include="Http\Extensions\HttpRequestExtensions.cs" />
     <Compile Include="Http\Handlers\StaticFileHandler.cs" />
     <Compile Include="Http\Extensions\HttpResponseExtensions.cs" />
-    <Compile Include="Http\Extensions\HandlerExtensions.cs" />
     <Compile Include="Http\Filters.cs" />
     <Compile Include="Http\Metrics\Endpoints\HourlyStatusCodeCounter.cs" />
     <Compile Include="Http\Backend\Tcp\HttpSession.cs" />
     <Compile Include="Http\Backend\RequestStream.cs" />
+    <Compile Include="Http\Backend\RequestException.cs" />
+    <Compile Include="Http\Backend\WebSocketException.cs" />
+    <Compile Include="Http\Handlers\Handler.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

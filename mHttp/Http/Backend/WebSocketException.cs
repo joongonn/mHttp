@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace m.Http
+namespace m.Http.Backend
 {
-    public class WebSocketException : Exception
+    class WebSocketException : Exception
     {
         public WebSocketException(string message) : base(message) { }
 

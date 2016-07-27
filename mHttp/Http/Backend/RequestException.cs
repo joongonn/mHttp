@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Net;
 
-namespace m.Http
+namespace m.Http.Backend
 {
-    public class RequestException : Exception
+    class RequestException : Exception
     {
         public readonly HttpStatusCode HttpStatusCode;
         

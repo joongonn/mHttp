@@ -22,10 +22,6 @@ namespace m.Http
         public static EndpointBuilder Put(string route) => new EndpointBuilder(Method.PUT, route);
 
         public static EndpointBuilder Delete(string route) => new EndpointBuilder(Method.DELETE, route);
-
-        [Obsolete] public static Endpoint ServeDirectory(string route, string directory) => ServeDirectory(route, directory, Compression.GZip);
-
-        [Obsolete] public static Endpoint ServeDirectory(string route, string directory, Func<byte[], byte[]> gzipFunc) => Get(route).With(new StaticFileHandler(route, directory, gzipFunc).Handle);
     }
 
     public sealed class EndpointBuilder

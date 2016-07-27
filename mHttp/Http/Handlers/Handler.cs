@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 using m.Http.Backend;
 
-namespace m.Http
+namespace m.Http.Handlers
 {
     using AsyncRequestHandler = Func<IHttpRequest, Task<HttpResponse>>;
 

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 using m.Config;
 using m.Http;
-using m.Http.Extensions;
 using m.Logging;
 
 namespace m.Sample
