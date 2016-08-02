@@ -3,7 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web;
+
+using m.Http.Backend.Tcp;
+using m.Utils;
 
 namespace m.Http
 {
@@ -82,9 +86,31 @@ namespace m.Http
             Body = body;
         }
 
-        public static implicit operator HttpResponse(string text)
+        virtual internal async Task<int> WriteToAsync(Stream stream, int keepAlives, TimeSpan keepAliveTimeout)
         {
-            return new TextResponse(text);
+            var contentLength = Body?.Length ?? 0;
+
+            using (var ms = new MemoryStream(512 + contentLength))
+            {
+                var statusAndHeaders = HttpResponseWriter.GetStatusAndHeaders((int)StatusCode, StatusDescription, ContentType, contentLength, keepAlives, keepAliveTimeout, Headers);
+                int bytesWritten = ms.Write(statusAndHeaders);
+
+                if (contentLength > 0)
+                {
+                    bytesWritten += ms.Write(Body);
+                }
+
+                try
+                {
+                    await stream.WriteAsync(ms.GetBuffer(), 0, bytesWritten).ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    throw new SessionStreamException("Exception while writing to session stream", e);
+                }
+
+                return bytesWritten;
+            }
         }
     }
 }

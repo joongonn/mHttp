@@ -19,11 +19,13 @@ namespace m.Http
 
         readonly int port;
         readonly string name;
-        readonly int maxKeepAlives;
         readonly int backlog;
-        readonly int sessionReadBufferSize;
-        readonly TimeSpan sessionReadTimeout;
-        readonly TimeSpan sessionWriteTimeout;
+
+        protected readonly int sessionReadBufferSize;
+        protected readonly TimeSpan sessionReadTimeout;
+        protected readonly TimeSpan sessionWriteTimeout;
+        protected readonly int maxKeepAlives;
+
         readonly TcpListener listener;
         readonly LifeCycleToken lifeCycleToken;
 
@@ -142,7 +144,7 @@ namespace m.Http
             HttpSession newSession;
             try
             {
-                newSession = await CreateSession(sessionId, client, maxKeepAlives, sessionReadBufferSize, sessionReadTimeout, sessionWriteTimeout).ConfigureAwait(false);
+                newSession = await CreateSession(sessionId, client).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -158,15 +160,9 @@ namespace m.Http
             await HandleSession(newSession).ConfigureAwait(false);
         }
 
-        internal virtual Task<HttpSession> CreateSession(long sessionId,
-                                                         TcpClient client,
-                                                         int _maxKeepAlives,
-                                                         int _sessionReadBufferSize,
-                                                         TimeSpan _sessionReadTimeout,
-                                                         TimeSpan _sessionWriteTimeout)
-
+        internal virtual Task<HttpSession> CreateSession(long sessionId, TcpClient client)
         {
-            return Task.FromResult(new HttpSession(sessionId, client, client.GetStream(), false, maxKeepAlives, sessionReadBufferSize, sessionReadTimeout, sessionWriteTimeout));
+            return Task.FromResult(new HttpSession(sessionId, client, client.GetStream(), false, maxKeepAlives, sessionReadBufferSize, (int)sessionReadTimeout.TotalMilliseconds, (int)sessionWriteTimeout.TotalMilliseconds));
         }
 
         async Task HandleSession(HttpSession session)
@@ -175,9 +171,9 @@ namespace m.Http
 
             try
             {
-                var continueSession = true;
+                var continueRequestLoop = true;
 
-                while (continueSession && !session.IsDisconnected())
+                while (continueRequestLoop && !session.IsDisconnected()) // request loop
                 {
                     try
                     {
@@ -194,26 +190,32 @@ namespace m.Http
 
                     int requestBytesParsed, responseBytesWritten;
                     HttpRequest request;
-                    while (continueSession && session.TryParseNextRequestFromBuffer(out requestBytesParsed, out request))
+
+                    while (continueRequestLoop && session.TryParseNextRequestFromBuffer(out requestBytesParsed, out request))
                     {
                         Router.HandleResult result = await router.HandleRequest(request, DateTime.UtcNow).ConfigureAwait(false);
                         HttpResponse response = result.HttpResponse;
 
-                        var webSocketUpgradeResponse = response as WebSocketUpgradeResponse;
-                        if (webSocketUpgradeResponse == null)
+                        if (response is WebSocketUpgradeResponse)
                         {
-                            responseBytesWritten = session.WriteResponse(response, request.IsKeepAlive);
-                            continueSession = request.IsKeepAlive && session.KeepAlivesRemaining > 0;
+                            continueRequestLoop = false;
+
+                            var acceptUpgrade = response as WebSocketUpgradeResponse.AcceptUpgradeResponse;
+                            if (acceptUpgrade == null)
+                            {
+                                var rejectUpgrade = (WebSocketUpgradeResponse.RejectUpgradeResponse)response;
+                                responseBytesWritten = await rejectUpgrade.WriteToAsync(session.Stream, 0, sessionReadTimeout).ConfigureAwait(false);
+                            }
+                            else
+                            {
+                                responseBytesWritten = await AcceptWebSocketUpgrade(session, result.MatchedRouteTableIndex, result.MatchedEndpointIndex, acceptUpgrade).ConfigureAwait(false);
+                                closeSessionOnReturn = false;
+                            }
                         }
                         else
                         {
-                            var isUpgraded = HandleWebsocketUpgrade(session,
-                                                                    result.MatchedRouteTableIndex,
-                                                                    result.MatchedEndpointIndex,
-                                                                    webSocketUpgradeResponse,
-                                                                    out responseBytesWritten);
-                            continueSession = false;
-                            closeSessionOnReturn = !isUpgraded;
+                            responseBytesWritten = await response.WriteToAsync(session.Stream, request.IsKeepAlive ? session.KeepAlivesRemaining : 0, sessionReadTimeout).ConfigureAwait(false);
+                            continueRequestLoop = request.IsKeepAlive && session.KeepAlivesRemaining > 0;
                         }
 
                         if (result.MatchedRouteTableIndex >= 0 && result.MatchedEndpointIndex >= 0)
@@ -229,11 +231,11 @@ namespace m.Http
             }
             catch (SessionStreamException)
             {
-                // forced disconnect, socket errors
+                //TODO: count session (networking/io) errors
             }
             catch (Exception e)
             {
-                //TODO: count session-fatal errors (not captured as route table 500s)
+                //TODO: count session-fatal errors (NOT captured as route table 500s)
                 logger.Fatal("Internal server error handling session - {0}", e.ToString());
             }
             finally
@@ -246,41 +248,34 @@ namespace m.Http
             }
         }
 
-        bool HandleWebsocketUpgrade(HttpSession session,
-                                    int routeTableIndex,
-                                    int endpointIndex,
-                                    WebSocketUpgradeResponse response,
-                                    out int responseBytesWritten)
+        async Task<int> AcceptWebSocketUpgrade(HttpSession session,
+                                               int routeTableIndex,
+                                               int endpointIndex,
+                                               WebSocketUpgradeResponse.AcceptUpgradeResponse response)
         {
-            responseBytesWritten = session.WriteWebSocketUpgradeResponse(response);
+            var bytesWritten = await response.WriteToAsync(session.Stream, 0, sessionReadTimeout);
 
-            var acceptUpgradeResponse = response as WebSocketUpgradeResponse.AcceptUpgradeResponse;
-            if (acceptUpgradeResponse == null)
+            var id = Interlocked.Increment(ref acceptedWebSocketSessions);
+            var webSocketSession = new WebSocketSession(id,
+                                                        session.TcpClient,
+                                                        session.Stream,
+                                                        bytesReceived => router.Metrics.CountRequestBytesIn(routeTableIndex, endpointIndex, bytesReceived),
+                                                        bytesSent => router.Metrics.CountResponseBytesOut(routeTableIndex, endpointIndex, bytesSent),
+                                                        () => UntrackWebSocketSession(id),
+                                                        sessionReadBufferSize,
+                                                        (int)sessionReadTimeout.TotalMilliseconds,
+                                                        (int)sessionWriteTimeout.TotalMilliseconds);
+            TrackWebSocketSession(webSocketSession);
+
+            try
             {
-                return false;
+                response.OnAccepted(webSocketSession); //TODO: Task.Run this?
+                return bytesWritten;
             }
-            else
+            catch (Exception)
             {
-                long id = Interlocked.Increment(ref acceptedWebSocketSessions);
-                var webSocketSession = new WebSocketSession(id,
-                                                            session.TcpClient,
-                                                            session.Stream,
-                                                            bytesReceived => router.Metrics.CountRequestBytesIn(routeTableIndex, endpointIndex, bytesReceived),
-                                                            bytesSent => router.Metrics.CountResponseBytesOut(routeTableIndex, endpointIndex, bytesSent),
-                                                            () => UntrackWebSocketSession(id));
-                TrackWebSocketSession(webSocketSession);
-
-                try
-                {
-                    acceptUpgradeResponse.OnAccepted(webSocketSession); //TODO: Task.Run this?
-                    return true;
-                }
-                catch (Exception e)
-                {
-                    UntrackWebSocketSession(id);
-                    logger.Error("Error calling WebSocketUpgradeResponse.OnAccepted callback - {0}", e.ToString());
-                    return false;
-                }
+                UntrackWebSocketSession(id);
+                throw;
             }
         }
 

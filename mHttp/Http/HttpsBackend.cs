@@ -35,17 +35,12 @@ namespace m.Http
             this.sslProtocols = sslProtocols;
         }
 
-        internal override async Task<HttpSession> CreateSession(long sessionId,
-                                                                TcpClient client,
-                                                                int _maxKeepAlives,
-                                                                int _sessionReadBufferSize,
-                                                                TimeSpan _sessionReadTimeout,
-                                                                TimeSpan _sessionWriteTimeout)
+        internal override async Task<HttpSession> CreateSession(long sessionId, TcpClient client)
         {
             var sslStream = new SslStream(client.GetStream());
             await sslStream.AuthenticateAsServerAsync(serverCertificate, false, sslProtocols, false);
 
-            return new HttpSession(sessionId, client, sslStream, true, _maxKeepAlives, _sessionReadBufferSize, _sessionReadTimeout, _sessionWriteTimeout);
+            return new HttpSession(sessionId, client, sslStream, true, maxKeepAlives, sessionReadBufferSize, (int)sessionReadTimeout.TotalMilliseconds, (int)sessionWriteTimeout.TotalMilliseconds);
         }
     }
 }

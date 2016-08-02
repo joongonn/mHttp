@@ -9,16 +9,17 @@ namespace m.Http.Backend.Tcp
     abstract class SessionBase
     {
         public long Id { get; }
-        protected Stream inputStream;
+        internal Stream Stream { get; }
 
         protected byte[] readBuffer;
-        protected int readBufferOffset = 0;
+        protected int readBufferOffset;
 
-        protected SessionBase(long id, Stream inputStream, int initialReadBufferSize)
+        protected SessionBase(long id, Stream stream, int initialReadBufferSize)
         {
             Id = id;
-            this.inputStream = inputStream;
+            Stream = stream;
             readBuffer = new byte[initialReadBufferSize];
+            readBufferOffset = 0;
         }
 
         protected void CompactReadBuffer(ref int dataStart)
@@ -37,14 +38,26 @@ namespace m.Http.Backend.Tcp
 
             try
             {
-                var bytesRead = await inputStream.ReadAsync(readBuffer, readBufferOffset, bufferRemaining).ConfigureAwait(false);
+                var bytesRead = await Stream.ReadAsync(readBuffer, readBufferOffset, bufferRemaining).ConfigureAwait(false);
 
                 readBufferOffset += bytesRead;
                 return bytesRead;
             }
             catch (Exception e)
             {
-                throw new SessionStreamException("Exception while reading from stream", e);
+                throw new SessionStreamException("Exception while reading from session stream", e);
+            }
+        }
+
+        internal void Write(byte[] buffer, int offset, int size)
+        {
+            try
+            {
+                Stream.Write(buffer, offset, size);
+            }
+            catch (Exception e)
+            {
+                throw new SessionStreamException("Exception while writing to session stream", e);
             }
         }
     }

@@ -3,15 +3,12 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 
-using m.Http;
-
 namespace m.Http.Backend.Tcp
 {
     class HttpSession : TcpSessionBase
     {
         readonly bool isSecured;
         readonly int maxKeepAlives;
-        readonly TimeSpan readTimeout;
 
         int dataStart = 0;
         int currentRequestBytes = 0;
@@ -26,12 +23,11 @@ namespace m.Http.Backend.Tcp
                            bool isSecured,
                            int maxKeepAlives,
                            int initialReadBufferSize,
-                           TimeSpan readTimeout,
-                           TimeSpan writeTimeout) : base(id, tcpClient, stream, initialReadBufferSize, (int)writeTimeout.TotalMilliseconds)
+                           int readTimeoutMs,
+                           int writeTimeoutMs) : base(id, tcpClient, stream, initialReadBufferSize, readTimeoutMs, writeTimeoutMs)
         {
             this.isSecured = isSecured;
             this.maxKeepAlives = maxKeepAlives;
-            this.readTimeout = readTimeout;
 
             requestState = null;
         }
@@ -74,28 +70,6 @@ namespace m.Http.Backend.Tcp
                 requestBytes = -1;
                 request = null;
                 return false;
-            }
-        }
-
-        public int WriteResponse(HttpResponse response, bool keepAlive)
-        {
-            using (var outputBuffer = new MemoryStream(512 + response.Body.Length))
-            {
-                int bytesToWrite = HttpResponseWriter.Write(response, outputBuffer, keepAlive ? KeepAlivesRemaining : 0, readTimeout);
-                Write(outputBuffer.GetBuffer(), 0, bytesToWrite);
-
-                return bytesToWrite;
-            }
-        }
-
-        public int WriteWebSocketUpgradeResponse(WebSocketUpgradeResponse response)
-        {
-            using (var outputBuffer = new MemoryStream(512))
-            {
-                int bytesWritten = HttpResponseWriter.WriteWebSocketUpgradeResponse(response, outputBuffer);
-                Write(outputBuffer.GetBuffer(), 0, bytesWritten);
-
-                return bytesWritten;
             }
         }
     }

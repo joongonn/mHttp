@@ -1,89 +1,92 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 
-using m.Utils;
-
 namespace m.Http.Backend.Tcp
 {
-    //TODO: consider avoiding underlying string.Format by going calling WriteAscii() multiple times for each header instead
     static class HttpResponseWriter
     {
-        static readonly byte[] CRLF = { 13, 10 };
         static readonly string Server = string.Format("mHttp {0}", Assembly.GetExecutingAssembly().GetName().Version);
 
-        public static int Write(HttpResponse response, MemoryStream ms, int keepAlives, TimeSpan keepAliveTimeout)
+        public static byte[] GetStatusAndHeaders(int statusCode,
+                                                 string statusDescription,
+                                                 string contentType,
+                                                 int contentLength,
+                                                 int keepAlives,
+                                                 TimeSpan keepAliveTimeout,
+                                                 IDictionary<String, String> headers)
         {
-            var bytesWritten = 0;
+            var sb = new StringBuilder(512);
 
-            bytesWritten += ms.WriteAsciiFormat("HTTP/1.1 {0} {1}\r\n", (int)response.StatusCode, response.StatusDescription);
-            bytesWritten += ms.WriteAsciiFormat("Server: {0}\r\n", Server);
-            bytesWritten += ms.WriteAsciiFormat("Date: {0}\r\n", DateTime.UtcNow.ToString("R"));
+            sb.Append("HTTP/1.1 ").Append(statusCode).Append(" ").Append(statusDescription).Append("\r\n");
 
-            if (!string.IsNullOrEmpty(response.ContentType))
+            sb.Append("Server: ").Append(Server).Append("\r\n");
+            sb.Append("Date: ").Append(DateTime.UtcNow.ToString("R")).Append("\r\n");
+            if (!string.IsNullOrEmpty(contentType))
             {
-                bytesWritten += ms.WriteAsciiFormat("Content-Type: {0}\r\n", response.ContentType);
+                sb.Append("Content-Type: ").Append(contentType).Append("\r\n");
             }
-            var contentLength = response.Body == null ? 0 : response.Body.Length;
-            bytesWritten += ms.WriteAsciiFormat("Content-Length: {0}\r\n", contentLength);
+            sb.Append("Content-Length: ").Append(contentLength).Append("\r\n");
 
-            var headers = response.Headers;
             if (headers?.Count > 0)
             {
                 foreach (var kvp in headers) //TODO: duplicate handling with fixed headers
                 {
-                    bytesWritten += ms.WriteAsciiFormat("{0}: {1}\r\n", kvp.Key, kvp.Value);
+                    sb.Append(kvp.Key).Append(": ").Append(kvp.Value).Append("\r\n");
                 }
             }
 
             if (keepAlives > 0)
             {
-                bytesWritten += ms.WriteAscii("Connection: keep-alive\r\n");
-                bytesWritten += ms.WriteAsciiFormat("Keep-Alive: timeout={0},max={1}\r\n", (int)keepAliveTimeout.TotalSeconds, keepAlives);
+                sb.Append("Connection: keep-alive\r\n");
+                sb.Append("Keep-Alive: timeout=").Append((int)keepAliveTimeout.TotalSeconds).Append(",max=").Append("keepAlives").Append("\r\n");
             }
             else
             {
-                bytesWritten += ms.WriteAscii("Connection: close\r\n");
+                sb.Append("Connection: close\r\n");
             }
 
-            bytesWritten += ms.Write(CRLF);
+            sb.Append("\r\n");
 
-            if (contentLength > 0)
-            {
-                bytesWritten += ms.Write(response.Body);
-            }
-
-            return bytesWritten;
+            return Encoding.ASCII.GetBytes(sb.ToString());
         }
 
-        public static int WriteWebSocketUpgradeResponse(WebSocketUpgradeResponse response, MemoryStream ms)
+        public static byte[] GetAcceptWebSocketUpgradeResponse(int statusCode, string statusDescription, string requestKey)
         {
-            var bytesWritten = 0;
+            var sb = new StringBuilder(512);
 
-            bytesWritten += ms.WriteAsciiFormat("HTTP/1.1 {0} {1}\r\n", (int)response.StatusCode, response.StatusDescription);
-            bytesWritten += ms.WriteAsciiFormat("Server: {0}\r\n", Server);
-            bytesWritten += ms.WriteAsciiFormat("Date: {0}\r\n", DateTime.UtcNow.ToString("R"));
+            sb.Append("HTTP/1.1 ").Append(statusCode).Append(" ").Append(statusDescription).Append("\r\n");
 
-            var acceptResponse = response as WebSocketUpgradeResponse.AcceptUpgradeResponse;
-            if (acceptResponse != null)
-            {
-                var acceptKey = Encoding.UTF8.GetBytes(acceptResponse.RequestKey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
-                var acceptKeyHash = Convert.ToBase64String(SHA1.Create().ComputeHash(acceptKey));
+            sb.Append("Server: ").Append(Server).Append("\r\n");
+            sb.Append("Date: ").Append(DateTime.UtcNow.ToString("R")).Append("\r\n");
 
-                bytesWritten += ms.WriteAscii("Connection: upgrade\r\n");
-                bytesWritten += ms.WriteAscii("Upgrade: websocket\r\n");
-                bytesWritten += ms.WriteAsciiFormat("Sec-WebSocket-Accept: {0}\r\n", acceptKeyHash);
-            }
-            else // Reject
-            {
-                bytesWritten += ms.WriteAscii("Connection: close\r\n");
-            }
+            var acceptKey = Encoding.ASCII.GetBytes(requestKey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
+            var acceptKeyHash = Convert.ToBase64String(SHA1.Create().ComputeHash(acceptKey));
 
-            bytesWritten += ms.Write(CRLF);
+            sb.Append("Connection: upgrade\r\n");
+            sb.Append("Upgrade: websocket\r\n");
+            sb.Append("Sec-WebSocket-Accept: ").Append(acceptKeyHash).Append("\r\n");
 
-            return bytesWritten;
+            sb.Append("\r\n");
+
+            return Encoding.ASCII.GetBytes(sb.ToString());
+        }
+
+        public static byte[] GetRejectWebSocketUpgradeResponse(int statusCode, string statusDescription)
+        {
+            var sb = new StringBuilder(512);
+
+            sb.Append("HTTP/1.1 ").Append(statusCode).Append(" ").Append(statusDescription).Append("\r\n");
+
+            sb.Append("Server: ").Append(Server).Append("\r\n");
+            sb.Append("Date: ").Append(DateTime.UtcNow.ToString("R")).Append("\r\n");
+            sb.Append("Connection: close\r\n");
+
+            sb.Append("\r\n");
+
+            return Encoding.ASCII.GetBytes(sb.ToString());
         }
     }
 }
