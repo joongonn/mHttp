@@ -5,7 +5,7 @@ namespace m.Utils
 {
     public static class Compression
     {
-        public static byte[] GZip(this byte[] bytes)
+        public static byte[] GZip(byte[] bytes)
         {
             using (var ms = new MemoryStream())
             {

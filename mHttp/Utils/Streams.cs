@@ -28,12 +28,6 @@ namespace m.Utils
             return content.Length;
         }
 
-        public static async Task<int> WriteAsync(this Stream stream, byte[] content)
-        {
-            await stream.WriteAsync(content, 0, content.Length);
-            return content.Length;
-        }
-
         public static int WriteUTF8(this Stream stream, string content)
         {
             return stream.Write(content, Encoding.UTF8);

@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.IO;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 
 using m.Config;
@@ -47,7 +48,7 @@ namespace m.Sample
 
                     while (session.IsOpen)
                     {
-                        var message = await session.ReadNextMessageAsync();
+                        var message = await session.ReadNextMessageAsync().ConfigureAwait(false);
 
                         switch (message.MessageType)
                         {
@@ -111,6 +112,10 @@ namespace m.Sample
 
         public static void Main(string[] args)
         {
+            var procs = Environment.ProcessorCount;
+            ThreadPool.SetMaxThreads(procs, Math.Max(1, procs / 4));
+            ThreadPool.SetMaxThreads(procs * 2, Math.Max(1, procs / 2));
+            
             LoggingProvider.Use(LoggingProvider.ConsoleLoggingProvider);
 
             var config = ConfigManager.Load<ServerConfig>();

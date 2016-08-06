@@ -37,12 +37,16 @@ namespace m.Http
             var resp2 = result2.HttpResponse;
             Assert.IsInstanceOf<TextResponse>(resp2);
             Assert.AreEqual(ContentTypes.Plain, resp2.ContentType);
-            Assert.AreEqual("one", System.Text.Encoding.UTF8.GetString(resp2.Body));
+            using (var ms = new MemoryStream())
+            {
+                var bytesWritten = await resp2.Body.WriteToAsync(ms);
+                Assert.AreEqual("one".Length, bytesWritten);
+                Assert.AreEqual("one", System.Text.Encoding.UTF8.GetString(ms.GetBuffer(), 0, bytesWritten));
+            }
 
             var req3 = new HttpRequest(RemoteEndPoint, false, "localhost", Method.GET, new Uri("http://localhost/8/capture"), "/8/capture", string.Empty, new Dictionary<string, string>(), ContentTypes.Plain, 0, false, new MemoryStream());
             await router.HandleRequest(req3, DateTime.UtcNow);
             Assert.AreEqual("8", req3.PathVariables["number"]);
-
         }
     }
 }

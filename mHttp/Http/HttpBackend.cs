@@ -144,6 +144,11 @@ namespace m.Http
             HttpSession newSession;
             try
             {
+                //TODO: configurable
+                client.NoDelay = true;
+                client.SendBufferSize = 8192;
+                client.ReceiveBufferSize = 8192;
+
                 newSession = await CreateSession(sessionId, client).ConfigureAwait(false);
             }
             catch (Exception e)
@@ -253,7 +258,7 @@ namespace m.Http
                                                int endpointIndex,
                                                WebSocketUpgradeResponse.AcceptUpgradeResponse response)
         {
-            var bytesWritten = await response.WriteToAsync(session.Stream, 0, sessionReadTimeout);
+            var bytesWritten = await response.WriteToAsync(session.Stream, 0, sessionReadTimeout).ConfigureAwait(false);
 
             var id = Interlocked.Increment(ref acceptedWebSocketSessions);
             var webSocketSession = new WebSocketSession(id,

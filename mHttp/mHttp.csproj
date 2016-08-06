@@ -96,6 +96,7 @@
     <Compile Include="Http\Backend\RequestException.cs" />
     <Compile Include="Http\Backend\WebSocketException.cs" />
     <Compile Include="Http\Handlers\Handler.cs" />
+    <Compile Include="Http\HttpBody.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

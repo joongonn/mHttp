@@ -101,7 +101,7 @@ namespace m.Http
                 try
                 {
                     HttpRequest httpReq = ctx.Request;
-                    var result = await router.HandleRequest(httpReq, requestArrivedOn);
+                    var result = await router.HandleRequest(httpReq, requestArrivedOn).ConfigureAwait(false);
                     httpResp = result.HttpResponse;
                 }
                 catch (Exception e)
@@ -115,10 +115,10 @@ namespace m.Http
                 httpResp = ServiceUnavailable;
             }
 
-            WriteAndCloseResponse(httpResp, ctx.Response);
+            await WriteAndCloseResponse(httpResp, ctx.Response).ConfigureAwait(false);
         }
 
-        static void WriteAndCloseResponse(HttpResponse httpResp, HttpListenerResponse respCtx)
+        static async Task WriteAndCloseResponse(HttpResponse httpResp, HttpListenerResponse respCtx)
         {
             try
             {
@@ -135,18 +135,19 @@ namespace m.Http
                 }
 
                 var body = httpResp.Body;
-                if (body != null && body.Length > 0)
+                if (body.Length > 0)
                 {
                     respCtx.ContentLength64 = body.Length;
-                    respCtx.OutputStream.Write(body, 0, body.Length);
+                    await body.WriteToAsync(respCtx.OutputStream).ConfigureAwait(false);
                     respCtx.OutputStream.Flush();
                     respCtx.OutputStream.Close();
                 }
 
                 respCtx.Close();
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Console.WriteLine(e);
                 return;
             }
         }

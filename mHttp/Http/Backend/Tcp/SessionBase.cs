@@ -45,7 +45,7 @@ namespace m.Http.Backend.Tcp
             }
             catch (Exception e)
             {
-                throw new SessionStreamException("Exception while reading from session stream", e);
+                throw new SessionStreamException("Exception while reading from stream", e);
             }
         }
 
@@ -57,7 +57,7 @@ namespace m.Http.Backend.Tcp
             }
             catch (Exception e)
             {
-                throw new SessionStreamException("Exception while writing to session stream", e);
+                throw new SessionStreamException("Exception writing to stream", e);
             }
         }
     }

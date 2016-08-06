@@ -15,8 +15,11 @@ namespace m.Http.Backend.Tcp
                                  int writeTimeoutMs) : base(id, stream, initialReadBufferSize)
         {
             TcpClient = tcpClient;
-            TcpClient.NoDelay = true;
-            stream.ReadTimeout = readTimeoutMs; // Does NOT take effect in asyncs
+           
+            // Timeouts does NOT take effect in asyncs
+            TcpClient.SendTimeout = writeTimeoutMs;
+            TcpClient.ReceiveTimeout = readTimeoutMs;
+            stream.ReadTimeout = readTimeoutMs; 
             stream.WriteTimeout = writeTimeoutMs;
         }
 

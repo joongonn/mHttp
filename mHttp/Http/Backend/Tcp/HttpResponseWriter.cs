@@ -13,7 +13,7 @@ namespace m.Http.Backend.Tcp
         public static byte[] GetStatusAndHeaders(int statusCode,
                                                  string statusDescription,
                                                  string contentType,
-                                                 int contentLength,
+                                                 long contentLength,
                                                  int keepAlives,
                                                  TimeSpan keepAliveTimeout,
                                                  IDictionary<String, String> headers)

@@ -54,7 +54,7 @@ namespace m.DB
         protected async override Task<IDbConnection> AcquireNewResourceAsync()
         {
             var conn = new MySqlConnection(connectionString);
-            await Task.Run((Action)conn.Open); // await MySqlConnection.OpenAsync() doesn't yield?
+            await Task.Run((Action)conn.Open).ConfigureAwait(false); // await MySqlConnection.OpenAsync() doesn't yield?
 
             return conn;
         }

@@ -32,7 +32,7 @@ namespace m.Http
             return async (IHttpRequest req) =>
             {
                 JsonRequest<TReq> jsonReq = JsonRequest<TReq>.From(req);
-                TResp resp = await f(jsonReq.Req);
+                TResp resp = await f(jsonReq.Req).ConfigureAwait(false);
                 return new JsonResponse(resp);
             };
         }

@@ -38,7 +38,7 @@ namespace m.Http
         internal override async Task<HttpSession> CreateSession(long sessionId, TcpClient client)
         {
             var sslStream = new SslStream(client.GetStream());
-            await sslStream.AuthenticateAsServerAsync(serverCertificate, false, sslProtocols, false);
+            await sslStream.AuthenticateAsServerAsync(serverCertificate, false, sslProtocols, false).ConfigureAwait(false);
 
             return new HttpSession(sessionId, client, sslStream, true, maxKeepAlives, sessionReadBufferSize, (int)sessionReadTimeout.TotalMilliseconds, (int)sessionWriteTimeout.TotalMilliseconds);
         }

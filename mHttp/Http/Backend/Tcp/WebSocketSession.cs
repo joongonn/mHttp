@@ -190,7 +190,7 @@ namespace m.Http.Backend.Tcp
                 int bytesRead;
                 try
                 {
-                    bytesRead = await ReadToBufferAsync();
+                    bytesRead = await ReadToBufferAsync().ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {

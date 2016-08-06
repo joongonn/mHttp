@@ -28,21 +28,19 @@ namespace m.Http
                 OnAccepted = onAccepted;
             }
 
-            internal override async Task<int> WriteToAsync(Stream stream, int keepAlives, TimeSpan keepAliveTimeout)
+            internal override async Task<int> WriteToAsync(Stream toStream, int keepAlives, TimeSpan keepAliveTimeout)
             {
                 var response = HttpResponseWriter.GetAcceptWebSocketUpgradeResponse((int)StatusCode, StatusDescription, RequestKey);
-                int bytesWritten = response.Length;
 
                 try
                 {
-                    await stream.WriteAsync(response, 0, bytesWritten);
+                    await toStream.WriteAsync(response, 0, response.Length).ConfigureAwait(false);
+                    return response.Length;
                 }
                 catch (Exception e)
                 {
-                    throw new SessionStreamException("Exception while writing to session stream", e);
+                    throw new SessionStreamException("Exception writing to stream", e);
                 }
-
-                return bytesWritten;
             }
         }
 
@@ -50,21 +48,19 @@ namespace m.Http
         {
             internal RejectUpgradeResponse(HttpStatusCode reason) : base(reason) { }
 
-            internal override async Task<int> WriteToAsync(Stream stream, int keepAlives, TimeSpan keepAliveTimeout)
+            internal override async Task<int> WriteToAsync(Stream toStream, int keepAlives, TimeSpan keepAliveTimeout)
             {
                 var response = HttpResponseWriter.GetRejectWebSocketUpgradeResponse((int)StatusCode, StatusDescription);
-                int bytesWritten = response.Length;
 
                 try
                 {
-                    await stream.WriteAsync(response, 0, bytesWritten);
+                    await toStream.WriteAsync(response, 0, response.Length).ConfigureAwait(false);
+                    return response.Length;
                 }
                 catch (Exception e)
                 {
-                    throw new SessionStreamException("Exception while writing to session stream", e);
+                    throw new SessionStreamException("Exception writing to stream", e);
                 }
-
-                return bytesWritten;
             }
         }
 

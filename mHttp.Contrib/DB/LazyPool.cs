@@ -43,12 +43,12 @@ namespace m.DB
 
         public async Task<PooledResource<TResource>> GetAsync()
         {
-            return await GetAsync(PoolTimeout);
+            return await GetAsync(PoolTimeout).ConfigureAwait(false);
         }
 
         public async Task<PooledResource<TResource>> GetAsync(TimeSpan poolTimeout)
         {
-            if (await pool.WaitAsync(poolTimeout))
+            if (await pool.WaitAsync(poolTimeout).ConfigureAwait(false))
             {
                 TResource resource;
 
@@ -67,7 +67,7 @@ namespace m.DB
                 // 2. Else grow (increment) pool by one
                 try
                 {
-                    resource = await AcquireNewResourceAsync();
+                    resource = await AcquireNewResourceAsync().ConfigureAwait(false);
                     Interlocked.Increment(ref currentPoolSize);
                     logger.Info("{0}: Created new pooled resource", this);
 
