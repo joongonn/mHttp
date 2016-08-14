@@ -7,6 +7,11 @@ ul {
 a {
   text-decoration:underline;
 }
+ul {
+  font-family: monospace;
+  list-style-position: inside;
+  padding-left: 0;
+}
 .container {
   width: 900px;
 }
@@ -22,7 +27,7 @@ a {
   font-family: monospace;
   background-color: #fff;
 }
-.table-container > table > thead > tr > th {
+table > thead > tr > th {
   color: #000;
   background-color: #eee;
 }

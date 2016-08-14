@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -41,6 +42,8 @@ namespace m.Http
         int maxConnectedSessions = 0;
         int maxConnectedWebSocketSessions = 0;
 
+        readonly CountingDictionary<Type> sessionExceptionCounters;
+
         Router router;
 
         public HttpBackend(IPAddress address,
@@ -62,6 +65,8 @@ namespace m.Http
             sessionTable = new ConcurrentDictionary<long, HttpSession>();
             sessionReads = new ConcurrentDictionary<long, long>();
             webSocketSessionTable = new ConcurrentDictionary<long, WebSocketSession>();
+
+            sessionExceptionCounters = new CountingDictionary<Type>();
 
             name = string.Format("{0}({1}:{2})", GetType().Name, address, port);
 
@@ -232,16 +237,17 @@ namespace m.Http
             }
             catch (RequestException e)
             {
+                sessionExceptionCounters.Count(e.GetType());
                 logger.Warn("Error parsing or bad request - {0}", e.Message);
             }
-            catch (SessionStreamException)
+            catch (SessionStreamException e)
             {
-                //TODO: count session (networking/io) errors
+                sessionExceptionCounters.Count(e.GetType());
             }
             catch (Exception e)
             {
-                //TODO: count session-fatal errors (NOT captured as route table 500s)
-                logger.Fatal("Internal server error handling session - {0}", e.ToString());
+                sessionExceptionCounters.Count(e.GetType());
+                logger.Fatal("Error handling session - {0}", e.ToString());
             }
             finally
             {
@@ -371,7 +377,8 @@ namespace m.Http
                         MaxRate = sessionRate.MaxRate,
                         Current = sessionTable.Count,
                         Max = maxConnectedSessions,
-                        Total = acceptedSessions
+                        Total = acceptedSessions,
+                        Errors = sessionExceptionCounters.ToDictionary(kvp => kvp.Key.FullName, kvp => kvp.Value.Count)
                     },
                     WebSocketSessions = new {
                         Current = webSocketSessionTable.Count,

@@ -97,6 +97,7 @@
     <Compile Include="Http\Backend\WebSocketException.cs" />
     <Compile Include="Http\Handlers\Handler.cs" />
     <Compile Include="Http\HttpBody.cs" />
+    <Compile Include="Utils\CountingDictionary.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

@@ -4,6 +4,10 @@ app.factory('MetricsService', ['$resource', function($resource) {
     var hoursToGraph = 1 * 24;
     var processMetricsResponse = function(response) {
         var metrics = response.data;
+
+        var sessionsErrors = metrics.Backend.Sessions.Errors;
+        metrics.Backend.Sessions.$totalErrors = _.reduce(_.values(sessionsErrors), function(z, count) { return z + count; }, 0);
+
         _.each(metrics.HostReports[0].Endpoints, function(endpoint) {
             endpoint.$endpointId = endpoint.Method + ':' + endpoint.Route;
 
@@ -61,6 +65,10 @@ app.controller('MetricsController', ['$rootScope', '$scope', 'MetricsService', f
                     };
                 });
 
+                result.Backend.Sessions.$showTotalErrors = function() {
+                    $rootScope.$broadcast('showTotalErrors', result.Backend.Sessions.Errors);
+                };
+
                 $scope.metrics = result;
             },
             function() {
@@ -71,6 +79,14 @@ app.controller('MetricsController', ['$rootScope', '$scope', 'MetricsService', f
     $scope.refreshMetrics = refreshMetrics;
 
     $rootScope.$on('refreshMetrics', refreshMetrics);
+}]);
+
+app.controller('SessionsErrorsController', ['$rootScope', '$scope', function($rootScope, $scope) {
+    $scope.errors = {};
+    $rootScope.$on('showTotalErrors', function(evt, args) {
+        $scope.errors = args;
+        $('#sessionsErrorsModal').modal('show');
+    });
 }]);
 
 app.controller('ResponsesGraphController', ['$rootScope', '$scope', function($rootScope, $scope) {
